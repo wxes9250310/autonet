@@ -1,0 +1,71 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.14.0.0
+Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: A A A Flex license: MDK-ARM Standard: 1 user(s) (mdk_std) Support: Jun 2015
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Standard: 1 user(s)  Version: 5.14.0.0
+Toolchain Path:  D:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.05 update 1 (build 106)
+Assembler:       Armasm.exe V5.05 update 1 (build 106)
+Linker/Locator:  ArmLink.exe V5.05 update 1 (build 106)
+Library Manager: ArmAr.exe V5.05 update 1 (build 106)
+Hex Converter:   FromElf.exe V5.05 update 1 (build 106)
+CPU DLL:         SARMCM3.DLL V5.14.0.0
+Dialog DLL:      DARMCM1.DLL V1.12.0.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.14.0_KEIL
+Dialog DLL:      TARMCM1.DLL V1.9.0.0
+ 
+<h2>Project:</h2>
+D:\Dropbox\M0 project\AutoNet_0613\AutoNet\0088-V-U-038-A\MDK-ARM\0088-V-U-038-A.uvprojx
+Project File Date:  06/09/2015
+
+<h2>Output:</h2>
+Build target '0088-V-U-038-A'
+compiling main.c...
+..\..\0088-V-U-038-A\DRV\autonetAPIs.h(31): warning:  #1295-D: Deprecated declaration InitialCheck - give arg types
+  void InitialCheck();
+..\main.c(20): warning:  #1295-D: Deprecated declaration app_light_direction - give arg types
+  void app_light_direction();
+..\main.c(21): warning:  #1295-D: Deprecated declaration app_control_light - give arg types
+  void app_control_light();
+..\main.c(141): error:  #29: expected an expression
+                          if(Device_Type == )
+..\main.c(119): warning:  #177-D: variable "state" was declared but never referenced
+          uint8_t state;
+..\main.c(120): warning:  #177-D: variable "detect" was declared but never referenced
+          uint8_t detect;
+..\main.c(121): warning:  #177-D: variable "IR_Buffer_Length1" was declared but never referenced
+          uint8_t* IR_Buffer_Length1;
+..\main.c(122): warning:  #177-D: variable "IR_Buffer_Length2" was declared but never referenced
+          uint8_t* IR_Buffer_Length2;
+..\main.c(155): warning:  #550-D: variable "state" was set but never used
+          uint8_t state;
+..\main.c(156): warning:  #550-D: variable "detect" was set but never used
+          uint8_t detect;
+..\main.c(157): warning:  #177-D: variable "IR_Buffer_Length1" was declared but never referenced
+          uint8_t* IR_Buffer_Length1;
+..\main.c: 10 warnings, 1 error
+compiling autonetAPIs.c...
+..\DRV\autonetAPIs.h(31): warning:  #1295-D: Deprecated declaration InitialCheck - give arg types
+  void InitialCheck();
+..\DRV\autonetAPIs.c(192): warning:  #223-D: function "Timer_Beacon" declared implicitly
+                 Timer_Beacon(1000);
+..\DRV\autonetAPIs.c(197): warning:  #223-D: function "Timer_Beacon" declared implicitly
+                 Timer_Beacon(2000);
+..\DRV\autonetAPIs.c: 3 warnings, 0 errors
+".\Build\AutoNet.axf" - 1 Error(s), 13 Warning(s).
+
+<h2>Collection of Component include folders:</h2>
+  D:\Dropbox\M0 project\AutoNet_0613\AutoNet\0088-V-U-038-A\MDK-ARM\RTE
+  D:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.4.0\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+Target not created.
+</pre>
+</body>
+</html>

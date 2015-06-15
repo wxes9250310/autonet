@@ -1,0 +1,157 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.13.0.0
+Copyright (C) 2014 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: A A, A, LIC=----
+ 
+Tool Versions:
+Toolchain:       MDK-Lite  Version: 5.13.0.0
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.05 update 1 (build 106)
+Assembler:       Armasm.exe V5.05 update 1 (build 106)
+Linker/Locator:  ArmLink.exe V5.05 update 1 (build 106)
+Library Manager: ArmAr.exe V5.05 update 1 (build 106)
+Hex Converter:   FromElf.exe V5.05 update 1 (build 106)
+CPU DLL:         SARMCM3.DLL V5.13.0.0
+Dialog DLL:      DARMCM1.DLL V1.12.0.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.14.0_KEIL
+Dialog DLL:      TARMCM1.DLL V1.9.0.0
+ 
+<h2>Project:</h2>
+C:\Users\Eddy\Dropbox\M0 project\AutoNet_0530\EndDevice\0088-V-U-038-A\MDK-ARM\0088-V-U-038-A.uvprojx
+Project File Date:  05/29/2015
+
+<h2>Output:</h2>
+Build target '0088-V-U-038-A'
+compiling stm32f0xx_adc.c...
+compiling stm32f0xx_cec.c...
+compiling stm32f0xx_comp.c...
+compiling stm32f0xx_crc.c...
+compiling stm32f0xx_dac.c...
+compiling stm32f0xx_dbgmcu.c...
+compiling stm32f0xx_dma.c...
+compiling stm32f0xx_exti.c...
+compiling stm32f0xx_flash.c...
+compiling stm32f0xx_gpio.c...
+compiling stm32f0xx_i2c.c...
+compiling stm32f0xx_iwdg.c...
+compiling stm32f0xx_misc.c...
+compiling stm32f0xx_pwr.c...
+compiling stm32f0xx_rcc.c...
+compiling stm32f0xx_rtc.c...
+compiling stm32f0xx_spi.c...
+compiling stm32f0xx_syscfg.c...
+compiling stm32f0xx_tim.c...
+compiling stm32f0xx_usart.c...
+compiling stm32f0xx_wwdg.c...
+assembling startup_stm32f0xx.s...
+compiling system_stm32f0xx.c...
+compiling main.c...
+..\main.c(95): warning:  #177-D: variable "flag1" was declared but never referenced
+        uint8_t flag1;
+..\main.c(96): warning:  #177-D: variable "i" was declared but never referenced
+        uint8_t i;
+..\main.c(97): warning:  #177-D: variable "state" was declared but never referenced
+        uint8_t state = 0xFF;
+..\main.c(98): warning:  #177-D: variable "light_flag" was declared but never referenced
+        uint8_t light_flag = 0;
+..\main.c(99): warning:  #177-D: variable "TxData" was declared but never referenced
+        uint8_t TxData[30];  
+..\main.c(100): warning:  #177-D: variable "RxData" was declared but never referenced
+        uint8_t RxData[30]; 
+..\main.c(101): warning:  #177-D: variable "dataLen" was declared but never referenced
+        uint8_t dataLen;
+..\main.c(102): warning:  #177-D: variable "tmp_ADDR" was declared but never referenced
+        uint16_t tmp_ADDR, master_ADDR;
+..\main.c(102): warning:  #177-D: variable "master_ADDR" was declared but never referenced
+        uint16_t tmp_ADDR, master_ADDR;
+..\main.c(104): warning:  #177-D: variable "heading" was declared but never referenced
+        int heading;
+..\main.c(105): warning:  #177-D: variable "speed" was declared but never referenced
+        int     speed;
+..\main.c(106): warning:  #177-D: variable "Num" was declared but never referenced
+        uint8_t Num, Num1, Num2, Num3;
+..\main.c(106): warning:  #177-D: variable "Num1" was declared but never referenced
+        uint8_t Num, Num1, Num2, Num3;
+..\main.c(106): warning:  #177-D: variable "Num2" was declared but never referenced
+        uint8_t Num, Num1, Num2, Num3;
+..\main.c(106): warning:  #177-D: variable "Num3" was declared but never referenced
+        uint8_t Num, Num1, Num2, Num3;
+..\main.c(107): warning:  #177-D: variable "txLength" was declared but never referenced
+        uint8_t txLength;
+..\main.c(108): warning:  #177-D: variable "addr_array" was declared but never referenced
+        uint16_t *addr_array;
+..\main.c(109): warning:  #177-D: variable "addr_array1" was declared but never referenced
+        uint16_t *addr_array1;
+..\main.c(110): warning:  #177-D: variable "addr_array2" was declared but never referenced
+        uint16_t *addr_array2;
+..\main.c(111): warning:  #177-D: variable "addr_array3" was declared but never referenced
+        uint16_t *addr_array3;
+..\main.c(112): warning:  #177-D: variable "attribute" was declared but never referenced
+        uint8_t attribute;
+..\main.c(113): warning:  #177-D: variable "center" was declared but never referenced
+        uint16_t center;
+..\main.c(114): warning:  #177-D: variable "difference" was declared but never referenced
+        uint8_t difference;
+..\main.c(136): warning:  #940-D: missing return statement at end of non-void function "AutoNet_Group"
+  }
+..\main.c(141): warning:  #940-D: missing return statement at end of non-void function "Group_Diff"
+  }
+..\main.c: 25 warnings, 0 errors
+compiling stm32f0xx_it.c...
+compiling spi.c...
+compiling st.c...
+compiling i2c.c...
+compiling ak8975APIs.c...
+compiling bh1750fviAPIs.c...
+compiling lea6sAPIs.c...
+..\DRV\lea6sAPIs.c(62): warning:  #550-D: parameter "Lat_deg" was set but never used
+  void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+..\DRV\lea6sAPIs.c(62): warning:  #550-D: parameter "Lat_min" was set but never used
+  void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+..\DRV\lea6sAPIs.c(62): warning:  #550-D: parameter "Lat_sec" was set but never used
+  void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+..\DRV\lea6sAPIs.c(62): warning:  #550-D: parameter "Long_deg" was set but never used
+  void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+..\DRV\lea6sAPIs.c(62): warning:  #550-D: parameter "Long_min" was set but never used
+  void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+..\DRV\lea6sAPIs.c(62): warning:  #550-D: parameter "Long_sec" was set but never used
+  void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+..\DRV\lea6sAPIs.c(62): warning:  #550-D: parameter "Lat_dir" was set but never used
+  void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+..\DRV\lea6sAPIs.c(62): warning:  #550-D: parameter "Long_dir" was set but never used
+  void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+..\DRV\lea6sAPIs.c: 8 warnings, 0 errors
+compiling mag3110APIs.c...
+compiling mcp2120APIs.c...
+..\DRV\mcp2120APIs.c(107): warning:  #550-D: variable "Checksum" was set but never used
+    unsigned char Checksum = 0;
+..\DRV\mcp2120APIs.c: 1 warning, 0 errors
+compiling mpu6050APIs.c...
+compiling tmp75APIs.c...
+compiling us2400APIs.c...
+compiling TxRx.c...
+..\TxRx.c(187): warning:  #550-D: parameter "RxData" was set but never used
+  uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length){
+..\TxRx.c(424): warning:  #186-D: pointless comparison of unsigned integer with zero
+          if(data[0+RX_OFFSET] >= 0x00 && data[0+RX_OFFSET] <= 0x04)
+..\TxRx.c: 2 warnings, 0 errors
+compiling com.c...
+compiling autonetAPIs.c...
+linking...
+.\Build\0088-V-U-038-A.axf: error: L6047U: The size of this image (33060 bytes) exceeds the maximum allowed for this version of the linker
+Finished: 0 information, 0 warning, 0 error and 1 fatal error messages.
+".\Build\0088-V-U-038-A.axf" - 1 Error(s), 36 Warning(s).
+
+<h2>Collection of Component include folders:</h2>
+  C:\Users\Eddy\Dropbox\M0 project\AutoNet_0530\EndDevice\0088-V-U-038-A\MDK-ARM\RTE
+  C:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.2.0\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+Target not created.
+</pre>
+</body>
+</html>
