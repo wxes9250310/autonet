@@ -37,6 +37,9 @@ enum{
 	Switch = 0x0002,
 };
 
+enum{
+	Message_Light,
+};
 
 int main(void)
 {
@@ -116,10 +119,16 @@ void app_control_light(){
 		uint16_t radio_panID;
 		uint16_t srcAddr;
 		uint8_t Device_Type;
+	
+	  uint8_t openLightFlag;
 	  uint8_t state;
-	  uint8_t detect;
-	  uint8_t* IR_Buffer_Length1;
-	  uint8_t* IR_Buffer_Length2;
+	  uint8_t detect;  
+	
+	  uint8_t TxData[256];  
+		uint8_t RxData[256];
+		uint8_t Rx_DataLen;
+		uint8_t Rx_Payload[256];
+		uint16_t addr_array[10];
 	
 	  Device_Type = Light;
 		srcAddr = 0x0000;
@@ -129,22 +138,37 @@ void app_control_light(){
 		radio_panID = 0x00AA;
 		Initialization(radio_freq, radio_panID, srcAddr);
 		
-	
-	
-		setTimer(1, 100, UNIT_MS);
-		setTimer(2, 200, UNIT_MS);
+		setTimer(1, 200, UNIT_MS);
+		setTimer(2, 1000, UNIT_MS);
 
-	  
-	
 		while(1){ 	
 			
-			  if(Device_Type == Type_Light){
+			// automatically broadcast for some defined devices
+			if(Device_Type == Type_Light){
 					RF_beacon();  // broadcast beacon information
+			}
+			else{
+			}
+			
+			if(checkTimer(1)){
+			  RF_Rx(RxData,&Rx_DataLen);
+				if(RxData[0] == Message_Light){		// command 
+					if(RxData[1] == Type_Light){		// check whether the device should open the light or not
+						openLightFlag = RxData[2];
+						if(openLightFlag == 1){
+							PIN_ON(1);
+						}
+					}
+					else if(Device_Type == Type_Controller){
+						
+					}
 			  }
-				else if(Device_Type == Type_Controller){
-					
-				}
-		}
+			}
+			
+			if(checkTimer(2)){
+				PIN_OFF(1);
+			}
+	}
 }
 
 
