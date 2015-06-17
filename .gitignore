@@ -4,4 +4,6 @@
 *.pdf
 *.axf
 *.hex
+*.htm
+*.dep
 0088-V-U-038-A\MDK-ARM\Build\*

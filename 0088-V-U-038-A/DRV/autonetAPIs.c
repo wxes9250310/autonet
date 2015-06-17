@@ -133,7 +133,7 @@ static void EXTI_Configuration(void);
   * @retval None
   */
 
-void Initialization(uint16_t _radio_freq, uint16_t _radio_panID, uint16_t _src_ID){
+void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio_panID){
 	/* GPIO configuration */
   GPIO_Configuration();
 
@@ -155,10 +155,10 @@ void Initialization(uint16_t _radio_freq, uint16_t _radio_panID, uint16_t _src_I
   I2C_Configuration();
 
 	/* Us2400 Initialization*/
-	Us2400Init(_radio_freq, _radio_panID, _src_ID, 0);  //Us2400Init(Freq, PanID, SrcAddr, TPower);
+	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  //Us2400Init(Freq, PanID, SrcAddr, TPower);
 	
   // TODO: to adjust the input of PIN_ON/PIN_OFF function (choose PINs)
-  ID = _src_ID;
+  ID = srcAddr;
 	PIN_ON(1);
 	Delay(500);
 	PIN_OFF(1);
@@ -173,6 +173,7 @@ void Initialization(uint16_t _radio_freq, uint16_t _radio_panID, uint16_t _src_I
 	Mag3110Init(0x1C);
 	
 	InitialCheck();
+	TimerBeaconSetting(srcAddr, type);
 }
 
 void InitialCheck(){
@@ -184,7 +185,7 @@ void InitialCheck(){
 	GPIOB->BSRR = GPIO_Pin_13;
 }
 
-void Autonet_Config(uint16_t SrcAddr, uint16_t type){
+void TimerBeaconSetting(uint16_t SrcAddr, uint16_t type){
 	 
 	 if(type == Light){
 		 ID = SrcAddr;
@@ -198,7 +199,9 @@ void Autonet_Config(uint16_t SrcAddr, uint16_t type){
 	 }
 	 else {				// not defined type
 		 ID = SrcAddr;
-     TYPE = 0x0000;		
+     TYPE = 0x0000;
+		 // TODO: to set non-beacon devices
+     // Timer_Beacon(0);		 
 	 }
 	  
 }

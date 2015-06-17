@@ -73,7 +73,7 @@ void app_light_direction(){
 	radio_freq = 2475;
   radio_panID = 0x00AA;
 	// TODO: change to Initial();
-  Initialization(radio_freq, radio_panID, srcAddr);
+  Initial(srcAddr, Device_Type, radio_freq, radio_panID);
 	
   // setting the period of broadcasting information of AutoNet	
 	Timer_Beacon(200);
@@ -121,7 +121,7 @@ void app_control_light(){
 		uint16_t radio_freq;
 		uint16_t radio_panID;
 		uint16_t srcAddr;
-		uint8_t Device_Type;
+		uint8_t type;
 	
 	  uint8_t openLightFlag;
 	  uint8_t state;
@@ -134,13 +134,12 @@ void app_control_light(){
 		uint8_t Rx_Payload[256];
 		uint16_t addr_array[10];
 	
-	  Device_Type = Light;
+	  type = Light;
 		srcAddr = 0x0000;
-	  Autonet_Config(srcAddr, 0x0001);
 	
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
-		Initialization(radio_freq, radio_panID, srcAddr);
+		Initial(srcAddr, type, radio_freq, radio_panID);
 		
 		setTimer(1, 200, UNIT_MS);
 		setTimer(2, 1000, UNIT_MS);
@@ -148,7 +147,7 @@ void app_control_light(){
 		while(1){ 	
 			
 			// automatically broadcast for some defined devices
-			if(Device_Type == Type_Light){
+			if(type == Type_Light){
 					RF_beacon();  // broadcast beacon information
 			}
 			else{
@@ -163,7 +162,7 @@ void app_control_light(){
 							PIN_ON(1);
 						}
 					}
-					else if(Device_Type == Type_Controller){
+					else if(type == Type_Controller){
 						
 					}
 			  }
@@ -175,13 +174,13 @@ void app_control_light(){
 	}
 }
 
-
+/*
 void ControlLight(){
 	
 		uint16_t radio_freq;
 		uint16_t radio_panID;
 		uint16_t srcAddr;
-		uint8_t Device_Type;
+		uint8_t type;
 	  uint8_t state;
 	  uint8_t detect;
 	  uint8_t* IR_Buffer_Length1;
@@ -192,10 +191,9 @@ void ControlLight(){
 		unsigned char* IR_BufferRx2[64] = {0x0};
 		unsigned short Lux =0;
 	
-	
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
-		Initialization(radio_freq, radio_panID, srcAddr);
+		Initial(srcAddr, type, radio_freq, radio_panID);
 		
 		//Timer_Beacon(100);	
 		setTimer(1, 100, UNIT_MS);
@@ -204,16 +202,16 @@ void ControlLight(){
 		while(1){ 	
 			
 				if(checkTimer(1)){
-					if(Device_Type == 0x01){		// observer
+					if(type == 0x01){		// observer
 						//Mcp2120Proc((unsigned char *)IR_BufferRx, 1);
 						Delay(10);
 						Mcp2120Proc((unsigned char *)IR_BufferRx2, IR_Buffer_Length2, 2);
 						Delay(10);
 						state=1;
 					}
-					else if(Device_Type == 0x02){		// light
+					else if(type == 0x02){		// light
 						
-						*IR_BufferTx[0] = Device_Type;
+						*IR_BufferTx[0] = type;
 						*IR_BufferTx[1] = srcAddr;
 						
 						Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 1);
@@ -241,3 +239,4 @@ void ControlLight(){
 				}
 		}
 }
+*/
