@@ -64,7 +64,7 @@ void app_light_direction(){
 	int heading;
 	uint8_t heading_diff=20;
 	uint8_t Match_Devices_Num;
-	
+	//
 	Device_Type = Type_Controller;
 	srcAddr = 0x0000;
 	
