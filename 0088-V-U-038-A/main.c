@@ -29,16 +29,14 @@ enum{
 enum{
 	Message_Control,
 	Message_Type,
+	Message_BroadcastType,
+	Message_Light,
 };
 
 // application - Control light
 enum{
 	Light = 0x0001,
 	Switch = 0x0002,
-};
-
-enum{
-	Message_Light,
 };
 
 int main(void)
@@ -73,7 +71,7 @@ void app_light_direction(){
 	radio_freq = 2475;
   radio_panID = 0x00AA;
 	// TODO: change to Initial();
-  Initialization(radio_freq, radio_panID, srcAddr);
+  Initial(srcAddr, Device_Type, radio_freq, radio_panID);
 	
   // setting the period of broadcasting information of AutoNet	
 	Timer_Beacon(200);
@@ -116,12 +114,11 @@ void app_light_direction(){
 
 void app_control_light(){
 	
-	  // still working on
-	
-		uint16_t radio_freq;
-		uint16_t radio_panID;
-		uint16_t srcAddr;
-		uint8_t Device_Type;
+	  // definition of parameters
+	  uint16_t srcAddr = 0x0000;
+		uint8_t type = Light;
+		uint16_t radio_freq = 2475;
+		uint16_t radio_panID = 0x00AA;
 	
 	  uint8_t openLightFlag;
 	  uint8_t state;
@@ -130,58 +127,89 @@ void app_control_light(){
 	
 	  uint8_t TxData[256];  
 		uint8_t RxData[256];
+    uint8_t Tx_DataLen;
 		uint8_t Rx_DataLen;
 		uint8_t Rx_Payload[256];
-		uint16_t addr_array[10];
+		uint16_t neighbor[10];
+	  uint8_t neighborNum = 0;
+	  uint8_t outFlag =0;
+	  uint16_t RSSI_THRESHOLD = 20;		// not quite sure the range
 	
-	  Device_Type = Light;
-		srcAddr = 0x0000;
-	  Autonet_Config(srcAddr, 0x0001);
+		uint8_t i,k;
+		uint16_t DeviceAddr;
 	
-		radio_freq = 2475;
-		radio_panID = 0x00AA;
-		Initialization(radio_freq, radio_panID, srcAddr);
+		// start
+		Initial(srcAddr, type, radio_freq, radio_panID);
 		
-		setTimer(1, 200, UNIT_MS);
-		setTimer(2, 1000, UNIT_MS);
+		setTimer(1, 300, UNIT_MS);
+		setTimer(2, 200, UNIT_MS);
 
 		while(1){ 	
 			
 			// automatically broadcast for some defined devices
-			if(Device_Type == Type_Light){
-					RF_beacon();  // broadcast beacon information
-			}
-			else{
-			}
-			
-			if(checkTimer(1)){
-			  RF_Rx(RxData,&Rx_DataLen,&RSSI);
-				if(RxData[0] == Message_Light){		// command 
-					if(RxData[1] == Type_Light){		// check whether the device should open the light or not
-						openLightFlag = RxData[2];
-						if(openLightFlag == 1){
-							PIN_ON(1);
+			if(type == Type_Light){
+					RF_beacon();  // broadcast beacon information	  
+				
+					if(checkTimer(1)){										// check whether the device should open the light or not
+						RF_Rx(RxData,&Rx_DataLen,&RSSI);
+						
+						if(RxData[0] == Message_Light){	
+							for(i=1; i<= Rx_DataLen; i++){
+								if(RxData[i]==srcAddr){
+									PIN_ON(1);
+								}
+							}	
 						}
 					}
-					else if(Device_Type == Type_Controller){
-						
-					}
-			  }
 			}
 			
-			if(checkTimer(2)){
-				PIN_OFF(1);
+			else if(type == Type_Controller){
+				if(checkTimer(2)){										// check whether the device should open the light or not
+					RF_Rx(RxData,&Rx_DataLen,&RSSI);
+					
+					if(RxData[0] == Message_BroadcastType && RxData[1] == Type_Light){
+							DeviceAddr = RxData[2];
+							if(RSSI >= RSSI_THRESHOLD){					// near enough
+								neighbor[neighborNum++] = DeviceAddr;	// TODO: address should be saved in uint16_t (two bytes)
+							}
+							else{																// not neighbors
+								for(k=0; k<neighborNum; k++){			// check list
+									if(neighbor[k] == DeviceAddr){
+										outFlag = 1;									// renew the list of neighbors
+									}
+									if(outFlag ==1){								// shift left by one byte
+										neighbor[k] = neighbor[k+1];
+									}
+								}
+								outFlag=0;												// reset the flag
+							}
+						}
+					if(neighborNum != 0){										// need to send lighting message
+						openLightFlag = 1;
+					}
+					else {
+						openLightFlag = 0;
+					}
+					
+					if(openLightFlag){	 		// need to send lighting messages
+						TxData[0]= Message_Light;
+						for(i =1; i<= neighborNum; i++){
+							TxData[i] = neighbor[i-1];
+						}
+						RF_Tx(0xFFFF, TxData, neighborNum);
+					}
+				}
 			}
 	}
 }
 
-
+/*
 void ControlLight(){
 	
 		uint16_t radio_freq;
 		uint16_t radio_panID;
 		uint16_t srcAddr;
-		uint8_t Device_Type;
+		uint8_t type;
 	  uint8_t state;
 	  uint8_t detect;
 	  uint8_t* IR_Buffer_Length1;
@@ -192,10 +220,9 @@ void ControlLight(){
 		unsigned char* IR_BufferRx2[64] = {0x0};
 		unsigned short Lux =0;
 	
-	
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
-		Initialization(radio_freq, radio_panID, srcAddr);
+		Initial(srcAddr, type, radio_freq, radio_panID);
 		
 		//Timer_Beacon(100);	
 		setTimer(1, 100, UNIT_MS);
@@ -204,16 +231,16 @@ void ControlLight(){
 		while(1){ 	
 			
 				if(checkTimer(1)){
-					if(Device_Type == 0x01){		// observer
+					if(type == 0x01){		// observer
 						//Mcp2120Proc((unsigned char *)IR_BufferRx, 1);
 						Delay(10);
 						Mcp2120Proc((unsigned char *)IR_BufferRx2, IR_Buffer_Length2, 2);
 						Delay(10);
 						state=1;
 					}
-					else if(Device_Type == 0x02){		// light
+					else if(type == 0x02){		// light
 						
-						*IR_BufferTx[0] = Device_Type;
+						*IR_BufferTx[0] = type;
 						*IR_BufferTx[1] = srcAddr;
 						
 						Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 1);
@@ -241,3 +268,4 @@ void ControlLight(){
 				}
 		}
 }
+*/
