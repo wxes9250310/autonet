@@ -70,6 +70,7 @@ void app_light_direction(){
 	
 	radio_freq = 2475;
   radio_panID = 0x00AA;
+	// TODO: change to Initial();
   Initialization(radio_freq, radio_panID, srcAddr);
 	
   // setting the period of broadcasting information of AutoNet	
