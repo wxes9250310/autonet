@@ -91,7 +91,7 @@ uint8_t Group_Diff(uint16_t* addr_array, uint8_t attribute, uint16_t center, uin
 void lighting(uint8_t State);
 int RF_RX_AUTONET(void);
 int RF_RX(void);
-uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length);
+uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t*);
 int autonet_header_check(void);
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in);
 void getDestAddr(uint8_t* data_out, uint8_t* data_in);

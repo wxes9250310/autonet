@@ -161,7 +161,7 @@ void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen)
 	}
 }
 
-uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length){
+uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){
 	
 	  int _rx_check_flag =0;
 	  int _header_check_flag=0;
@@ -176,6 +176,7 @@ uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length){
 				memcpy(pRxData, Data, DataLen);
 				memcpy(RxData, pRxData, DataLen);
 				*Data_Length = DataLen;
+				*RSSI = RFRssi;
 				
 				_header_check_flag = autonet_header_check();			
 				if(!_header_check_flag) {							// Not For AutoNet
@@ -194,6 +195,7 @@ uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length){
 				memcpy(pRxData, Data, DataLen);
 				memcpy(RxData, pRxData, DataLen);
 				*Data_Length = DataLen;
+				*RSSI = RFRssi;
 				
 				_header_check_flag = autonet_header_check();
 				if(!_header_check_flag) {    					// Not For AutoNet

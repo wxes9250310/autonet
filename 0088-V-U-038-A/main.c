@@ -61,9 +61,11 @@ void app_light_direction(){
 	uint8_t Device_Type;
 	uint8_t i;
 	uint8_t Lighting_Flag=0;
+	uint8_t RSSI;
 	int heading;
 	uint8_t heading_diff=20;
 	uint8_t Match_Devices_Num;
+	
 	//
 	Device_Type = Type_Controller;
 	srcAddr = 0x0000;
@@ -93,7 +95,7 @@ void app_light_direction(){
 			}
 		}
 		else if(Device_Type == Type_Light){
-			if(RF_Rx(RxData,&Rx_DataLen)){
+			if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){
 			  Lighting_Flag = 0;
 				getPayload(Rx_Payload,RxData,Rx_DataLen);
 				for( i=0 ; i<Rx_Payload[1]; i++ ){
@@ -124,6 +126,7 @@ void app_control_light(){
 	  uint8_t openLightFlag;
 	  uint8_t state;
 	  uint8_t detect;  
+	  uint8_t RSSI;
 	
 	  uint8_t TxData[256];  
 		uint8_t RxData[256];
@@ -152,7 +155,7 @@ void app_control_light(){
 			}
 			
 			if(checkTimer(1)){
-			  RF_Rx(RxData,&Rx_DataLen);
+			  RF_Rx(RxData,&Rx_DataLen,&RSSI);
 				if(RxData[0] == Message_Light){		// command 
 					if(RxData[1] == Type_Light){		// check whether the device should open the light or not
 						openLightFlag = RxData[2];
