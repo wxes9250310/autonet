@@ -552,7 +552,7 @@ void RF_beacon(void){
 	if(timer_flag_Beacon == 1){
 		if(TYPE == Type_Light){	
 			broadcast();
-			blink();
+			//blink();
 			timer_flag_Beacon = 0;
 		}
 		else{

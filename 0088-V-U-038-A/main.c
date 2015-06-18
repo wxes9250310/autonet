@@ -117,8 +117,8 @@ void app_light_direction(){
 void app_control_light(){
 	
 	  // definition of parameters
-	  uint16_t srcAddr = 0x00FF;
-		uint8_t type = Type_Controller;
+	  uint16_t srcAddr = 0x0005;
+		uint8_t type = Type_Light;
 		uint16_t radio_freq = 2475;
 		uint16_t radio_panID = 0x00AA;
 	
@@ -145,7 +145,7 @@ void app_control_light(){
 		Initial(srcAddr, type, radio_freq, radio_panID);
 		
 		setTimer(1, 1000, UNIT_MS);
-		setTimer(2, 800, UNIT_MS);
+		setTimer(2, 500, UNIT_MS);
 
 		while(1){ 	
 			
@@ -156,10 +156,11 @@ void app_control_light(){
 					if(checkTimer(1)){										// check whether the device should open the light or not
 						RF_Rx(RxData,&Rx_DataLen,&RSSI);
 						
-						if(RxData[0] == Message_Light){	
+						if(RxData[RX_BUFFER_OFFSET + 0] == Message_Light){	
 							for(i=1; i<= Rx_DataLen; i++){
-								if(RxData[i]==srcAddr){
-									PIN_ON(1);
+								if(RxData[RX_BUFFER_OFFSET + i]==srcAddr){
+									// bug
+									blink();
 								}
 							}	
 						}
