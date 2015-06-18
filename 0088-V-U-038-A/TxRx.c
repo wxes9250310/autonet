@@ -161,7 +161,7 @@ void broadcast(void)
 		for(i=3;i<128;i++){
 			pTxData[i]=0x00;
 		}	
-		RF_Tx(0xFFFF, pTxData, 3);
+		RF_Tx(0xFFFF, pTxData, 10);
 }
 
 

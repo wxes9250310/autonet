@@ -16,6 +16,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#define RX_BUFFER_OFFSET 12
+
 /* Private function ----------------------------------------------------------*/
 void app_light_direction();
 void app_control_light();
@@ -115,8 +117,8 @@ void app_light_direction(){
 void app_control_light(){
 	
 	  // definition of parameters
-	  uint16_t srcAddr = 0x0001;
-		uint8_t type = Type_Light;
+	  uint16_t srcAddr = 0x00FF;
+		uint8_t type = Type_Controller;
 		uint16_t radio_freq = 2475;
 		uint16_t radio_panID = 0x00AA;
 	
@@ -132,8 +134,9 @@ void app_control_light(){
 		uint8_t Rx_Payload[256];
 		uint16_t neighbor[10];
 	  uint8_t neighborNum = 0;
+		uint8_t addFlag=0;
 	  uint8_t outFlag =0;
-	  uint16_t RSSI_THRESHOLD = 0;		// not quite sure the range
+	  uint16_t RSSI_THRESHOLD = 200;		// not quite sure the range
 	
 		uint8_t i,k;
 		uint16_t DeviceAddr;
@@ -167,15 +170,28 @@ void app_control_light(){
 				if(checkTimer(2)){										// check whether the device should open the light or not
 					RF_Rx(RxData,&Rx_DataLen,&RSSI);
 					
-					if(RxData[0] == Message_BroadcastType && RxData[1] == Type_Light){
-							DeviceAddr = RxData[2];
+					if(RxData[RX_BUFFER_OFFSET + 0] == Message_BroadcastType && RxData[RX_BUFFER_OFFSET + 1] == Type_Light){
+							DeviceAddr = RxData[RX_BUFFER_OFFSET + 2];
 							if(RSSI >= RSSI_THRESHOLD){					// near enough
-								neighbor[neighborNum++] = DeviceAddr;	// TODO: address should be saved in uint16_t (two bytes)
+								addFlag = 0;
+								for(k=0; k<=neighborNum; k++){			// check list
+									if(neighbor[k] != DeviceAddr){
+										addFlag = 1;									// renew the list of neighbors									
+									}
+									else{
+										addFlag = 0;
+										break;	
+									}
+								}
+								if(addFlag ==1){								// shift left by one byte
+										neighbor[neighborNum++] = DeviceAddr;
+									}
 							}
 							else{																// not neighbors
-								for(k=0; k<neighborNum; k++){			// check list
+								for(k=0; k<=neighborNum; k++){			// check list
 									if(neighbor[k] == DeviceAddr){
 										outFlag = 1;									// renew the list of neighbors
+										neighborNum --;
 									}
 									if(outFlag ==1){								// shift left by one byte
 										neighbor[k] = neighbor[k+1];
@@ -192,8 +208,7 @@ void app_control_light(){
 					}
 					
 					if(openLightFlag){	 		// need to send lighting messages
-						PIN_ON(1);
-						Delay(100);
+						blink();
 						TxData[0]= Message_Light;
 						for(i =1; i<= neighborNum; i++){
 							TxData[i] = neighbor[i-1];
