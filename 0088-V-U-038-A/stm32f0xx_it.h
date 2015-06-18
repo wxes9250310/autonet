@@ -52,11 +52,6 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 void Timer_Connect(void (*)());
 void Timer_Beacon(unsigned int);
-/*void Timer1_Setting(uint8_t*,unsigned int);
-void Timer2_Setting(uint8_t*,unsigned int);
-void Timer3_Setting(uint8_t*,unsigned int);
-void Timer4_Setting(uint8_t*,unsigned int);
-*/
 void setTimer(uint8_t index, unsigned int period, uint8_t unit);
 uint8_t checkTimer (uint8_t index);
 /*void PPP_IRQHandler(void);*/

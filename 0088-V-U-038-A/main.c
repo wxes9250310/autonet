@@ -115,8 +115,8 @@ void app_light_direction(){
 void app_control_light(){
 	
 	  // definition of parameters
-	  uint16_t srcAddr = 0x0000;
-		uint8_t type = Light;
+	  uint16_t srcAddr = 0x0001;
+		uint8_t type = Type_Light;
 		uint16_t radio_freq = 2475;
 		uint16_t radio_panID = 0x00AA;
 	
@@ -133,7 +133,7 @@ void app_control_light(){
 		uint16_t neighbor[10];
 	  uint8_t neighborNum = 0;
 	  uint8_t outFlag =0;
-	  uint16_t RSSI_THRESHOLD = 20;		// not quite sure the range
+	  uint16_t RSSI_THRESHOLD = 0;		// not quite sure the range
 	
 		uint8_t i,k;
 		uint16_t DeviceAddr;
@@ -141,8 +141,8 @@ void app_control_light(){
 		// start
 		Initial(srcAddr, type, radio_freq, radio_panID);
 		
-		setTimer(1, 300, UNIT_MS);
-		setTimer(2, 200, UNIT_MS);
+		setTimer(1, 1000, UNIT_MS);
+		setTimer(2, 800, UNIT_MS);
 
 		while(1){ 	
 			
@@ -192,12 +192,15 @@ void app_control_light(){
 					}
 					
 					if(openLightFlag){	 		// need to send lighting messages
+						PIN_ON(1);
+						Delay(100);
 						TxData[0]= Message_Light;
 						for(i =1; i<= neighborNum; i++){
 							TxData[i] = neighbor[i-1];
 						}
 						RF_Tx(0xFFFF, TxData, neighborNum);
 					}
+					PIN_OFF(1);
 				}
 			}
 	}

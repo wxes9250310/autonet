@@ -114,8 +114,9 @@ unsigned char pos2;
 //int Minute = 0;
 
 enum{
-	Light = 0x0001,
-	Switch = 0x0002,
+	Type_Controller,
+	Type_Light,
+	Type_Switch,
 };
 
 extern TimObjTypeDef_s TimObj;
@@ -185,15 +186,15 @@ void InitialCheck(){
 
 void TimerBeaconSetting(uint16_t SrcAddr, uint16_t type){
 	 
-	 if(type == Light){
+	 if(type == Type_Light){
 		 ID = SrcAddr;
 		 TYPE = type;
-		 Timer_Beacon(1000);
+		 Timer_Beacon(500);
 	 }
-	 else if(type == Switch){
+	 else if(type == Type_Switch){
 		 ID = SrcAddr;
 		 TYPE = type;
-		 Timer_Beacon(2000);
+		 Timer_Beacon(200);
 	 }
 	 else {				// not defined type
 		 ID = SrcAddr;
@@ -538,26 +539,20 @@ void PIN_OFF(uint8_t n){
 	}
 }
 
+void blink(){
+	PIN_ON(1);
+	Delay(100);
+	PIN_OFF(1);
+}
+
 void RF_beacon(void){
 	if(RF_RX_AUTONET()){					// check AutoNet header
 		packet_receive();						// receive sensors' data from others
 	}
 	if(timer_flag_Beacon == 1){
-		if(TYPE == Light){
-		
-			My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
-			My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
-			My_Data_table[TYPE_GPS_LAT_SEC] = Lat_sec;
-			My_Data_table[TYPE_GPS_LAT_DIR] = Lat_dir;
-			My_Data_table[TYPE_GPS_LONG_DEG] = Long_deg;
-			My_Data_table[TYPE_GPS_LONG_MIN] = Long_min;
-			My_Data_table[TYPE_GPS_LONG_SEC] = Long_sec;
-			My_Data_table[TYPE_GPS_LONG_DIR] = Long_dir;
-			My_Data_table[TYPE_HEADING] = flat_heading;
-			My_Data_table[TYPE_LOS_FRONT] = FrontID;
-			My_Data_table[TYPE_LOS_REAR] = RearID;
-			
-			broadcastSend();
+		if(TYPE == Type_Light){	
+			broadcast();
+			blink();
 			timer_flag_Beacon = 0;
 		}
 		else{

@@ -33,8 +33,11 @@ void InitialCheck();
 void TimerBeaconSetting(uint16_t SrcAddr, uint16_t type);
 void Autonet_search_type(char *a);
 void RF_beacon(void);
+
+// Lights Control
 void PIN_ON(uint8_t n);
 void PIN_OFF(uint8_t n);
+void blink(void);
 	 
 void Mag_Error_Handle (short *pX,short *pY,short *pZ, short *max_x, short *min_x, short *max_y, short *min_y, short *max_z, short *min_z);
 int Mag_flatsurface(short *pX,short *pY);
