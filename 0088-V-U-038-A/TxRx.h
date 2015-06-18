@@ -84,6 +84,7 @@ enum RECEVIE_DATA_TABLE
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen);
 void packet_receive(void);
 void broadcastSend(void);
+void broadcast(void);
 void lightingSend(void);
 void commandSend(void);
 void Group_Configuration(void);

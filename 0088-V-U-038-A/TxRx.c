@@ -73,6 +73,19 @@ enum{
 	true,
 };
 
+enum{
+	Message_Control,
+	Message_Type,
+	Message_BroadcastType,
+	Message_Light,
+};
+
+enum{
+	Type_Controller,
+	Type_Light,
+};
+
+
 uint8_t  Group[NUMOFDEVICE];
 uint16_t Condition[SIZE_OF_DATA_TABLE] = {0x10,0xFF,0xFF};
 //uint16_t Data_table[NUMOFDEVICE][NUMOFSENSOR];
@@ -135,6 +148,22 @@ void broadcastSend(void)
 		
 		RF_Tx(0xFFFF, pTxData, framelength);
 }
+
+void broadcast(void)
+{
+	  uint8_t i;
+		
+		pTxData[0] = Message_BroadcastType;
+		pTxData[1] = Type_Light;
+	  pTxData[2] = ID;
+		
+
+		for(i=3;i<128;i++){
+			pTxData[i]=0x00;
+		}	
+		RF_Tx(0xFFFF, pTxData, 10);
+}
+
 
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen)
 {
