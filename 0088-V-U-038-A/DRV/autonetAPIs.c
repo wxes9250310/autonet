@@ -162,8 +162,6 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	PIN_ON(1);
 	Delay(500);
 	PIN_OFF(1);
-	Delay(500);
-	PIN_ON(1);
 	
 	Mpu6050Init(0xD0);
   Ak8975Init(0x18);
@@ -172,7 +170,7 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	Tmp75Init(0x90);
 	Mag3110Init(0x1C);
 	
-	InitialCheck();
+	//InitialCheck();
 	TimerBeaconSetting(srcAddr, type);
 }
 
