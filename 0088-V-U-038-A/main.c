@@ -112,34 +112,35 @@ void app_light_direction(){
 
 void app_control_light(){
 	
-	  // definition of parameters
+	  // variables for initialization
 	  uint16_t srcAddr = 0x0005;
 		uint8_t type = Type_Light;
 		uint16_t radio_freq = 2475;
 		uint16_t radio_panID = 0x00AA;
 	
+	  // variables for application
 	  uint8_t openLightFlag;
 	  uint8_t state;
 	  uint8_t detect;  
 	  uint8_t RSSI;
-	
 	  uint8_t TxData[256];  
 		uint8_t RxData[256];
     uint8_t Tx_DataLen;
 		uint8_t Rx_DataLen;
 		uint8_t Rx_Payload[256];
-		uint16_t neighbor[10];
 	  uint8_t neighborNum = 0;
 		uint8_t addFlag=0;
 	  uint8_t outFlag =0;
+		uint16_t neighbor[10];
 	  uint16_t RSSI_THRESHOLD = 200;		// not quite sure the range
 	
 		uint8_t i,k;
 		uint16_t DeviceAddr;
 	
-		// start
+		// Initialization
 		Initial(srcAddr, type, radio_freq, radio_panID);
 		
+		// set timers
 		setTimer(1, 1000, UNIT_MS);
 		setTimer(2, 500, UNIT_MS);
 
@@ -147,7 +148,7 @@ void app_control_light(){
 			
 			// automatically broadcast for some defined devices
 			if(type == Type_Light){
-					RF_beacon();  // broadcast beacon information	  
+					RF_beacon();  												// broadcast beacon information	  
 				
 					if(checkTimer(1)){										// check whether the device should open the light or not
 						RF_Rx(RxData,&Rx_DataLen,&RSSI);
