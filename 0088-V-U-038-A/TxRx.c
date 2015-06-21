@@ -25,7 +25,8 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern uint8_t ID;									// C represents cars
+extern uint8_t ID;									
+extern uint8_t TYPE;
 extern uint8_t CommanderID;
 
 extern uint8_t pTxData[];
@@ -81,10 +82,10 @@ enum{
 };
 
 enum{
-	Type_Controller,
-	Type_Light,
+		Type_Controller = 0x00,			// delete? 
+		Type_Light = 0x01,
+		Type_Switch = 0x02,
 };
-
 
 uint8_t  Group[NUMOFDEVICE];
 uint16_t Condition[SIZE_OF_DATA_TABLE] = {0x10,0xFF,0xFF};
@@ -154,9 +155,10 @@ void broadcast(void)
 	  uint8_t i;
 		
 		pTxData[0] = Message_BroadcastType;
-		pTxData[1] = Type_Light;
+		pTxData[1] = TYPE;
 	  pTxData[2] = ID;
-		
+	
+	// TODO: to send out the status of the device
 
 		for(i=3;i<128;i++){
 			pTxData[i]=0x00;

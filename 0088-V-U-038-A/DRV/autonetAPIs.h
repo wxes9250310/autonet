@@ -30,7 +30,7 @@ void Autonet_Config(uint16_t SrcAddr, uint16_t type);
 void Initialization(uint16_t, uint8_t, uint16_t, uint16_t);
 void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio_panID);
 void InitialCheck();
-void TimerBeaconSetting(uint16_t SrcAddr, uint16_t type);
+void TimerBeaconSetting(uint16_t SrcAddr, uint8_t type);
 void Autonet_search_type(char *a);
 void RF_beacon(void);
 

@@ -39,7 +39,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 uint16_t ID = 0x0000;
-uint16_t TYPE = 0x0000;
+uint8_t TYPE = 0x00;
 uint8_t CommanderID = 0xFF;
 
 uint8_t RFTxBuffer[TXBUFFERSIZE] = {0};
@@ -128,63 +128,50 @@ static void GPIO_Configuration(void);
 static void EXTI_Configuration(void);
 
 /* Private functions ---------------------------------------------------------*/
+
 /**
-  * @brief  Main program.
-  * @param  None
-  * @retval None
-  */
+	* @title Initialization
+	* @brief 
+	* @param 
+	*/
 
 void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio_panID){
-	/* GPIO configuration */
-  GPIO_Configuration();
+		/* GPIO configuration */
+		GPIO_Configuration();
 
-	/* EXTI configuration */
-  EXTI_Configuration();
+		/* EXTI configuration */
+		EXTI_Configuration();
 
-  /* Software Timer configuration */
-	ST_Configuration();
+		/* Software Timer configuration */
+		ST_Configuration();
 
-  /* COM configuration */
-	COM1_Configuration();						//for IR sensors
-	COM2_Configuration();						//for IR sensors
-	//COM_Configuration();
+		/* COM configuration */
+		COM1_Configuration();						//for IR sensors
+		COM2_Configuration();						//for IR sensors
+		//COM_Configuration();
 
-  /* SPI configuration */
-  SPI_Configuration();
+		/* SPI configuration */
+		SPI_Configuration();
 
-  /* I2C configuration */
-  I2C_Configuration();
+		/* I2C configuration */
+		I2C_Configuration();
 
-	/* Us2400 Initialization*/
-	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  //Us2400Init(Freq, PanID, SrcAddr, TPower);
-	
-  // TODO: to adjust the input of PIN_ON/PIN_OFF function (choose PINs)
-  ID = srcAddr;
-	PIN_ON(1);
-	Delay(500);
-	PIN_OFF(1);
-	
-	Mpu6050Init(0xD0);
-  Ak8975Init(0x18);
-  Mcp2120Init();       	/* MCP2120 Initialize */
-	Bh1750fviInit(0x46);
-	Tmp75Init(0x90);
-	Mag3110Init(0x1C);
-	
-	//InitialCheck();
-	TimerBeaconSetting(srcAddr, type);
+		/* Us2400 Initialization*/
+		//Us2400Init(Freq, PanID, SrcAddr, TPower);
+		Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
+		
+		Mpu6050Init(0xD0);
+		Ak8975Init(0x18);
+		Mcp2120Init();       	/* MCP2120 Initialize */
+		Bh1750fviInit(0x46);
+		Tmp75Init(0x90);
+		Mag3110Init(0x1C);
+		
+		blink();
+		TimerBeaconSetting(srcAddr, type);
 }
 
-void InitialCheck(){
-	
-	GPIOB->BSRR = GPIO_Pin_13;
-	Delay(500);
-	GPIOB->BRR = GPIO_Pin_13;
-	Delay(500);
-	GPIOB->BSRR = GPIO_Pin_13;
-}
-
-void TimerBeaconSetting(uint16_t SrcAddr, uint16_t type){
+void TimerBeaconSetting(uint16_t SrcAddr, uint8_t type){
 	 
 	 if(type == Type_Light){
 		 ID = SrcAddr;
@@ -205,20 +192,238 @@ void TimerBeaconSetting(uint16_t SrcAddr, uint16_t type){
 	  
 }
 
+/**
+	* @title 
+	* @brief 
+	* @param 
+	*/
+
+void blink(){
+		PIN_ON(1);
+		Delay(100);
+		PIN_OFF(1);
+}
+
+void PIN_ON(uint8_t n){
+	// TODO: to distinguish GPIOA and GPIOB
+	switch(n){
+		case 1:
+			GPIOB->BSRR = GPIO_Pin_13;
+		break;
+	}
+}
+
+void PIN_OFF(uint8_t n){
+	// TODO: to distinguish GPIOA and GPIOB
+	switch(n){
+		case 1:
+			GPIOB->BRR = GPIO_Pin_13;
+		break;
+	}
+}
+
+void RF_beacon(void){
+	if(RF_RX_AUTONET()){					// check AutoNet header
+		packet_receive();						// receive sensors' data from others
+	}
+	if(timer_flag_Beacon == 1){
+		if(TYPE == Type_Light){	
+			broadcast();
+			//blink();
+			timer_flag_Beacon = 0;
+		}
+		else if(TYPE == Type_Switch){	
+			broadcast();
+			//blink();
+			timer_flag_Beacon = 0;
+		}
+		else{
+			get_direction(&flat_heading);
+			//ToDo: More sensor data
+		
+			My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
+			My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
+			My_Data_table[TYPE_GPS_LAT_SEC] = Lat_sec;
+			My_Data_table[TYPE_GPS_LAT_DIR] = Lat_dir;
+			My_Data_table[TYPE_GPS_LONG_DEG] = Long_deg;
+			My_Data_table[TYPE_GPS_LONG_MIN] = Long_min;
+			My_Data_table[TYPE_GPS_LONG_SEC] = Long_sec;
+			My_Data_table[TYPE_GPS_LONG_DIR] = Long_dir;
+			My_Data_table[TYPE_HEADING] = flat_heading;
+			My_Data_table[TYPE_LOS_FRONT] = FrontID;
+			My_Data_table[TYPE_LOS_REAR] = RearID;
+			
+			broadcastSend();
+			timer_flag_Beacon = 0;
+		}				
+	}
+}
+
 void Autonet_search_type(char *a){
 
 }
 
-	/**
-	* @title Autonet_spatial_dynamic (API for AutoNet demo)
-	* @brief developers decide the target ID of devices and add those
-	* 			 attributes of interest to find out the devices which matches
-	*        the attributes
-	* @param ID: the ID of target device
-	* @param Direction: 123
-	* @param Velocity: 
-	* @param LOS: 
+
+void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length) {
+	  
+		int i;	
+	
+	  for(i=0; i< strlen((char*)data_out); i++)
+			data_out[i] = 0;
+		
+		for(i=0; i< d_length; i++)
+			data_out[i] = data_in[d_offset+i];
+		
+}
+
+/**
+	* @title Sensors' APIs
+	* @brief 
+	* @param 
 	*/
+
+uint8_t get_direction(int *heading_deg){
+	
+    Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
+		Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
+		
+		if(AK8975MagX>max_x) max_x = AK8975MagX;
+		if(AK8975MagX<min_x) min_x = AK8975MagX;
+		if(AK8975MagY>max_y) max_y = AK8975MagY;
+		if(AK8975MagY<min_y) min_y = AK8975MagY;
+		if(AK8975MagZ>max_z) max_z = AK8975MagZ;
+		if(AK8975MagZ<min_z) min_z = AK8975MagZ;
+
+		Mag_Error_Handle(&AK8975MagX, &AK8975MagY, &AK8975MagZ, &max_x, &min_x, &max_y, &min_y, &max_z, &min_z);
+		flat_heading = Mag_flatsurface(&AK8975MagX, &AK8975MagY);  // flat surface degree (0~360)
+		flat_headingL = flat_heading; 			// Lower 8 bit of flat_heading
+		flat_headingH = flat_heading >> 8; 	// Higher 8 bit of flat_heading
+//		tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
+	
+	  *heading_deg = flat_heading;
+		return 1;
+}
+
+void get_gps(){
+	
+		Lea6SRead(0x84, &Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);   // read data from GPS
+}
+
+void update_sensor_table(){
+		
+		My_Data_table[TYPE_SPEED] = drive;
+		My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
+		My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
+		My_Data_table[TYPE_GPS_LAT_SEC] = Lat_sec;
+		My_Data_table[TYPE_GPS_LAT_DIR] = Lat_dir;
+		My_Data_table[TYPE_GPS_LONG_DEG] = Long_deg;
+		My_Data_table[TYPE_GPS_LONG_MIN] = Long_min;
+		My_Data_table[TYPE_GPS_LONG_SEC] = Long_sec;
+		My_Data_table[TYPE_GPS_LONG_DIR] = Long_dir;
+		My_Data_table[TYPE_HEADING] = flat_heading;
+		My_Data_table[TYPE_LOS_FRONT] = FrontID;
+		My_Data_table[TYPE_LOS_REAR] = RearID;
+}
+// --------------  Matnetometer functions by chih-wei -----------------
+void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)
+{
+	short vmax_x,vmax_y,vmax_z;
+	short vmin_x,vmin_y,vmin_z;
+	short avgs_x,avgs_y,avgs_z;
+	float avg_rad;
+	float x_scale,y_scale,z_scale;
+
+	vmax_x = *max_x - ((*min_x + *max_x)/2.0);
+	vmax_y = *max_y - ((*min_y + *max_y)/2.0);
+	vmax_z = *max_z - ((*min_z + *max_z)/2.0);
+
+	vmin_x = *min_x - ((*min_x + *max_x)/2.0);
+	vmin_y = *min_y - ((*min_y + *max_y)/2.0);
+	vmin_z = *min_z - ((*min_z + *max_z)/2.0);
+
+	avgs_x = vmax_x + (vmin_x*-1); //multiply by -1 to make negative values positive
+	avgs_x = avgs_x / 2.0;
+	avgs_y = vmax_y + (vmin_y*-1); //multiply by -1 to make negative values positive
+	avgs_y = avgs_y / 2.0;
+	avgs_z = vmax_z + (vmin_z*-1); //multiply by -1 to make negative values positive
+	avgs_z = avgs_z / 2.0;
+
+	avg_rad = avgs_x + avgs_y + avgs_z;
+	avg_rad = avg_rad/3.0;
+
+	x_scale = (avg_rad/avgs_x);
+	y_scale = (avg_rad/avgs_y);
+	z_scale = (avg_rad/avgs_z);
+
+	*pX -= (*min_x + *max_x)/2.0;
+	*pY -= (*min_y + *max_y)/2.0;
+	*pZ -= (*min_z + *max_z)/2.0;
+
+	*pX *= x_scale;
+	*pX *= y_scale;
+	*pX *= z_scale;
+}
+
+int Mag_flatsurface(short *pX,short *pY)
+{
+	int heading;
+	/*heading = atan((double)(*pY) / (double)(*pX))* (180 / PI) -90;
+	if (heading>0){heading=heading-360;}
+	heading=360+heading;*/
+	
+	heading = atan2((double)(*pY), (double)*pX) * 180.0/3.14159265 + 180 -270;
+	while (heading < 0) heading += 360;
+	while (heading > 360) heading -= 360;
+ 
+	return (heading);
+	 
+}
+
+int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz)
+{
+	float xh,yh,ayf,axf;
+	int var_compass;
+	ayf=*ay/57.295;//Convert to rad
+	axf=*ax/57.295;//Convert to rad
+	xh=*cx*cos(ayf)+*cy*sin(ayf)*sin(axf)-*cz*cos(axf)*sin(ayf);
+	yh=*cy*cos(axf)+*cz*sin(axf);
+	var_compass=atan2((double)yh,(double)xh) * (180 / PI) -90-90; // angle in degrees
+	if (var_compass>0){var_compass=var_compass-360;}
+	var_compass=360+var_compass;
+	//var_compass = atan2((*cz * sin(*ax) - *cy * cos(*ax)), *cx * cos(*ay) + *cy * sin(*ax) * sin(*ay) + *cz * sin(*ay) * cos(*ax))* 180.0/3.14159265 + 180;
+	// while (var_compass < 0) var_compass += 360;
+	//while (var_compass > 360) var_compass -= 360;
+	return (var_compass);
+}
+
+/*
+void get_LOS_address(char *f_id, char *r_id){
+		
+	  // TODO: there might be more than one car in front of or in rear of, we need buffers
+	  // TODO: integrate following codes
+		// TODO: return 0xFF is there is no car in front or rear of it
+	  Mcp2120Tx((unsigned char *)s1, 2 , FRONT);
+		Delay(10);
+	  Mcp2120Proc();
+		Mcp2120Tx((unsigned char *)s2, 2 , REAR);
+		Delay(10);
+	
+	  *f_id = FRONT;
+		*r_id = REAR;
+}
+*/
+
+
+/**
+* @title Autonet_spatial_dynamic (API for AutoNet demo)
+* @brief developers decide the target ID of devices and add those
+* 			 attributes of interest to find out the devices which matches
+*        the attributes
+* @param ID: the ID of target device
+* @param Direction: 123
+* @param Velocity: 
+* @param LOS: 
+*/
 /*
 void Autonet_spatial_dynamic(uint16_t* ID,uint16_t type1, uint16_t value1, uint16_t type2, uint16_t value2, uint16_t type3, uint16_t value3){
 
@@ -319,150 +524,6 @@ void Autonet_spatial_dynamic(uint16_t* ID,uint16_t type1, uint16_t value1, uint1
 		//Group_Process(ID,type1,value1,type2,value2,type3,value3);
 }*/
 
-void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length) {
-	  
-		int i;	
-	
-	  for(i=0; i< strlen((char*)data_out); i++)
-			data_out[i] = 0;
-		
-		for(i=0; i< d_length; i++)
-			data_out[i] = data_in[d_offset+i];
-		
-}
-
-
-uint8_t get_direction(int *heading_deg){
-	
-    Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
-		Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
-		
-		if(AK8975MagX>max_x) max_x = AK8975MagX;
-		if(AK8975MagX<min_x) min_x = AK8975MagX;
-		if(AK8975MagY>max_y) max_y = AK8975MagY;
-		if(AK8975MagY<min_y) min_y = AK8975MagY;
-		if(AK8975MagZ>max_z) max_z = AK8975MagZ;
-		if(AK8975MagZ<min_z) min_z = AK8975MagZ;
-
-		Mag_Error_Handle(&AK8975MagX, &AK8975MagY, &AK8975MagZ, &max_x, &min_x, &max_y, &min_y, &max_z, &min_z);
-		flat_heading = Mag_flatsurface(&AK8975MagX, &AK8975MagY);  // flat surface degree (0~360)
-		flat_headingL = flat_heading; 			// Lower 8 bit of flat_heading
-		flat_headingH = flat_heading >> 8; 	// Higher 8 bit of flat_heading
-//		tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
-	
-	  *heading_deg = flat_heading;
-		return 1;
-}
-/*
-void get_LOS_address(char *f_id, char *r_id){
-		
-	  // TODO: there might be more than one car in front of or in rear of, we need buffers
-	  // TODO: integrate following codes
-		// TODO: return 0xFF is there is no car in front or rear of it
-	  Mcp2120Tx((unsigned char *)s1, 2 , FRONT);
-		Delay(10);
-	  Mcp2120Proc();
-		Mcp2120Tx((unsigned char *)s2, 2 , REAR);
-		Delay(10);
-	
-	  *f_id = FRONT;
-		*r_id = REAR;
-}
-*/
-
-void get_gps(){
-	
-		Lea6SRead(0x84, &Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);   // read data from GPS
-}
-
-void update_sensor_table(){
-		
-		My_Data_table[TYPE_SPEED] = drive;
-		My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
-		My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
-		My_Data_table[TYPE_GPS_LAT_SEC] = Lat_sec;
-		My_Data_table[TYPE_GPS_LAT_DIR] = Lat_dir;
-		My_Data_table[TYPE_GPS_LONG_DEG] = Long_deg;
-		My_Data_table[TYPE_GPS_LONG_MIN] = Long_min;
-		My_Data_table[TYPE_GPS_LONG_SEC] = Long_sec;
-		My_Data_table[TYPE_GPS_LONG_DIR] = Long_dir;
-		My_Data_table[TYPE_HEADING] = flat_heading;
-		My_Data_table[TYPE_LOS_FRONT] = FrontID;
-		My_Data_table[TYPE_LOS_REAR] = RearID;
-}
-// --------------  Matnetometer functions by chih-wei -----------------
-void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)
-{
-	short vmax_x,vmax_y,vmax_z;
-	short vmin_x,vmin_y,vmin_z;
-	short avgs_x,avgs_y,avgs_z;
-	float avg_rad;
-	float x_scale,y_scale,z_scale;
-
-	vmax_x = *max_x - ((*min_x + *max_x)/2.0);
-	vmax_y = *max_y - ((*min_y + *max_y)/2.0);
-	vmax_z = *max_z - ((*min_z + *max_z)/2.0);
-
-	vmin_x = *min_x - ((*min_x + *max_x)/2.0);
-	vmin_y = *min_y - ((*min_y + *max_y)/2.0);
-	vmin_z = *min_z - ((*min_z + *max_z)/2.0);
-
-	avgs_x = vmax_x + (vmin_x*-1); //multiply by -1 to make negative values positive
-	avgs_x = avgs_x / 2.0;
-	avgs_y = vmax_y + (vmin_y*-1); //multiply by -1 to make negative values positive
-	avgs_y = avgs_y / 2.0;
-	avgs_z = vmax_z + (vmin_z*-1); //multiply by -1 to make negative values positive
-	avgs_z = avgs_z / 2.0;
-
-	avg_rad = avgs_x + avgs_y + avgs_z;
-	avg_rad = avg_rad/3.0;
-
-	x_scale = (avg_rad/avgs_x);
-	y_scale = (avg_rad/avgs_y);
-	z_scale = (avg_rad/avgs_z);
-
-	*pX -= (*min_x + *max_x)/2.0;
-	*pY -= (*min_y + *max_y)/2.0;
-	*pZ -= (*min_z + *max_z)/2.0;
-
-	*pX *= x_scale;
-	*pX *= y_scale;
-	*pX *= z_scale;
-}
-
-int Mag_flatsurface(short *pX,short *pY)
-{
-	int heading;
-	/*heading = atan((double)(*pY) / (double)(*pX))* (180 / PI) -90;
-	if (heading>0){heading=heading-360;}
-	heading=360+heading;*/
-	
-	heading = atan2((double)(*pY), (double)*pX) * 180.0/3.14159265 + 180 -270;
-	while (heading < 0) heading += 360;
-	while (heading > 360) heading -= 360;
- 
-	return (heading);
-	 
-}
-
-int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz)
-{
-	float xh,yh,ayf,axf;
-	int var_compass;
-	ayf=*ay/57.295;//Convert to rad
-	axf=*ax/57.295;//Convert to rad
-	xh=*cx*cos(ayf)+*cy*sin(ayf)*sin(axf)-*cz*cos(axf)*sin(ayf);
-	yh=*cy*cos(axf)+*cz*sin(axf);
-	var_compass=atan2((double)yh,(double)xh) * (180 / PI) -90-90; // angle in degrees
-	if (var_compass>0){var_compass=var_compass-360;}
-	var_compass=360+var_compass;
-	//var_compass = atan2((*cz * sin(*ax) - *cy * cos(*ax)), *cx * cos(*ay) + *cy * sin(*ax) * sin(*ay) + *cz * sin(*ay) * cos(*ax))* 180.0/3.14159265 + 180;
-	// while (var_compass < 0) var_compass += 360;
-	//while (var_compass > 360) var_compass -= 360;
-	return (var_compass);
-}
-
-// --------------  Matnetometer functions by chih-wei -----------------
 
 void EXTI_Configuration(void)
 {
@@ -521,61 +582,6 @@ static void GPIO_Configuration(void)
 	GPIOB->BSRR = GPIO_Pin_13;
 }
 
-void PIN_ON(uint8_t n){
-	// TODO: to distinguish GPIOA and GPIOB
-	switch(n){
-		case 1:
-			GPIOB->BSRR = GPIO_Pin_13;
-		break;
-	}
-}
-
-void PIN_OFF(uint8_t n){
-	// TODO: to distinguish GPIOA and GPIOB
-	switch(n){
-		case 1:
-			GPIOB->BRR = GPIO_Pin_13;
-		break;
-	}
-}
-
-void blink(){
-	PIN_ON(1);
-	Delay(100);
-	PIN_OFF(1);
-}
-
-void RF_beacon(void){
-	if(RF_RX_AUTONET()){					// check AutoNet header
-		packet_receive();						// receive sensors' data from others
-	}
-	if(timer_flag_Beacon == 1){
-		if(TYPE == Type_Light){	
-			broadcast();
-			//blink();
-			timer_flag_Beacon = 0;
-		}
-		else{
-			get_direction(&flat_heading);
-			//ToDo: More sensor data
-		
-			My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
-			My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
-			My_Data_table[TYPE_GPS_LAT_SEC] = Lat_sec;
-			My_Data_table[TYPE_GPS_LAT_DIR] = Lat_dir;
-			My_Data_table[TYPE_GPS_LONG_DEG] = Long_deg;
-			My_Data_table[TYPE_GPS_LONG_MIN] = Long_min;
-			My_Data_table[TYPE_GPS_LONG_SEC] = Long_sec;
-			My_Data_table[TYPE_GPS_LONG_DIR] = Long_dir;
-			My_Data_table[TYPE_HEADING] = flat_heading;
-			My_Data_table[TYPE_LOS_FRONT] = FrontID;
-			My_Data_table[TYPE_LOS_REAR] = RearID;
-			
-			broadcastSend();
-			timer_flag_Beacon = 0;
-		}				
-	}
-}
 /**
   * @brief  Interrupt.
   * @param  COM: Specifies the COM port to be configured.

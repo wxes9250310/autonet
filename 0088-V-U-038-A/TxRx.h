@@ -82,6 +82,8 @@ enum RECEVIE_DATA_TABLE
 };
 
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen);
+uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI);
+
 void packet_receive(void);
 void broadcastSend(void);
 void broadcast(void);
@@ -91,9 +93,9 @@ void Group_Configuration(void);
 uint8_t Group_Diff(uint16_t* addr_array, uint8_t attribute, uint16_t center, uint16_t difference);
 void lighting(uint8_t State);
 int RF_RX_AUTONET(void);
-int RF_RX(void);
-uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t*);
+
 int autonet_header_check(void);
+
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in);
 void getDestAddr(uint8_t* data_out, uint8_t* data_in);
 void getSrcPanID(uint8_t* data_out, uint8_t* data_in);

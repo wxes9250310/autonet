@@ -16,7 +16,13 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define RX_BUFFER_OFFSET 12
+#define MAC_HEADER_LENGTH 12
+
+/* Private variable ----------------------------------------------------------*/
+uint8_t type;
+uint16_t srcAddr;
+uint16_t radio_freq;
+uint16_t radio_panID;
 
 /* Private function ----------------------------------------------------------*/
 void app_light_direction();
@@ -24,102 +30,96 @@ void app_control_light();
 
 // application - Light direction
 enum{
-	Message_Control,
-	Message_Type,
-	Message_BroadcastType,
-	Message_Light,
+		Message_Control,
+		Message_Type,
+		Message_BroadcastType,
+		Message_Light,
 };
 
 // application - Control light
 enum{
-	Type_Controller = 0x00,			// delete? 
-	Type_Light = 0x01,
-	Type_Switch = 0x02,
+		Type_Controller = 0x00,			// delete? 
+		Type_Light = 0x01,
+		Type_Switch = 0x02,
 };
 
 int main(void)
 {
-	//app_light_direction();
-	app_control_light();
+		//app_light_direction();
+		app_control_light();
 }
 
 void app_light_direction(){
 	
-	// local variables definition
-	uint16_t radio_freq;
-  uint16_t radio_panID;
-  uint16_t srcAddr;
-	uint8_t TxData[256];  
-	uint8_t RxData[256];
-	uint8_t Rx_DataLen;
-	uint8_t Rx_Payload[256];
-	uint16_t addr_array[10];
-	uint8_t Device_Type;
-	uint8_t i;
-	uint8_t Lighting_Flag=0;
-	uint8_t RSSI;
-	int heading;
-	uint8_t heading_diff=20;
-	uint8_t Match_Devices_Num;
-	
-	//
-	Device_Type = Type_Controller;
-	srcAddr = 0x0000;
-	
-	radio_freq = 2475;
-  radio_panID = 0x00AA;
-	// TODO: change to Initial();
-  Initial(srcAddr, Device_Type, radio_freq, radio_panID);
-	
-  // setting the period of broadcasting information of AutoNet	
-	Timer_Beacon(200);
-  // every 500ms to pull up the time flag
-	setTimer(1, 500, UNIT_MS);
+		// local variables definition
+		uint8_t TxData[256];  
+		uint8_t RxData[256];
+		uint8_t Rx_DataLen;
+		uint8_t Rx_Payload[256];
+		uint16_t addr_array[10];
+		uint8_t i;
+		uint8_t Lighting_Flag=0;
+		uint8_t RSSI;
+		int heading;
+		uint8_t heading_diff=20;
+		uint8_t Match_Devices_Num;
+		
+		// Initialization
+		srcAddr = 0x0000;
+		type = Type_Controller;
+		radio_freq = 2475;
+		radio_panID = 0x00AA;
+		Initial(srcAddr, type, radio_freq, radio_panID);
+		
+		// setting the period of broadcasting information of AutoNet	
+		Timer_Beacon(200);
+		// every 500ms to pull up the time flag
+		setTimer(1, 500, UNIT_MS);
 
-	while(1){
-		RF_beacon();  // broadcast beacon information
-		if(Device_Type == Type_Controller){
-			if(checkTimer(1) && get_direction(&heading)){
-				Match_Devices_Num = Group_Diff(addr_array,Direction,heading,heading_diff);
-				TxData[0] = Message_Control;
-				TxData[1] = Match_Devices_Num;
-				for( i=0 ; i<Match_Devices_Num ; i++ ){
-					TxData[2*i+2] = addr_array[i+1];
-					TxData[2*i+3] = addr_array[i+1] >> 8;
-				}
-				RF_Tx(0xFFFF,TxData,Match_Devices_Num*2+2);
-			}
-		}
-		else if(Device_Type == Type_Light){
-			if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){
-			  Lighting_Flag = 0;
-				getPayload(Rx_Payload,RxData,Rx_DataLen);
-				for( i=0 ; i<Rx_Payload[1]; i++ ){
-					if((Rx_Payload[2*i+2] | Rx_Payload[2*i+3] << 8) == srcAddr){
-						Lighting_Flag = 1;
-						break;
+		while(1){
+			RF_beacon();  // broadcast beacon information
+			if(type == Type_Controller){
+				if(checkTimer(1) && get_direction(&heading)){
+					Match_Devices_Num = Group_Diff(addr_array,Direction,heading,heading_diff);
+					TxData[0] = Message_Control;
+					TxData[1] = Match_Devices_Num;
+					for( i=0 ; i<Match_Devices_Num ; i++ ){
+						TxData[2*i+2] = addr_array[i+1];
+						TxData[2*i+3] = addr_array[i+1] >> 8;
 					}
+					RF_Tx(0xFFFF,TxData,Match_Devices_Num*2+2);
 				}
-				if(Lighting_Flag == 1)
-					PIN_ON(1);
-				else
-					PIN_OFF(1);
+			}
+			else if(type == Type_Light){
+				if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){
+					Lighting_Flag = 0;
+					getPayload(Rx_Payload,RxData,Rx_DataLen);
+					for( i=0 ; i<Rx_Payload[1]; i++ ){
+						if((Rx_Payload[2*i+2] | Rx_Payload[2*i+3] << 8) == srcAddr){
+							Lighting_Flag = 1;
+							break;
+						}
+					}
+					if(Lighting_Flag == 1)
+						PIN_ON(1);
+					else
+						PIN_OFF(1);
+				}
 			}
 		}
-	}
-	
+		
 }
 
-void app_control_light(){
+
+/*******************************************************************************
+* Application Name  : Automatically turns on near lights
+* Description    		: When a controller approaches lights, they will turn on  
+*                   : their lights automatically
+* Author            : Ed Kung
+*******************************************************************************/
+void app_control_light(){ 
 	
-	  // variables for initialization
-	  uint16_t srcAddr = 0x0005;
-		uint8_t type = Type_Light;
-		uint16_t radio_freq = 2475;
-		uint16_t radio_panID = 0x00AA;
-	
-	  // variables for application
-	  uint8_t openLightFlag;
+		uint8_t i,k;
 	  uint8_t state;
 	  uint8_t detect;  
 	  uint8_t RSSI;
@@ -129,15 +129,18 @@ void app_control_light(){
 		uint8_t Rx_DataLen;
 		uint8_t Rx_Payload[256];
 	  uint8_t neighborNum = 0;
-		uint8_t addFlag=0;
+		uint8_t addFlag=0;		// record whether to renew the lighting table in the controller
 	  uint8_t outFlag =0;
 		uint16_t neighbor[10];
 	  uint16_t RSSI_THRESHOLD = 200;		// not quite sure the range
-	
-		uint8_t i,k;
-		uint16_t DeviceAddr;
+		uint16_t r_DeviceAddr;						// the address of received devices 
+		uint8_t msgLightFlag;
 	
 		// Initialization
+		srcAddr = 0x0005;
+		type = Type_Light;
+		radio_freq = 2475;
+		radio_panID = 0x00AA;
 		Initial(srcAddr, type, radio_freq, radio_panID);
 		
 		// set timers
@@ -145,72 +148,76 @@ void app_control_light(){
 		setTimer(2, 500, UNIT_MS);
 
 		while(1){ 	
-			
-			// automatically broadcast for some defined devices
-			if(type == Type_Light){
-					RF_beacon();  												// broadcast beacon information	  
-				
-					if(checkTimer(1)){										// check whether the device should open the light or not
-						RF_Rx(RxData,&Rx_DataLen,&RSSI);
-						
-						if(RxData[RX_BUFFER_OFFSET + 0] == Message_Light){	
-							for(i=1; i<= Rx_DataLen; i++){
-								if(RxData[RX_BUFFER_OFFSET + i]==srcAddr){
-									// bug
-									blink();
-								}
-							}	
+			if(type == Type_Light){											// Light
+					RF_beacon();  													// broadcast beacon information	  
+				  // check whether the device should open the light or not
+					if(checkTimer(1)){											// check every 1000 ms							
+						if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){	// returns 1 if it has received something
+							if(RxData[MAC_HEADER_LENGTH + 0] == Message_Light){		// lighting message
+								// check the address of the devices whether exists or not
+								for(i=1; i<= (Rx_DataLen-MAC_HEADER_LENGTH); i++){											
+									if(RxData[MAC_HEADER_LENGTH + i]==srcAddr){
+										// bug
+										blink();
+									}
+								}	
+							}
 						}
 					}
 			}
 			
 			else if(type == Type_Controller){
-				if(checkTimer(2)){										// check whether the device should open the light or not
-					RF_Rx(RxData,&Rx_DataLen,&RSSI);
-					
-					if(RxData[RX_BUFFER_OFFSET + 0] == Message_BroadcastType && RxData[RX_BUFFER_OFFSET + 1] == Type_Light){
-							DeviceAddr = RxData[RX_BUFFER_OFFSET + 2];
-							if(RSSI >= RSSI_THRESHOLD){					// near enough
-								addFlag = 0;
-								for(k=0; k<=neighborNum; k++){			// check list
-									if(neighbor[k] != DeviceAddr){
-										addFlag = 1;									// renew the list of neighbors									
+				// check whether the device should open the light or not
+				if(checkTimer(2)){										
+					if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){		// check whether a received frame exists
+						if(RxData[MAC_HEADER_LENGTH + 0] == Message_BroadcastType 
+												&& RxData[MAC_HEADER_LENGTH + 1] == Type_Light){
+							r_DeviceAddr = RxData[MAC_HEADER_LENGTH + 2];
+						
+							if(RSSI >= RSSI_THRESHOLD){						// near enough
+								addFlag = 0;												
+								for(k=0; k<=neighborNum; k++){			// check neighbors list
+									if(neighbor[k] != r_DeviceAddr){	// the devices does not exist in the list
+										addFlag = 1;										// need to renew the list of neighbors									
 									}
-									else{
+									else{															// the devices already exists in the list
 										addFlag = 0;
 										break;	
 									}
 								}
-								if(addFlag ==1){								// shift left by one byte
-										neighbor[neighborNum++] = DeviceAddr;
-									}
+								
+								if(addFlag ==1){										// add the device into the list
+										neighbor[neighborNum++] = r_DeviceAddr;
+								}
 							}
-							else{																// not neighbors
-								for(k=0; k<=neighborNum; k++){			// check list
-									if(neighbor[k] == DeviceAddr){
-										outFlag = 1;									// renew the list of neighbors
+							else{																	// not near enough 
+								for(k=0; k<=neighborNum; k++){			// check neighbors list
+									if(neighbor[k] == r_DeviceAddr){
+										outFlag = 1;										// renew the list of neighbors
 										neighborNum --;
 									}
-									if(outFlag ==1){								// shift left by one byte
-										neighbor[k] = neighbor[k+1];
+									if(outFlag ==1){									// delete it from the list and 
+										neighbor[k] = neighbor[k+1];		// shift remaining addresses left by one byte
 									}
 								}
-								outFlag=0;												// reset the flag
+								outFlag=0;													// reset the flag
 							}
 						}
-					if(neighborNum != 0){										// need to send lighting message
-						openLightFlag = 1;
-					}
-					else {
-						openLightFlag = 0;
 					}
 					
-					if(openLightFlag){	 		// need to send lighting messages
+					if(neighborNum != 0)										// need to send lighting message
+						msgLightFlag = 1;
+					else 
+						msgLightFlag = 0;
+					
+					if(msgLightFlag){	 										 // need to send lighting messages
 						blink();
-						TxData[0]= Message_Light;
+						// contruction of lighting message frame
+						TxData[0]= Message_Light;		
 						for(i =1; i<= neighborNum; i++){
 							TxData[i] = neighbor[i-1];
 						}
+						// broadcast the packet
 						RF_Tx(0xFFFF, TxData, neighborNum);
 					}
 					PIN_OFF(1);
