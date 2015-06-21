@@ -24,11 +24,6 @@ void app_control_light();
 
 // application - Light direction
 enum{
-	Type_Controller,
-	Type_Light,
-};
-
-enum{
 	Message_Control,
 	Message_Type,
 	Message_BroadcastType,
@@ -37,8 +32,9 @@ enum{
 
 // application - Control light
 enum{
-	Light = 0x0001,
-	Switch = 0x0002,
+	Type_Controller = 0x00,			// delete? 
+	Type_Light = 0x01,
+	Type_Switch = 0x02,
 };
 
 int main(void)
