@@ -38,7 +38,7 @@ enum{
 
 // application - Control light
 enum{
-		Type_Controller = 0x00,			// delete? 
+		Type_Controller = 0x00,			// delete?
 		Type_Light = 0x01,
 		Type_Switch = 0x02,
 };

@@ -29,7 +29,7 @@
 void Autonet_Config(uint16_t SrcAddr, uint16_t type);
 void Initialization(uint16_t, uint8_t, uint16_t, uint16_t);
 void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio_panID);
-void InitialCheck();
+void InitialCheck(void);
 void TimerBeaconSetting(uint16_t SrcAddr, uint8_t type);
 void Autonet_search_type(char *a);
 void RF_beacon(void);
@@ -38,12 +38,12 @@ void RF_beacon(void);
 void PIN_ON(uint8_t n);
 void PIN_OFF(uint8_t n);
 void blink(void);
-	 
+
 void Mag_Error_Handle (short *pX,short *pY,short *pZ, short *max_x, short *min_x, short *max_y, short *min_y, short *max_z, short *min_z);
 int Mag_flatsurface(short *pX,short *pY);
 int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz);
 void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length);
-	 
+
 /* utility APIs */
 uint8_t get_direction(int *heading_deg);
 void get_gps(void);

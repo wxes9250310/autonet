@@ -112,31 +112,31 @@ void broadcastSend(void)
 		pTxData[FRAME_BYTE_TYPE] 	 			= BROADCASTHEADER;
 		pTxData[FRAME_BYTE_SRC_ID] 			= ID;
 		pTxData[FRAME_BYTE_NUMOFSENSOR] = NUMOFSENSOR;
-	
+
 		pTxData[FRAME_BYTE_STYPE1] 			= TYPE_HEADING; 		 // type1: eCompass
 		pTxData[FRAME_BYTE_SVALUE11] 		= flat_headingH;  		
 		pTxData[FRAME_BYTE_SVALUE12] 		= flat_headingL; 	
-	
+
 		pTxData[FRAME_BYTE_STYPE2] 			= TYPE_SPEED; 			 // type2: velocity
 		pTxData[FRAME_BYTE_SVALUE21]		= RealspeedH; 
 		pTxData[FRAME_BYTE_SVALUE22] 		= RealspeedL;	
-	
+
 		pTxData[FRAME_BYTE_STYPE3] 			= 0x03; 						 // type3: GPS degree
 		pTxData[FRAME_BYTE_SVALUE31]		= Lat_deg;
 		pTxData[FRAME_BYTE_SVALUE32] 		= Long_deg;	 
-	
+
 		pTxData[FRAME_BYTE_STYPE4] 			= 0x04; 						  // type4: GPS minute
-		pTxData[FRAME_BYTE_SVALUE41]		= Lat_min;  
-		pTxData[FRAME_BYTE_SVALUE42] 		= Long_min;	
-	
+		pTxData[FRAME_BYTE_SVALUE41]		= Lat_min;
+		pTxData[FRAME_BYTE_SVALUE42] 		= Long_min;
+
 		pTxData[FRAME_BYTE_STYPE5] 			= 0x05; 					 	 // type5: GPS second
 		pTxData[FRAME_BYTE_SVALUE51]		= Lat_sec;
-		pTxData[FRAME_BYTE_SVALUE52]		= Long_sec;    	
+		pTxData[FRAME_BYTE_SVALUE52]		= Long_sec;
 
 		pTxData[FRAME_BYTE_STYPE6] 			= 0x06; 						 // type6: GPS direction
 		pTxData[FRAME_BYTE_SVALUE61]		= Lat_dir;
 		pTxData[FRAME_BYTE_SVALUE62]		= Long_dir;
-		
+
 		pTxData[FRAME_BYTE_STYPE7] 			= 0x07; 						 // type6: GPS direction
 		pTxData[FRAME_BYTE_SVALUE71]		= Lat_dir;
 		pTxData[FRAME_BYTE_SVALUE72]		= Long_dir;
@@ -144,7 +144,7 @@ void broadcastSend(void)
 		for(i=framelength;i<128;i++){
 			pTxData[i]=0x00;
 		}
-		
+
 //		pTxData[framelength] = CheckSum(pTxData, framelength);
 		
 		RF_Tx(0xFFFF, pTxData, framelength);
@@ -283,27 +283,23 @@ void packet_receive(void)
 {
 		//basicRfReceive(pRxData, MAX_RECV_BUF_LEN, &rssi);
 	  memcpy(pRxData, Data, DataLen);
-		//		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
-//			if(pRxData[FRAME_BYTE_TYPE + RX_OFFSET] == BROADCASTHEADER){
-				for(i=0;i<pRxData[FRAME_BYTE_NUMOFSENSOR+RX_OFFSET];i++){
-					if(i <= TYPE_SPEED){																		  // TYPE_SPEED = 2
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][pRxData[3*i+4+RX_OFFSET]] = pRxData[3*i+6+RX_OFFSET] | (pRxData[3*i+5+RX_OFFSET]<<8);
-					}
-					else if(i==2)																							// STORE GPS values, special case
-					{
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][2] = pRxData[12];    // degree of Latitude 
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][3] = pRxData[15];		 // minute of Latitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][4] = pRxData[18];		 // second of Latitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][5] = pRxData[21];    // direction of Latitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][6] = pRxData[13];		 // degree of Longitude 
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][7] = pRxData[16];		 // minute of Longitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][8] = pRxData[19];	   // second of Longitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][9] = pRxData[22];    // direction of Longitude
-						break;
-					}
-				}
-//			}
-// 	 }
+		for(i=0;i<pRxData[FRAME_BYTE_NUMOFSENSOR+RX_OFFSET];i++){
+			if(i <= TYPE_SPEED){																		  									 // TYPE_SPEED = 2
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][pRxData[3*i+4+RX_OFFSET]] = pRxData[3*i+6+RX_OFFSET] | (pRxData[3*i+5+RX_OFFSET]<<8);
+			}
+			else if(i==2)																																 // STORE GPS values, special case
+			{
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][2] = pRxData[12];    // degree of Latitude 
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][3] = pRxData[15];		 // minute of Latitude
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][4] = pRxData[18];		 // second of Latitude
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][5] = pRxData[21];    // direction of Latitude
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][6] = pRxData[13];		 // degree of Longitude 
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][7] = pRxData[16];		 // minute of Longitude
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][8] = pRxData[19];	   // second of Longitude
+				Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][9] = pRxData[22];    // direction of Longitude
+				break;
+			}
+		}
 }
 
 int autonet_header_check(){
@@ -381,15 +377,6 @@ void getPayloadLength(uint8_t* data_out, uint8_t* data_in){
 
 		memset(data_out,0x00,sizeof(data_out));
   	data_out[0] = data_in[0];
-}
-
-int headerCheck_AutoNet(uint8_t* data){
-		
-		// AutoNet reserves 0x00~0x04 as header
-	  if(data[0+RX_OFFSET] >= 0x00 && data[0+RX_OFFSET] <= 0x04)
-		    return true;
-		else 
-				return false;
 }
 
 uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t difference){

@@ -25,6 +25,7 @@
 #include "us2400APIs.h"
 #include "math.h"
 #include "TxRx.h"
+#include "stm32f0xx_it.h"
 
 /** @addtogroup STM32F0xx_StdPeriph_Templates
   * @{
@@ -263,7 +264,6 @@ void Autonet_search_type(char *a){
 
 }
 
-
 void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length) {
 	  
 		int i;	
@@ -305,12 +305,10 @@ uint8_t get_direction(int *heading_deg){
 }
 
 void get_gps(){
-	
 		Lea6SRead(0x84, &Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);   // read data from GPS
 }
 
 void update_sensor_table(){
-		
 		My_Data_table[TYPE_SPEED] = drive;
 		My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
 		My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
