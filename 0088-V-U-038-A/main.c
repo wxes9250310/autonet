@@ -137,9 +137,9 @@ void app_control_light(){
 		uint8_t msgLightFlag;
 	
 		// Initialization
-		srcAddr = 0x00FF;
-		//type = Type_Light;
-		type = Type_Controller;
+		srcAddr = 0x0003;
+		type = Type_Light;
+		//type = Type_Controller;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
 		Initial(srcAddr, type, radio_freq, radio_panID);
