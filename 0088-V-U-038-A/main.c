@@ -133,12 +133,13 @@ void app_control_light(){
 	  uint8_t outFlag =0;
 		uint16_t neighbor[10];
 	  uint16_t RSSI_THRESHOLD = 200;		// not quite sure the range
-		uint16_t r_DeviceAddr;						// the address of received devices 
+		uint8_t r_DeviceAddr;						// the address of received devices 
 		uint8_t msgLightFlag;
 	
 		// Initialization
-		srcAddr = 0x0005;
-		type = Type_Light;
+		srcAddr = 0x00FF;
+		//type = Type_Light;
+		type = Type_Controller;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
 		Initial(srcAddr, type, radio_freq, radio_panID);
@@ -150,6 +151,7 @@ void app_control_light(){
 		while(1){ 	
 			if(type == Type_Light){											// Light
 					RF_beacon();  													// broadcast beacon information	  
+				  Delay(10);
 				  // check whether the device should open the light or not
 					if(checkTimer(1)){											// check every 1000 ms							
 						if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){	// returns 1 if it has received something
@@ -211,14 +213,14 @@ void app_control_light(){
 						msgLightFlag = 0;
 					
 					if(msgLightFlag){	 										 // need to send lighting messages
-						blink();
+						//blink();
 						// contruction of lighting message frame
 						TxData[0]= Message_Light;		
 						for(i =1; i<= neighborNum; i++){
 							TxData[i] = neighbor[i-1];
 						}
 						// broadcast the packet
-						RF_Tx(0xFFFF, TxData, neighborNum);
+						RF_Tx(0xFFFF, TxData, 2);
 					}
 					PIN_OFF(1);
 				}
