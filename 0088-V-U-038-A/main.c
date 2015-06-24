@@ -137,9 +137,9 @@ void app_control_light(){
 		uint8_t msgLightFlag;
 	
 		// Initialization
-		Addr = 0x0003;
-		type = Type_Light;
-		//type = Type_Controller;
+		Addr = 0x00FF;
+		//type = Type_Light;
+		type = Type_Controller;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
 		Initial(Addr, type, radio_freq, radio_panID);
@@ -213,7 +213,7 @@ void app_control_light(){
 						msgLightFlag = 0;
 					
 					if(msgLightFlag){	 										 // need to send lighting messages
-						//blink();
+
 						// contruction of lighting message frame
 						TxData[0]= Message_Light;		
 						for(i =1; i<= neighborNum; i++){
@@ -222,7 +222,6 @@ void app_control_light(){
 						// broadcast the packet
 						RF_Tx(0xFFFF, TxData, 2);
 					}
-					PIN_OFF(1);
 				}
 			}
 	}

@@ -43,6 +43,23 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+uint8_t pTxData[128];
+uint8_t pRxData[128];
+uint8_t CommanderID = 0xFF;
+
+Table table;
+Device myAttribute;
+uint8_t  Group[NumOfDeviceInTable];
+uint16_t Condition[ATTRIBUTE_NUM] = {0x10,0xFF,0xFF};
+
+int BeaconEnabled = 0;
+int Group_count = 0;
+int Group_flag = 0;
+int num;
+int i,j,k,gps_m;
+int CheckTime;
+int ConfirmGroupTime = 10;
+
 enum{
 	Message_Control,
 	Message_Type,
@@ -57,88 +74,12 @@ enum{
 };
 
 extern uint16_t Addr;
-uint8_t CommanderID = 0xFF;
 extern uint8_t type;
 extern uint8_t Data[]; 
 extern uint8_t DataLen;
 extern uint8_t framelength;
-
-Table table;
-Device myAttribute;
-uint8_t  Group[NumOfDeviceInTable];
-uint16_t Condition[ATTRIBUTE_NUM] = {0x10,0xFF,0xFF};
-
-int Group_count = 0;
-int Group_flag = 0;
-int num;
-int i,j,k,gps_m;
-int CheckTime;
-int ConfirmGroupTime = 10;
-uint8_t pTxData[128];
-uint8_t pRxData[128];
 extern TimObjTypeDef_s TimObj;
-extern Device myAttribute;
-extern int timer_flag_Beacon;
-
-
-
-							
-/* sensors variables */
-short AK8975MagX = 0;
-short AK8975MagY = 0;
-short AK8975MagZ = 0;
-short MPU6050AccX = 0;
-short MPU6050AccY = 0;
-short MPU6050AccZ = 0;
-short MPU6050GyroX = 0;
-short MPU6050GyroY = 0;
-short MPU6050GyroZ = 0;
-unsigned char RealspeedH;     // speed first byte
-unsigned char RealspeedL;			// speed second byte
-float Temperature = 0;
-unsigned short Lux = 0;
-short Mag3110MagX = 0;
-short Mag3110MagY = 0;
-short Mag3110MagZ = 0;
-int time;
-int flat_heading=999;
-int tilt_heading=999;
-char flat_headingH=0;
-char flat_headingL=0;
-short max_x=12, min_x=-20, max_y=21, min_y=-14, max_z=5, min_z=-30;
-//short max_x=129, min_x=-205, max_y=210, min_y=-141, max_z=59, min_z=-300;
-
-float Speed_x = 0;
-float Speed_y = 0;
-float Speed_z = 0;
-uint16_t Speed=0;
-int drive = 0;
-
-double PI = 3.14159265359;
-
-/* for IR */
-char s1[2];
-char s2[2];
-char FrontID = 0xFF;
-char RearID = 0xFF;
-
-/* for GPS */
-unsigned char Lat;
-unsigned char Long;
-unsigned char Lat_deg; 
-unsigned char Lat_min;
-unsigned char Lat_sec;
-unsigned char Lat_dir;
-unsigned char Long_deg;
-unsigned char Long_min;
-unsigned char Long_sec;
-unsigned char Long_dir;
-unsigned char pos1;
-unsigned char pos2;
-//int Hour = 0;
-//int Minute = 0;
-
-
+extern int BeaconTimerFlag;
 
 /* Private function prototypes -----------------------------------------------*/
 static void GPIO_Configuration(void);
@@ -190,76 +131,46 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 
 void TimerBeaconSetting(uint16_t SrcAddr, uint8_t type){
 	 
-	 if(type == Type_Light){
-		 Addr = SrcAddr;
-		 type = type;
-		 Timer_Beacon(500);
-	 }
-	 else if(type == Type_Switch){
-		 Addr = SrcAddr;
-		 type = type;
-		 Timer_Beacon(200);
-	 }
-	 else {				// not defined type
-		 Addr = SrcAddr;
-     type = 0x0000;
-		 // TODO: to set non-beacon devices
-     // Timer_Beacon(0);		 
-	 }
-	  
-}
-
-/**
-	* @title 
-	* @brief 
-	* @param 
-	*/
-
-void blink(){
-		PIN_ON(1);
-		Delay(100);
-		PIN_OFF(1);
-}
-
-void PIN_ON(uint8_t n){
-	// TODO: to distinguish GPIOA and GPIOB
-	switch(n){
-		case 1:
-			GPIOB->BSRR = GPIO_Pin_13;
-		break;
-	}
-}
-
-void PIN_OFF(uint8_t n){
-	// TODO: to distinguish GPIOA and GPIOB
-	switch(n){
-		case 1:
-			GPIOB->BRR = GPIO_Pin_13;
-		break;
-	}
+		// TODO
+		if(type == Type_Light){
+				Timer_Beacon(500);
+				BeaconEnabled = 1;
+		}
+		else if(type == Type_Switch){
+				Timer_Beacon(200);
+				BeaconEnabled = 1;
+		}
+		else{ 												// not defined type
+				//Timer_Beacon(0);				// no beacon? 
+				BeaconEnabled = 0;
+		}
 }
 
 void RF_beacon(void){
-	if(RF_RX_AUTONET()){					// check AutoNet header
-		packet_receive();						// receive sensors' data from others
-	}
-	if(timer_flag_Beacon == 1){
-		if(type == Type_Light){	
-			broadcast();
-			//blink();
-			timer_flag_Beacon = 0;
+	
+		if(BeaconEnabled == 1){
+			if(RF_RX_AUTONET()){						// check AutoNet header
+					packet_receive();						// receive sensors' data from others
+			}
+			if(BeaconTimerFlag == 1){
+				if(type == Type_Light){	
+					broadcast();
+					//blink();
+					BeaconTimerFlag = 0;
+				}
+				else if(type == Type_Switch){	
+					broadcast();
+					//blink();
+					BeaconTimerFlag = 0;
+				}
+				else{
+					update_sensor_table();
+					broadcastSend();
+					BeaconTimerFlag = 0;
+				}				
+			}
 		}
-		else if(type == Type_Switch){	
-			broadcast();
-			//blink();
-			timer_flag_Beacon = 0;
-		}
-		else{
-			update_sensor_table();
-			broadcastSend();
-			timer_flag_Beacon = 0;
-		}				
-	}
+		else;
 }
 
 void broadcastSend(void)
@@ -275,6 +186,7 @@ void broadcastSend(void)
 			pTxData[FRAME_BYTE_ATTRIBUTE + 2*i + 1] = myAttribute.attribute[i];
 		}
 		framelength = FRAME_BYTE_ATTRIBUTE + 2*ATTRIBUTE_NUM;
+		
 		RF_Tx(0xFFFF, pTxData, framelength);
 }
 
@@ -302,9 +214,11 @@ void packet_receive(void)
 	uint16_t addr;
 	
 	memcpy(pRxData, Data, DataLen);
+	
 	type = pRxData[FRAME_BYTE_TYPE+RX_OFFSET];
 	addr = pRxData[FRAME_BYTE_SRCADDR+RX_OFFSET];
 	index = ScanTableByAddress(addr);
+	
 	if(index == 0xFF){														// no such address in the table
 		newIndex = ScanTableByAddress(0xFF);
 		if(newIndex != 0xFF){
@@ -349,6 +263,32 @@ int autonet_header_check(){
 		return 0;
 	
 }
+
+void blink(){
+		PIN_ON(1);
+		Delay(100);
+		PIN_OFF(1);
+}
+
+void PIN_ON(uint8_t n){
+	// TODO: to distinguish GPIOA and GPIOB
+	// TODO: to find available GPIO
+	switch(n){
+		case 1:
+			GPIOB->BSRR = GPIO_Pin_13;
+		break;
+	}
+}
+
+void PIN_OFF(uint8_t n){
+	// TODO: to distinguish GPIOA and GPIOB
+	switch(n){
+		case 1:
+			GPIOB->BRR = GPIO_Pin_13;
+		break;
+	}
+}
+
 
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in){
 
@@ -477,6 +417,61 @@ void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d
 	* @param 
 	*/
 
+/* sensors variables */
+short AK8975MagX = 0;
+short AK8975MagY = 0;
+short AK8975MagZ = 0;
+short MPU6050AccX = 0;
+short MPU6050AccY = 0;
+short MPU6050AccZ = 0;
+short MPU6050GyroX = 0;
+short MPU6050GyroY = 0;
+short MPU6050GyroZ = 0;
+unsigned char RealspeedH;     // speed first byte
+unsigned char RealspeedL;			// speed second byte
+float Temperature = 0;
+unsigned short Lux = 0;
+short Mag3110MagX = 0;
+short Mag3110MagY = 0;
+short Mag3110MagZ = 0;
+int time;
+int flat_heading=999;
+int tilt_heading=999;
+char flat_headingH=0;
+char flat_headingL=0;
+short max_x=12, min_x=-20, max_y=21, min_y=-14, max_z=5, min_z=-30;
+//short max_x=129, min_x=-205, max_y=210, min_y=-141, max_z=59, min_z=-300;
+
+float Speed_x = 0;
+float Speed_y = 0;
+float Speed_z = 0;
+uint16_t Speed=0;
+int drive = 0;
+
+double PI = 3.14159265359;
+
+/* for IR */
+char s1[2];
+char s2[2];
+char FrontID = 0xFF;
+char RearID = 0xFF;
+
+/* for GPS */
+unsigned char Lat;
+unsigned char Long;
+unsigned char Lat_deg; 
+unsigned char Lat_min;
+unsigned char Lat_sec;
+unsigned char Lat_dir;
+unsigned char Long_deg;
+unsigned char Long_min;
+unsigned char Long_sec;
+unsigned char Long_dir;
+unsigned char pos1;
+unsigned char pos2;
+//int Hour = 0;
+//int Minute = 0;
+
 uint8_t get_direction(int *heading_deg){
 	
     Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
@@ -503,23 +498,6 @@ void get_gps(){
 		Lea6SRead(0x84, &Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);   // read data from GPS
 }
 
-void update_sensor_table(){
-		get_direction(&flat_heading);
-		//ToDo: More sensor data
-	
-		myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
-		myAttribute.attribute[ATTRIBUTE_GPS_LAT_DEG] = Lat_deg;
-		myAttribute.attribute[ATTRIBUTE_GPS_LAT_MIN] = Lat_min;
-		myAttribute.attribute[ATTRIBUTE_GPS_LAT_SEC] = Lat_sec;
-		myAttribute.attribute[ATTRIBUTE_GPS_LAT_DIR] = Lat_dir;
-		myAttribute.attribute[ATTRIBUTE_GPS_LONG_DEG] = Long_deg;
-		myAttribute.attribute[ATTRIBUTE_GPS_LONG_MIN] = Long_min;
-		myAttribute.attribute[ATTRIBUTE_GPS_LONG_SEC] = Long_sec;
-		myAttribute.attribute[ATTRIBUTE_GPS_LONG_DIR] = Long_dir;
-		myAttribute.attribute[ATTRIBUTE_HEADING] = flat_heading;
-		myAttribute.attribute[ATTRIBUTE_LOS_FRONT] = FrontID;
-		myAttribute.attribute[ATTRIBUTE_LOS_REAR] = RearID;
-}
 // --------------  Matnetometer functions by chih-wei -----------------
 void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)
 {
@@ -609,6 +587,24 @@ void get_LOS_address(char *f_id, char *r_id){
 }
 */
 
+
+void update_sensor_table(){
+		get_direction(&flat_heading);
+		//ToDo: More sensor data
+	
+		myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
+		myAttribute.attribute[ATTRIBUTE_GPS_LAT_DEG] = Lat_deg;
+		myAttribute.attribute[ATTRIBUTE_GPS_LAT_MIN] = Lat_min;
+		myAttribute.attribute[ATTRIBUTE_GPS_LAT_SEC] = Lat_sec;
+		myAttribute.attribute[ATTRIBUTE_GPS_LAT_DIR] = Lat_dir;
+		myAttribute.attribute[ATTRIBUTE_GPS_LONG_DEG] = Long_deg;
+		myAttribute.attribute[ATTRIBUTE_GPS_LONG_MIN] = Long_min;
+		myAttribute.attribute[ATTRIBUTE_GPS_LONG_SEC] = Long_sec;
+		myAttribute.attribute[ATTRIBUTE_GPS_LONG_DIR] = Long_dir;
+		myAttribute.attribute[ATTRIBUTE_HEADING] = flat_heading;
+		myAttribute.attribute[ATTRIBUTE_LOS_FRONT] = FrontID;
+		myAttribute.attribute[ATTRIBUTE_LOS_REAR] = RearID;
+}
 
 /**
 * @title Autonet_spatial_dynamic (API for AutoNet demo)

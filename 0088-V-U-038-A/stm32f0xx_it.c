@@ -71,7 +71,7 @@ void (*function)(void);
 int Timer_Connect_Flag_Beacon;
 unsigned int timer_ticks_Beacon;
 unsigned int timer_period_Beacon;
-int timer_flag_Beacon;
+int BeaconTimerFlag;
 
 int Timer_Connect_Flag[NUM_TIME_FLAG];
 unsigned int timer_ticks[NUM_TIME_FLAG];
@@ -176,7 +176,7 @@ void SysTick_Handler(void)
 	if(Timer_Connect_Flag_Beacon==1){
 		if(--timer_ticks_Beacon == 0){
 			timer_ticks_Beacon = timer_period_Beacon;
-			timer_flag_Beacon = 1;
+			BeaconTimerFlag = 1;
 		}
 	}
 }

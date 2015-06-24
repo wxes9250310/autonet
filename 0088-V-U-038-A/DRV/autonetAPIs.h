@@ -17,11 +17,41 @@
 /* Includes ------------------------------------------------------------------*/
 #include "us2400APIs.h"
 #include "st.h"
-
+	 
+/* Private define ------------------------------------------------------------*/
 #define Direction 	1 
 #define Velocity 		2
 #define LOS 				3
 #define NumOfDeviceInTable 10
+
+/* Structure definition ------------------------------------------------------*/
+enum RECEVIE_DATA_TABLE
+{
+		ATTRIBUTE_HEADING,
+		ATTRIBUTE_SPEED,
+		ATTRIBUTE_GPS_LAT_DEG,
+		ATTRIBUTE_GPS_LAT_MIN,
+		ATTRIBUTE_GPS_LAT_SEC,	
+		ATTRIBUTE_GPS_LAT_DIR,
+		ATTRIBUTE_GPS_LONG_DEG,
+		ATTRIBUTE_GPS_LONG_MIN,
+		ATTRIBUTE_GPS_LONG_SEC,	
+		ATTRIBUTE_GPS_LONG_DIR,
+		ATTRIBUTE_LOS_FRONT,
+		ATTRIBUTE_LOS_REAR,
+    ATTRIBUTE_NUM
+};
+
+typedef struct{
+	uint16_t type;
+	uint16_t address;
+	uint16_t attribute[ATTRIBUTE_NUM];
+}Device;
+
+typedef struct{
+  Device device[NumOfDeviceInTable];
+}Table;
+	 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
@@ -63,6 +93,7 @@ void lighting(uint8_t State);
 int autonet_header_check(void);
 uint8_t ScanTableByAddress(uint8_t);
 void setTable(uint8_t,uint16_t,uint8_t);
+
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in);
 void getDestAddr(uint8_t* data_out, uint8_t* data_in);
 void getSrcPanID(uint8_t* data_out, uint8_t* data_in);
@@ -71,37 +102,6 @@ void getSeqNum(uint8_t* data_out, uint8_t* data_in);
 void getFrameControl(uint8_t* data_out, uint8_t* data_in);
 void getPayload(uint8_t* data_out, uint8_t* data_in, uint8_t Data_Length);
 void getPayloadLength(uint8_t* data_out, uint8_t* data_in);
-
-
-/* Structure definition ------------------------------------------------------*/
-
-enum RECEVIE_DATA_TABLE
-{
-		ATTRIBUTE_HEADING,
-		ATTRIBUTE_SPEED,
-		ATTRIBUTE_GPS_LAT_DEG,
-		ATTRIBUTE_GPS_LAT_MIN,
-		ATTRIBUTE_GPS_LAT_SEC,	
-		ATTRIBUTE_GPS_LAT_DIR,
-		ATTRIBUTE_GPS_LONG_DEG,
-		ATTRIBUTE_GPS_LONG_MIN,
-		ATTRIBUTE_GPS_LONG_SEC,	
-		ATTRIBUTE_GPS_LONG_DIR,
-		ATTRIBUTE_LOS_FRONT,
-		ATTRIBUTE_LOS_REAR,
-    ATTRIBUTE_NUM
-};
-
-typedef struct{
-	uint16_t type;
-	uint16_t address;
-	uint16_t attribute[ATTRIBUTE_NUM];
-}Device;
-
-typedef struct{
-  Device device[NumOfDeviceInTable];
-}Table;
-
 
 #ifdef __cplusplus
 }
