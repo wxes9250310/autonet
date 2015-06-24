@@ -18,32 +18,11 @@
 
 enum FRAME_BYTE
 {
-		FRAME_BYTE_HEADER        = 0,
-		FRAME_BYTE_TYPE        		= 1,
-		FRAME_BYTE_SRC_ID         = 2,
-		FRAME_BYTE_NUMOFSENSOR    = 3,
-		FRAME_BYTE_STYPE1    			= 4,			// sensor data type
-		FRAME_BYTE_SVALUE11      	= 5,
-		FRAME_BYTE_SVALUE12   		= 6,
-		FRAME_BYTE_STYPE2    			= 7,
-		FRAME_BYTE_SVALUE21   		= 8,
-		FRAME_BYTE_SVALUE22   		= 9,
-		FRAME_BYTE_STYPE3    			= 10,
-		FRAME_BYTE_SVALUE31   		= 11,
-		FRAME_BYTE_SVALUE32   		= 12,
-		FRAME_BYTE_STYPE4    			= 13,
-		FRAME_BYTE_SVALUE41   		= 14,
-		FRAME_BYTE_SVALUE42   		= 15,
-		FRAME_BYTE_STYPE5    			= 16,
-		FRAME_BYTE_SVALUE51   		= 17,
-		FRAME_BYTE_SVALUE52   		= 18,
-		FRAME_BYTE_STYPE6    			= 19,
-		FRAME_BYTE_SVALUE61   		= 20,
-		FRAME_BYTE_SVALUE62   		= 21,
-		FRAME_BYTE_STYPE7    			= 22,
-		FRAME_BYTE_SVALUE71   		= 23,
-		FRAME_BYTE_SVALUE72   		= 24
-		
+		FRAME_BYTE_HEADER,
+		FRAME_BYTE_SRCADDR,
+		FRAME_BYTE_TYPE,
+		FRAME_BYTE_NUMOFSENSOR,
+	  FRAME_BYTE_ATTRIBUTE,
 };
 
 enum FRAME_BYTE_L
@@ -64,23 +43,6 @@ enum FRAME_BYTE_L
 		FRAME_BYTE_L_light5   			= 13
 };
 
-enum RECEVIE_DATA_TABLE
-{
-		TYPE_HEADING      = 0,
-		TYPE_SPEED        = 1,
-		TYPE_GPS_LAT_DEG  = 2,
-		TYPE_GPS_LAT_MIN  = 3,
-		TYPE_GPS_LAT_SEC  = 4,	
-		TYPE_GPS_LAT_DIR  = 5,
-		TYPE_GPS_LONG_DEG = 6,
-		TYPE_GPS_LONG_MIN = 7,
-		TYPE_GPS_LONG_SEC = 8,	
-		TYPE_GPS_LONG_DIR = 9,
-		TYPE_LOS_FRONT    = 10,
-		TYPE_LOS_REAR     = 11,
-	  SIZE_OF_DATA_TABLE,
-};
-
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen);
 uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI);
 
@@ -95,7 +57,8 @@ void lighting(uint8_t State);
 int RF_RX_AUTONET(void);
 
 int autonet_header_check(void);
-
+uint8_t ScanTableByAddress(uint8_t);
+void setTable(uint8_t,uint16_t,uint8_t);
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in);
 void getDestAddr(uint8_t* data_out, uint8_t* data_in);
 void getSrcPanID(uint8_t* data_out, uint8_t* data_in);

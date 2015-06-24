@@ -25,6 +25,7 @@
 #include "us2400APIs.h"
 #include "math.h"
 #include "TxRx.h"
+#include "stm32f0xx_it.h"
 
 /** @addtogroup STM32F0xx_StdPeriph_Templates
   * @{
@@ -120,7 +121,7 @@ enum{
 };
 
 extern TimObjTypeDef_s TimObj;
-extern uint16_t My_Data_table[];
+extern Device myAttribute;
 extern int timer_flag_Beacon;
 
 /* Private function prototypes -----------------------------------------------*/
@@ -238,21 +239,7 @@ void RF_beacon(void){
 			timer_flag_Beacon = 0;
 		}
 		else{
-			get_direction(&flat_heading);
-			//ToDo: More sensor data
-		
-			My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
-			My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
-			My_Data_table[TYPE_GPS_LAT_SEC] = Lat_sec;
-			My_Data_table[TYPE_GPS_LAT_DIR] = Lat_dir;
-			My_Data_table[TYPE_GPS_LONG_DEG] = Long_deg;
-			My_Data_table[TYPE_GPS_LONG_MIN] = Long_min;
-			My_Data_table[TYPE_GPS_LONG_SEC] = Long_sec;
-			My_Data_table[TYPE_GPS_LONG_DIR] = Long_dir;
-			My_Data_table[TYPE_HEADING] = flat_heading;
-			My_Data_table[TYPE_LOS_FRONT] = FrontID;
-			My_Data_table[TYPE_LOS_REAR] = RearID;
-			
+			update_sensor_table();
 			broadcastSend();
 			timer_flag_Beacon = 0;
 		}				
@@ -262,7 +249,6 @@ void RF_beacon(void){
 void Autonet_search_type(char *a){
 
 }
-
 
 void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length) {
 	  
@@ -305,24 +291,25 @@ uint8_t get_direction(int *heading_deg){
 }
 
 void get_gps(){
-	
 		Lea6SRead(0x84, &Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);   // read data from GPS
 }
 
 void update_sensor_table(){
-		
-		My_Data_table[TYPE_SPEED] = drive;
-		My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
-		My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
-		My_Data_table[TYPE_GPS_LAT_SEC] = Lat_sec;
-		My_Data_table[TYPE_GPS_LAT_DIR] = Lat_dir;
-		My_Data_table[TYPE_GPS_LONG_DEG] = Long_deg;
-		My_Data_table[TYPE_GPS_LONG_MIN] = Long_min;
-		My_Data_table[TYPE_GPS_LONG_SEC] = Long_sec;
-		My_Data_table[TYPE_GPS_LONG_DIR] = Long_dir;
-		My_Data_table[TYPE_HEADING] = flat_heading;
-		My_Data_table[TYPE_LOS_FRONT] = FrontID;
-		My_Data_table[TYPE_LOS_REAR] = RearID;
+		get_direction(&flat_heading);
+		//ToDo: More sensor data
+	
+		myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
+		myAttribute.attribute[ATTRIBUTE_GPS_LAT_DEG] = Lat_deg;
+		myAttribute.attribute[ATTRIBUTE_GPS_LAT_MIN] = Lat_min;
+		myAttribute.attribute[ATTRIBUTE_GPS_LAT_SEC] = Lat_sec;
+		myAttribute.attribute[ATTRIBUTE_GPS_LAT_DIR] = Lat_dir;
+		myAttribute.attribute[ATTRIBUTE_GPS_LONG_DEG] = Long_deg;
+		myAttribute.attribute[ATTRIBUTE_GPS_LONG_MIN] = Long_min;
+		myAttribute.attribute[ATTRIBUTE_GPS_LONG_SEC] = Long_sec;
+		myAttribute.attribute[ATTRIBUTE_GPS_LONG_DIR] = Long_dir;
+		myAttribute.attribute[ATTRIBUTE_HEADING] = flat_heading;
+		myAttribute.attribute[ATTRIBUTE_LOS_FRONT] = FrontID;
+		myAttribute.attribute[ATTRIBUTE_LOS_REAR] = RearID;
 }
 // --------------  Matnetometer functions by chih-wei -----------------
 void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)
@@ -424,106 +411,6 @@ void get_LOS_address(char *f_id, char *r_id){
 * @param Velocity: 
 * @param LOS: 
 */
-/*
-void Autonet_spatial_dynamic(uint16_t* ID,uint16_t type1, uint16_t value1, uint16_t type2, uint16_t value2, uint16_t type3, uint16_t value3){
-
-
-	// -------------------------- sensors -------------------------- //
-    Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
-		Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
-		//Tmp75ReadTemperature(0x90, &Temperature);
-		//Bh1750fviReadLx(0x46, &Lux);
-		//Mag3110ReadMag(0x1C, &Mag3110MagX, &Mag3110MagY, &Mag3110MagZ);
-
-		// ------------ Accerlometer by Cheng han -----------------
-		time = TimObj.Tim[TIM_2].Period - TimObj.Tim[TIM_2].Ticks;
-		TimObj.Tim[TIM_2].Ticks = TimObj.Tim[TIM_2].Period;
-		Mpu6050ReadAccel(0xD0, &MPU6050AccX,&MPU6050AccY,&MPU6050AccZ);
-		Estimate_State();
-		Calculate_Speed(&Speed_x,&Speed_y,&Speed_z,&Speed,time);
-		RealspeedL = drive;
-		RealspeedH = drive >> 8;
-
-		// --------------  GPS by Ed -----------------------------
-		//Lea6SRead(0x84, &Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);   // read data from GPS
-
-		// --------------  Magnetometer by chih-wei -----------------
-		if(AK8975MagX>max_x) max_x = AK8975MagX;
-		if(AK8975MagX<min_x) min_x = AK8975MagX;
-		if(AK8975MagY>max_y) max_y = AK8975MagY;
-		if(AK8975MagY<min_y) min_y = AK8975MagY;
-		if(AK8975MagZ>max_z) max_z = AK8975MagZ;
-		if(AK8975MagZ<min_z) min_z = AK8975MagZ;
-
-		Mag_Error_Handle(&AK8975MagX, &AK8975MagY, &AK8975MagZ, &max_x, &min_x, &max_y, &min_y, &max_z, &min_z);
-		flat_heading = Mag_flatsurface(&AK8975MagX, &AK8975MagY);  // flat surface degree (0~360)
-		flat_headingL = flat_heading; // Lower 8 bit of flat_heading
-		flat_headingH = flat_heading >> 8; // Higher 8 bit of flat_heading
-//		tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
-		
-		// --------------  IR by chih-wei -----------------
-		// TODO: there might be more than one car in front of or in rear of, we need buffers
-		Mcp2120Tx((unsigned char *)s1, 2 , FRONT);
-		Delay(10);
-	  	Mcp2120Proc();
-		Mcp2120Tx((unsigned char *)s2, 2 , REAR);
-		Delay(10);
-
-		// ============== Sensors' data table ================= //
-		My_Data_table[TYPE_SPEED] = drive;
-		My_Data_table[TYPE_GPS_LAT_DEG] = Lat_deg;
-		My_Data_table[TYPE_GPS_LAT_MIN] = Lat_min;
-		My_Data_table[TYPE_GPS_LAT_SEC] = Lat_sec;
-		My_Data_table[TYPE_GPS_LAT_DIR] = Lat_dir;
-		My_Data_table[TYPE_GPS_LONG_DEG] = Long_deg;
-		My_Data_table[TYPE_GPS_LONG_MIN] = Long_min;
-		My_Data_table[TYPE_GPS_LONG_SEC] = Long_sec;
-		My_Data_table[TYPE_GPS_LONG_DIR] = Long_dir;
-		My_Data_table[TYPE_HEADING] = flat_heading;
-		My_Data_table[TYPE_LOS_FRONT] = FrontID;
-		My_Data_table[TYPE_LOS_REAR] = RearID;
-
-		// ============== Rx ================= //
-		// ============== Check RX FIFO Full/Overflow ================= //
-		if (Us2400ReadShortReg(0x30) == 0x90){
-			Us2400Rx(Data, &DataLen, &RFLqi, &RFRssi);
-			if (DataLen != 0){
-				packet_receive();
-				DataLen = 0;
-			}
-			Us2400WriteShortReg(0x0D, Us2400ReadShortReg(0x0D) | 0x01);
-		}
-		// ============== Packet Receive ================= //
-		if (RFRxState == 1 || Us2400ReadShortReg(0x30) == 0x80){
-			Us2400Rx(Data, &DataLen, &RFLqi, &rssi);
-			if (DataLen != 0){
-				// TODO: add judge function 
-				packet_receive();
-				DataLen = 0;
-			}
-			RFRxState = 0;
-		}
-
-		// ============== Event Handle (System Tick) ================= //
-		if ((TimObj.TimeoutFlag & TIMOUT_FLAG_200MS) == TIMOUT_FLAG_200MS){
-				broadcastSend();
-				TimObj.TimeoutFlag ^= TIMOUT_FLAG_200MS;
-		}
-		if ((TimObj.TimeoutFlag & TIMOUT_FLAG_IRTO_FRONT) == TIMOUT_FLAG_IRTO_FRONT){
-				FrontID = 0xFF;
-				TimObj.TimeoutFlag ^= TIMOUT_FLAG_IRTO_FRONT;
-		}
-		if ((TimObj.TimeoutFlag & TIMOUT_FLAG_IRTO_REAR) == TIMOUT_FLAG_IRTO_REAR){
-				RearID = 0xFF;
-				TimObj.TimeoutFlag ^= TIMOUT_FLAG_IRTO_REAR;
-		}
-		if ((TimObj.TimeoutFlag & TIMOUT_FLAG_STOP) == TIMOUT_FLAG_STOP){
-				drive = 0;
-				TimObj.TimeoutFlag ^= TIMOUT_FLAG_STOP;
-		}
-		//Group_Process(ID,type1,value1,type2,value2,type3,value3);
-}*/
-
 
 void EXTI_Configuration(void)
 {

@@ -11,15 +11,13 @@
 #include "lea6sAPIs.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "autonetAPIs.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define NUMOFBUFFER 		128
 #define NUMOFSENSOR 		3
 #define NUMOFDEVICE 		6
-#define COMMANDHEADER		0xFF
-#define BROADCASTHEADER 0xFE
-#define LIGHTSENDHEADER 0xFD
 #define TX_PAUSE 				1000
 #define RX_OFFSET  12
 
@@ -60,7 +58,10 @@ extern char FrontID, RearID;
 extern int framelength;
 extern int flat_headingH;
 extern int flat_headingL;
+extern uint8_t type;
 
+Table table;
+Device myAttribute;
 unsigned char DataLen_temp;
 int Group_count = 0;
 int Group_flag = 0;
@@ -68,6 +69,7 @@ int num;
 int i,j,k,gps_m;
 int CheckTime;
 int ConfirmGroupTime = 10;
+
 
 enum{
 	false,
@@ -87,11 +89,9 @@ enum{
 		Type_Switch = 0x02,
 };
 
-uint8_t  Group[NUMOFDEVICE];
-uint16_t Condition[SIZE_OF_DATA_TABLE] = {0x10,0xFF,0xFF};
+uint8_t  Group[NumOfDeviceInTable];
+uint16_t Condition[ATTRIBUTE_NUM] = {0x10,0xFF,0xFF};
 //uint16_t Data_table[NUMOFDEVICE][NUMOFSENSOR];
-uint16_t Data_table[NUMOFDEVICE][SIZE_OF_DATA_TABLE];
-uint16_t My_Data_table[SIZE_OF_DATA_TABLE];
 
 /* Exported variables --------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -103,70 +103,6 @@ uint16_t My_Data_table[SIZE_OF_DATA_TABLE];
 * Output         : None
 * Return         : None
 *******************************************************************************/
-
-void broadcastSend(void)
-{
-	  uint8_t i;
-		
-		pTxData[FRAME_BYTE_HEADER] 			= 0xFF;
-		pTxData[FRAME_BYTE_TYPE] 	 			= BROADCASTHEADER;
-		pTxData[FRAME_BYTE_SRC_ID] 			= ID;
-		pTxData[FRAME_BYTE_NUMOFSENSOR] = NUMOFSENSOR;
-	
-		pTxData[FRAME_BYTE_STYPE1] 			= TYPE_HEADING; 		 // type1: eCompass
-		pTxData[FRAME_BYTE_SVALUE11] 		= flat_headingH;  		
-		pTxData[FRAME_BYTE_SVALUE12] 		= flat_headingL; 	
-	
-		pTxData[FRAME_BYTE_STYPE2] 			= TYPE_SPEED; 			 // type2: velocity
-		pTxData[FRAME_BYTE_SVALUE21]		= RealspeedH; 
-		pTxData[FRAME_BYTE_SVALUE22] 		= RealspeedL;	
-	
-		pTxData[FRAME_BYTE_STYPE3] 			= 0x03; 						 // type3: GPS degree
-		pTxData[FRAME_BYTE_SVALUE31]		= Lat_deg;
-		pTxData[FRAME_BYTE_SVALUE32] 		= Long_deg;	 
-	
-		pTxData[FRAME_BYTE_STYPE4] 			= 0x04; 						  // type4: GPS minute
-		pTxData[FRAME_BYTE_SVALUE41]		= Lat_min;  
-		pTxData[FRAME_BYTE_SVALUE42] 		= Long_min;	
-	
-		pTxData[FRAME_BYTE_STYPE5] 			= 0x05; 					 	 // type5: GPS second
-		pTxData[FRAME_BYTE_SVALUE51]		= Lat_sec;
-		pTxData[FRAME_BYTE_SVALUE52]		= Long_sec;    	
-
-		pTxData[FRAME_BYTE_STYPE6] 			= 0x06; 						 // type6: GPS direction
-		pTxData[FRAME_BYTE_SVALUE61]		= Lat_dir;
-		pTxData[FRAME_BYTE_SVALUE62]		= Long_dir;
-		
-		pTxData[FRAME_BYTE_STYPE7] 			= 0x07; 						 // type6: GPS direction
-		pTxData[FRAME_BYTE_SVALUE71]		= Lat_dir;
-		pTxData[FRAME_BYTE_SVALUE72]		= Long_dir;
-
-		for(i=framelength;i<128;i++){
-			pTxData[i]=0x00;
-		}
-		
-//		pTxData[framelength] = CheckSum(pTxData, framelength);
-		
-		RF_Tx(0xFFFF, pTxData, framelength);
-}
-
-void broadcast(void)
-{
-	  uint8_t i;
-		
-		pTxData[0] = Message_BroadcastType;
-		pTxData[1] = TYPE;
-	  pTxData[2] = ID;
-	
-	// TODO: to send out the status of the device
-
-		for(i=3;i<128;i++){
-			pTxData[i]=0x00;
-		}	
-		RF_Tx(0xFFFF, pTxData, 10);
-}
-
-
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen)
 {
 	TimObj.TimeoutFlag &= (~TIMOUT_FLAG_100MS);
@@ -279,31 +215,73 @@ int RF_RX_AUTONET(){
 }
 
 
+void broadcastSend(void)
+{
+	  uint8_t i;
+		
+		pTxData[FRAME_BYTE_HEADER] 			= 0xFF;
+		pTxData[FRAME_BYTE_SRCADDR] 		= ID;
+	  pTxData[FRAME_BYTE_TYPE]				= type;
+		pTxData[FRAME_BYTE_NUMOFSENSOR] = NUMOFSENSOR;
+	  for(i=0;i<ATTRIBUTE_NUM;i++){
+		  pTxData[FRAME_BYTE_ATTRIBUTE + 2*i] = myAttribute.attribute[i] >> 8;
+			pTxData[FRAME_BYTE_ATTRIBUTE + 2*i + 1] = myAttribute.attribute[i];
+		}
+		framelength = FRAME_BYTE_ATTRIBUTE + 2*ATTRIBUTE_NUM;
+		RF_Tx(0xFFFF, pTxData, framelength);
+}
+
+void broadcast(void)
+{
+	  uint8_t i;
+		
+		pTxData[0] = Message_BroadcastType;
+		pTxData[1] = TYPE;
+	  pTxData[2] = ID;
+	
+	// TODO: to send out the status of the device
+
+		for(i=3;i<128;i++){
+			pTxData[i]=0x00;
+		}	
+		RF_Tx(0xFFFF, pTxData, 10);
+}
+
 void packet_receive(void)
 {
-		//basicRfReceive(pRxData, MAX_RECV_BUF_LEN, &rssi);
-	  memcpy(pRxData, Data, DataLen);
-		//		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
-//			if(pRxData[FRAME_BYTE_TYPE + RX_OFFSET] == BROADCASTHEADER){
-				for(i=0;i<pRxData[FRAME_BYTE_NUMOFSENSOR+RX_OFFSET];i++){
-					if(i <= TYPE_SPEED){																		  // TYPE_SPEED = 2
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][pRxData[3*i+4+RX_OFFSET]] = pRxData[3*i+6+RX_OFFSET] | (pRxData[3*i+5+RX_OFFSET]<<8);
-					}
-					else if(i==2)																							// STORE GPS values, special case
-					{
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][2] = pRxData[12];    // degree of Latitude 
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][3] = pRxData[15];		 // minute of Latitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][4] = pRxData[18];		 // second of Latitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][5] = pRxData[21];    // direction of Latitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][6] = pRxData[13];		 // degree of Longitude 
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][7] = pRxData[16];		 // minute of Longitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][8] = pRxData[19];	   // second of Longitude
-						Data_table[(int)pRxData[FRAME_BYTE_SRC_ID+RX_OFFSET]][9] = pRxData[22];    // direction of Longitude
-						break;
-					}
-				}
-//			}
-// 	 }
+	uint8_t index=0xFF;
+	uint8_t newIndex=0xFF;
+	uint8_t type;
+	uint16_t addr;
+	memcpy(pRxData, Data, DataLen);
+	type = pRxData[FRAME_BYTE_TYPE+RX_OFFSET];
+	addr = pRxData[FRAME_BYTE_SRCADDR+RX_OFFSET];
+	index = ScanTableByAddress(addr);
+	if(index == 0xFF){														// no such address in the table
+		newIndex = ScanTableByAddress(0xFF);
+		if(newIndex != 0xFF){
+			setTable(newIndex,addr,type);
+		}
+	}
+	else{
+		setTable(index,addr,type);
+	}
+}
+
+uint8_t ScanTableByAddress(uint8_t scan_value){
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(scan_value == table.device[i].address){
+			return i;
+		}
+	}
+	return 0xFF;
+}
+
+void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
+	table.device[n].type = device_type;
+	table.device[n].address = device_addr;
+  for(i=0;i<ATTRIBUTE_NUM;i++)
+		table.device[n].attribute[i] = pRxData[2*i+5+RX_OFFSET] | (pRxData[2*i+4+RX_OFFSET]<<8);
 }
 
 int autonet_header_check(){
@@ -317,11 +295,8 @@ int autonet_header_check(){
 	
 	
 		//memcpy(pRxData, Data, DataLen);
-
 		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
-			if(pRxData[FRAME_BYTE_TYPE + RX_OFFSET] == BROADCASTHEADER){
-				return 1;
-			}
+			return 1;
 		}
 		return 0;
 	
@@ -383,15 +358,6 @@ void getPayloadLength(uint8_t* data_out, uint8_t* data_in){
   	data_out[0] = data_in[0];
 }
 
-int headerCheck_AutoNet(uint8_t* data){
-		
-		// AutoNet reserves 0x00~0x04 as header
-	  if(data[0+RX_OFFSET] >= 0x00 && data[0+RX_OFFSET] <= 0x04)
-		    return true;
-		else 
-				return false;
-}
-
 uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t difference){
 	  int NumofDevice = 0;
 		for(i=0;i<10;i++)
@@ -423,12 +389,6 @@ uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t differen
 void Group_Configuration(){
 		for(i =0;i<NUMOFDEVICE;i++){
 			Group[i] = 0x00;
-		}
-}
-
-void My_Table_Configuration(){
-		for(i =0;i<NUMOFDEVICE;i++){
-			My_Data_table[i] = 0x00;
 		}
 }
 
