@@ -20,7 +20,7 @@
 
 /* Private variable ----------------------------------------------------------*/
 uint8_t type;
-uint16_t srcAddr;
+uint16_t Addr;
 uint16_t radio_freq;
 uint16_t radio_panID;
 
@@ -65,11 +65,11 @@ void app_light_direction(){
 		uint8_t Match_Devices_Num;
 		
 		// Initialization
-		srcAddr = 0x0000;
+		Addr = 0x0000;
 		type = Type_Controller;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
-		Initial(srcAddr, type, radio_freq, radio_panID);
+		Initial(Addr, type, radio_freq, radio_panID);
 		
 		// setting the period of broadcasting information of AutoNet	
 		Timer_Beacon(200);
@@ -95,7 +95,7 @@ void app_light_direction(){
 					Lighting_Flag = 0;
 					getPayload(Rx_Payload,RxData,Rx_DataLen);
 					for( i=0 ; i<Rx_Payload[1]; i++ ){
-						if((Rx_Payload[2*i+2] | Rx_Payload[2*i+3] << 8) == srcAddr){
+						if((Rx_Payload[2*i+2] | Rx_Payload[2*i+3] << 8) == Addr){
 							Lighting_Flag = 1;
 							break;
 						}
@@ -137,12 +137,12 @@ void app_control_light(){
 		uint8_t msgLightFlag;
 	
 		// Initialization
-		srcAddr = 0x0003;
+		Addr = 0x0003;
 		type = Type_Light;
 		//type = Type_Controller;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
-		Initial(srcAddr, type, radio_freq, radio_panID);
+		Initial(Addr, type, radio_freq, radio_panID);
 		
 		// set timers
 		setTimer(1, 1000, UNIT_MS);
@@ -158,7 +158,7 @@ void app_control_light(){
 							if(RxData[MAC_HEADER_LENGTH + 0] == Message_Light){		// lighting message
 								// check the address of the devices whether exists or not
 								for(i=1; i<= (Rx_DataLen-MAC_HEADER_LENGTH); i++){											
-									if(RxData[MAC_HEADER_LENGTH + i]==srcAddr){
+									if(RxData[MAC_HEADER_LENGTH + i]==Addr){
 										// bug
 										blink();
 									}
