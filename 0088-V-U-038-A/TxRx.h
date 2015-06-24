@@ -45,28 +45,7 @@ enum FRAME_BYTE_L
 
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen);
 uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI);
-
-void packet_receive(void);
-void broadcastSend(void);
-void broadcast(void);
-void lightingSend(void);
-void commandSend(void);
-void Group_Configuration(void);
-uint8_t Group_Diff(uint16_t* addr_array, uint8_t attribute, uint16_t center, uint16_t difference);
-void lighting(uint8_t State);
 int RF_RX_AUTONET(void);
-
-int autonet_header_check(void);
-uint8_t ScanTableByAddress(uint8_t);
-void setTable(uint8_t,uint16_t,uint8_t);
-void getSrcAddr(uint8_t* data_out, uint8_t* data_in);
-void getDestAddr(uint8_t* data_out, uint8_t* data_in);
-void getSrcPanID(uint8_t* data_out, uint8_t* data_in);
-void getDestPanID(uint8_t* data_out, uint8_t* data_in);
-void getSeqNum(uint8_t* data_out, uint8_t* data_in);
-void getFrameControl(uint8_t* data_out, uint8_t* data_in);
-void getPayload(uint8_t* data_out, uint8_t* data_in, uint8_t Data_Length);
-void getPayloadLength(uint8_t* data_out, uint8_t* data_in);
 
 #ifdef __cplusplus
 }
