@@ -150,28 +150,16 @@ void TimerBeaconSetting(){
 		}
 }
 
-void RF_beacon(void){
+void beacon(void){
 	
 		if(BeaconEnabled == 1){
 			if(RF_RX_AUTONET()){						// check AutoNet header
-					packet_receive();						// receive sensors' data from others
+				packet_receive();						// receive sensors' data from others
 			}
 			if(BeaconTimerFlag == 1){
-				if(_Type == Type_Light){	
-					broadcast();
-					//blink();
-					BeaconTimerFlag = 0;
-				}
-				else if(_Type == Type_Switch){	
-					broadcast();
-					//blink();
-					BeaconTimerFlag = 0;
-				}
-				else{
-					update_sensor_table();
-					broadcastSend();
-					BeaconTimerFlag = 0;
-				}				
+				update_sensor_table();
+				broadcastSend();
+				BeaconTimerFlag = 0;
 			}
 		}
 		else;
@@ -217,8 +205,6 @@ void packet_receive(void)
 	uint8_t newIndex=0xFF;
 	uint8_t type;
 	uint16_t addr;
-	
-	memcpy(pRxData, Data, DataLen);
 	
 	type = pRxData[FRAME_BYTE_TYPE+RX_OFFSET];
 	addr = pRxData[FRAME_BYTE_SRCADDR+RX_OFFSET];

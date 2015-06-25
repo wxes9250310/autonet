@@ -77,7 +77,7 @@ void app_light_direction(){
 		setTimer(1, 500, UNIT_MS);
 
 		while(1){
-			RF_beacon();  // broadcast beacon information
+			beacon();  // broadcast beacon information
 			if(Type == Type_Controller){
 				if(checkTimer(1) && get_direction(&heading)){
 					Match_Devices_Num = Group_Diff(addr_array,Direction,heading,heading_diff);
@@ -150,7 +150,7 @@ void app_control_light(){
 
 		while(1){ 	
 			if(Type == Type_Light){											// Light
-					RF_beacon();  													// broadcast beacon information	  
+					beacon();  													// broadcast beacon information	  
 				  Delay(10);
 				  // check whether the device should open the light or not
 					if(checkTimer(1)){											// check every 1000 ms							
