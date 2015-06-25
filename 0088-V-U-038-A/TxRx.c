@@ -17,8 +17,8 @@
 /* Private define ------------------------------------------------------------*/
 
 #define TXBUFFERSIZE   0xFF
-#define TX_PAUSE 				1000
-#define RX_OFFSET  12
+#define TX_PAUSE 			 1000
+#define RX_OFFSET			 12
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -97,8 +97,8 @@ void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen)
 
 uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){
 	
-	  int _rx_check_flag =0;
-	  int _header_check_flag=0;
+	  int _isReceived =0;
+	  int _checkFlag=0;
 	
 		// ============== Check RX FIFO Full/Overflow ================= //
 		if (Us2400ReadShortReg(0x30) == 0x90){
@@ -111,9 +111,9 @@ uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){
 				*Data_Length = DataLen;
 				*RSSI = RFRssi;
 				
-				_header_check_flag = autonet_header_check();			
-				if(!_header_check_flag) {							// Not For AutoNet
-					_rx_check_flag = 1;
+				_checkFlag = headerCheck_AutoNet();			
+				if(!_checkFlag) {							// Not For AutoNet
+					_isReceived = 1;
 					Us2400WriteShortReg(0x0D, Us2400ReadShortReg(0x0D) | 0x01);	
 				}
 			}
@@ -129,20 +129,20 @@ uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){
 				*Data_Length = DataLen;
 				*RSSI = RFRssi;
 				
-				_header_check_flag = autonet_header_check();
-				if(!_header_check_flag) {    					// Not For AutoNet
-					_rx_check_flag = 1;
+				_checkFlag = headerCheck_AutoNet();
+				if(!_checkFlag) {    					// Not For AutoNet
+					_isReceived = 1;
 					RFRxState = 0;
 				}
 			}
 		}
-		return _rx_check_flag;
+		return _isReceived;
 }
 
 int RF_RX_AUTONET(){
 	
-	  int _rx_check_flag =0;
-	  int _header_check_flag=0;
+	  int _isReceived =0;
+	  int _checkFlag=0;
 
 		// ============== Check RX FIFO Full/Overflow ================= //
 		if (Us2400ReadShortReg(0x30) == 0x90){
@@ -153,9 +153,9 @@ int RF_RX_AUTONET(){
 				
 				memcpy(pRxData, Data, DataLen);
 				
-				_header_check_flag = autonet_header_check();
-				if(_header_check_flag) {					// For AutoNet
-					_rx_check_flag = 1;
+				_checkFlag = headerCheck_AutoNet();
+				if(_checkFlag) {					// For AutoNet
+					_isReceived = 1;
 					Us2400WriteShortReg(0x0D, Us2400ReadShortReg(0x0D) | 0x01);	
 				}
 			}
@@ -169,17 +169,17 @@ int RF_RX_AUTONET(){
 				
 				memcpy(pRxData, Data, DataLen);
 				
-				_header_check_flag = autonet_header_check();	
-				if(_header_check_flag) {					// For AutoNet
-					_rx_check_flag = 1;
+				_checkFlag = headerCheck_AutoNet();	
+				if(_checkFlag) {					// For AutoNet
+					_isReceived = 1;
 					RFRxState = 0;
 				}
 			}
 		}
-		return _rx_check_flag;
+		return _isReceived;
 }
 
-int autonet_header_check(){
+int headerCheck_AutoNet(){
 	
 		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
 			return 1;

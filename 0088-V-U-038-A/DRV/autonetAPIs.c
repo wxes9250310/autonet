@@ -153,9 +153,11 @@ void TimerBeaconSetting(){
 void RF_beacon(void){
 	
 		if(BeaconEnabled == 1){
+					
 			if(RF_RX_AUTONET()){						// check AutoNet header
 					packet_receive();						// receive sensors' data from others
 			}
+			
 			if(BeaconTimerFlag == 1){
 				if(_Type == Type_Light){	
 					broadcast();
@@ -202,8 +204,6 @@ void broadcast(void)
 		pTxData[0] = Message_BroadcastType;
 		pTxData[1] = _Type;
 	  pTxData[2] = _Addr;
-	
-	// TODO: to send out the status of the device
 
 		for(i=3;i<128;i++){
 			pTxData[i]=0x00;
