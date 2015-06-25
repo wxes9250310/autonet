@@ -62,7 +62,7 @@ void Mcp2120Init(void)
 
   GPIOB->BSRR = GPIO_Pin_15;  //MODE
   GPIOB->BSRR = GPIO_Pin_7;   //ENABLE
-  GPIOB->BRR = GPIO_Pin_6;    // RESET
+  GPIOB->BRR = GPIO_Pin_6;    //RESET
 
   Delay(50);
 
@@ -92,7 +92,7 @@ void Mcp2120Tx(unsigned char *p, unsigned short p_len, int COM)
 	if(COM == 2)
 	{
 		while(COM2_Tx(CommandTxBuffer, p_len + 6) == ERROR);
-	}	
+	}
 }
 
 /*******************************************************************************
@@ -106,25 +106,10 @@ void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
 {
   unsigned char Checksum = 0;
 	char SrcAddr = 0x00;
-	uint8_t FunctionFlag =0xFF;
 
 	if(COM == 1){
 		if (CommandRxBufferLen != 0x00) {  // FRONT Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
-				/*
-				if(CommandRxBuffer[4] == REAR){
-					RearID = CommandRxBuffer[3];
-				}
-				*/
-				/*
-				if(CommandRxBuffer[3] == 0x02){
-						p = CommandRxBuffer;
-						p = p + 3;
-						memcpy(&p, CommandRxBuffer, CommandRxBufferLen);
-						SrcAddr = CommandRxBuffer[4];
-						FunctionFlag =0x01;
-				}
-				*/
 				memcpy(&p, CommandRxBuffer, CommandRxBufferLen);
 				*Length =  CommandRxBufferLen;
 				TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
@@ -135,20 +120,6 @@ void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
 	else if(COM == 2){
 		if (CommandRxBufferLen2 != 0x00) { // REAR Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
-				/*
-				if(CommandRxBuffer2[3] == 0x02){
-						p = CommandRxBuffer2;
-						p = p + 3;
-						memcpy(&p, CommandRxBuffer2, CommandRxBufferLen2);
-						SrcAddr = CommandRxBuffer2[4];
-						FunctionFlag =0x01;
-				}
-				*/
-				/*
-				if(CommandRxBuffer2[4] == FRONT){
-					FrontID = CommandRxBuffer2[3];
-				}
-					*/
 				memcpy(&p, CommandRxBuffer2, CommandRxBufferLen2);
 				*Length =  CommandRxBufferLen2;
 				TimObj.Tim[TIM_IRTO_F].Ticks = 1000;

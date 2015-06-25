@@ -63,7 +63,7 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 void InitialCheck(void);
 void TimerBeaconSetting(void);
 void Autonet_search_type(char *a);
-void RF_beacon(void);
+void beacon(void);
 
 // Lights Control
 void PIN_ON(uint8_t n);
