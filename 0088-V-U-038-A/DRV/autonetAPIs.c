@@ -34,8 +34,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define NUMOFBUFFER 		128
-#define NUMOFSENSOR 		3
-#define NUMOFDEVICE 		6
+#define NUMOFSENSOR 		4
 #define RX_OFFSET  12
 #define PAN_ID  0x00AA  
 #define FRONT 1
@@ -73,11 +72,13 @@ enum{
 	Type_Switch = 0x02,
 };
 
-extern uint16_t Addr;
-extern uint8_t type;
+uint16_t _Addr;
+uint8_t _Type;
+
+uint8_t framelength = 0;
 extern uint8_t Data[]; 
 extern uint8_t DataLen;
-extern uint8_t framelength;
+
 extern TimObjTypeDef_s TimObj;
 extern int BeaconTimerFlag;
 
@@ -125,18 +126,21 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 		Tmp75Init(0x90);
 		Mag3110Init(0x1C);
 		
+		_Addr = srcAddr;
+		_Type = type;
+		
 		blink();
-		TimerBeaconSetting(srcAddr, type);
+		TimerBeaconSetting();
 }
 
-void TimerBeaconSetting(uint16_t SrcAddr, uint8_t type){
+void TimerBeaconSetting(){
 	 
 		// TODO
-		if(type == Type_Light){
+		if(_Type == Type_Light){
 				Timer_Beacon(500);
 				BeaconEnabled = 1;
 		}
-		else if(type == Type_Switch){
+		else if(_Type == Type_Switch){
 				Timer_Beacon(200);
 				BeaconEnabled = 1;
 		}
@@ -153,12 +157,12 @@ void RF_beacon(void){
 					packet_receive();						// receive sensors' data from others
 			}
 			if(BeaconTimerFlag == 1){
-				if(type == Type_Light){	
+				if(_Type == Type_Light){	
 					broadcast();
 					//blink();
 					BeaconTimerFlag = 0;
 				}
-				else if(type == Type_Switch){	
+				else if(_Type == Type_Switch){	
 					broadcast();
 					//blink();
 					BeaconTimerFlag = 0;
@@ -178,9 +182,10 @@ void broadcastSend(void)
 	  uint8_t i;
 		
 		pTxData[FRAME_BYTE_HEADER] 			= 0xFF;
-		pTxData[FRAME_BYTE_SRCADDR] 		= Addr;
-	  pTxData[FRAME_BYTE_TYPE]				= type;
+		pTxData[FRAME_BYTE_SRCADDR] 		= _Addr;
+	  pTxData[FRAME_BYTE_TYPE]				= _Type;
 		pTxData[FRAME_BYTE_NUMOFSENSOR] = NUMOFSENSOR;
+	
 	  for(i=0;i<ATTRIBUTE_NUM;i++){
 		  pTxData[FRAME_BYTE_ATTRIBUTE + 2*i] = myAttribute.attribute[i] >> 8;
 			pTxData[FRAME_BYTE_ATTRIBUTE + 2*i + 1] = myAttribute.attribute[i];
@@ -195,8 +200,8 @@ void broadcast(void)
 	  uint8_t i;
 		
 		pTxData[0] = Message_BroadcastType;
-		pTxData[1] = type;
-	  pTxData[2] = Addr;
+		pTxData[1] = _Type;
+	  pTxData[2] = _Addr;
 	
 	// TODO: to send out the status of the device
 
@@ -244,24 +249,6 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
 	table.device[n].address = device_addr;
   for(i=0;i<ATTRIBUTE_NUM;i++)
 		table.device[n].attribute[i] = pRxData[2*i+5+RX_OFFSET] | (pRxData[2*i+4+RX_OFFSET]<<8);
-}
-
-int autonet_header_check(){
-	
-	/*
-		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] >= 0x00 || pRxData[FRAME_BYTE_HEADER + RX_OFFSET] <= 0x04) 
-				return true;
-		else
-				return false;
-		*/
-	
-	
-		//memcpy(pRxData, Data, DataLen);
-		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
-			return 1;
-		}
-		return 0;
-	
 }
 
 void blink(){
@@ -376,7 +363,7 @@ uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t differen
 }
 
 void Group_Configuration(){
-		for(i =0;i<NUMOFDEVICE;i++){
+		for(i =0; i < NumOfDeviceInTable; i++){
 			Group[i] = 0x00;
 		}
 }

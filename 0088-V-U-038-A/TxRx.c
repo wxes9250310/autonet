@@ -15,9 +15,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define NUMOFBUFFER 		128
-#define NUMOFSENSOR 		3
-#define NUMOFDEVICE 		6
+
 #define TXBUFFERSIZE   0xFF
 #define TX_PAUSE 				1000
 #define RX_OFFSET  12
@@ -34,7 +32,7 @@ extern uint8_t pRxData[];
 
 uint8_t Data[128] = {0}; 
 uint8_t DataLen = 128;
-uint8_t framelength = 22;
+
 
 uint8_t RFTxBuffer[TXBUFFERSIZE] = {0};
 uint8_t RFLqi = 0;
@@ -180,5 +178,14 @@ int RF_RX_AUTONET(){
 		}
 		return _rx_check_flag;
 }
+
+int autonet_header_check(){
+	
+		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
+			return 1;
+		}
+		return 0;	
+}
+
 
 /******************* (C) COPYRIGHT 2015 NXG LAB *****END OF FILE****/

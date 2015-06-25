@@ -19,14 +19,14 @@
 #define MAC_HEADER_LENGTH 12
 
 /* Private variable ----------------------------------------------------------*/
-uint8_t type;
+uint8_t Type;
 uint16_t Addr;
 uint16_t radio_freq;
 uint16_t radio_panID;
 
 /* Private function ----------------------------------------------------------*/
-void app_light_direction();
-void app_control_light();
+void app_light_direction(void);
+void app_control_light(void);
 
 // application - Light direction
 enum{
@@ -66,10 +66,10 @@ void app_light_direction(){
 		
 		// Initialization
 		Addr = 0x0000;
-		type = Type_Controller;
+		Type = Type_Controller;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
-		Initial(Addr, type, radio_freq, radio_panID);
+		Initial(Addr, Type, radio_freq, radio_panID);
 		
 		// setting the period of broadcasting information of AutoNet	
 		Timer_Beacon(200);
@@ -78,7 +78,7 @@ void app_light_direction(){
 
 		while(1){
 			RF_beacon();  // broadcast beacon information
-			if(type == Type_Controller){
+			if(Type == Type_Controller){
 				if(checkTimer(1) && get_direction(&heading)){
 					Match_Devices_Num = Group_Diff(addr_array,Direction,heading,heading_diff);
 					TxData[0] = Message_Control;
@@ -90,7 +90,7 @@ void app_light_direction(){
 					RF_Tx(0xFFFF,TxData,Match_Devices_Num*2+2);
 				}
 			}
-			else if(type == Type_Light){
+			else if(Type == Type_Light){
 				if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){
 					Lighting_Flag = 0;
 					getPayload(Rx_Payload,RxData,Rx_DataLen);
@@ -139,17 +139,17 @@ void app_control_light(){
 		// Initialization
 		Addr = 0x00FF;
 		//type = Type_Light;
-		type = Type_Controller;
+		Type = Type_Controller;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
-		Initial(Addr, type, radio_freq, radio_panID);
+		Initial(Addr, Type, radio_freq, radio_panID);
 		
 		// set timers
 		setTimer(1, 1000, UNIT_MS);
 		setTimer(2, 500, UNIT_MS);
 
 		while(1){ 	
-			if(type == Type_Light){											// Light
+			if(Type == Type_Light){											// Light
 					RF_beacon();  													// broadcast beacon information	  
 				  Delay(10);
 				  // check whether the device should open the light or not
@@ -168,7 +168,7 @@ void app_control_light(){
 					}
 			}
 			
-			else if(type == Type_Controller){
+			else if(Type == Type_Controller){
 				// check whether the device should open the light or not
 				if(checkTimer(2)){										
 					if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){		// check whether a received frame exists

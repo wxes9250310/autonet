@@ -46,6 +46,7 @@ enum FRAME_BYTE_L
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen);
 uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI);
 int RF_RX_AUTONET(void);
+int autonet_header_check(void);
 
 #ifdef __cplusplus
 }
