@@ -95,76 +95,77 @@ static void EXTI_Configuration(void);
 	*/
 
 void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio_panID){
-		/* GPIO configuration */
-		GPIO_Configuration();
+	/* GPIO configuration */
+	GPIO_Configuration();
 
-		/* EXTI configuration */
-		EXTI_Configuration();
+	/* EXTI configuration */
+	EXTI_Configuration();
 
-		/* Software Timer configuration */
-		ST_Configuration();
+	/* Software Timer configuration */
+	ST_Configuration();
 
-		/* COM configuration */
-		COM1_Configuration();						//for IR sensors
-		COM2_Configuration();						//for IR sensors
-		//COM_Configuration();
+	/* COM configuration */
+	COM1_Configuration();						//for IR sensors
+	COM2_Configuration();						//for IR sensors
+	//COM_Configuration();
 
-		/* SPI configuration */
-		SPI_Configuration();
+	/* SPI configuration */
+	SPI_Configuration();
 
-		/* I2C configuration */
-		I2C_Configuration();
+	/* I2C configuration */
+	I2C_Configuration();
 
-		/* Us2400 Initialization*/
-		//Us2400Init(Freq, PanID, SrcAddr, TPower);
-		Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
-		
-		Mpu6050Init(0xD0);
-		Ak8975Init(0x18);
-		Mcp2120Init();       	/* MCP2120 Initialize */
-		Bh1750fviInit(0x46);
-		Tmp75Init(0x90);
-		Mag3110Init(0x1C);
-		
-		_Addr = srcAddr;
-		_Type = type;
-		
-		blink();
-		TimerBeaconSetting();
+	/* Us2400 Initialization*/
+	//Us2400Init(Freq, PanID, SrcAddr, TPower);
+	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
+	
+	Mpu6050Init(0xD0);
+	Ak8975Init(0x18);
+	Mcp2120Init();       	/* MCP2120 Initialize */
+	Bh1750fviInit(0x46);
+	Tmp75Init(0x90);
+	Mag3110Init(0x1C);
+	
+	_Addr = srcAddr;
+	_Type = type;
+	
+	blink();
+	TimerBeaconSetting();
 }
 
 void TimerBeaconSetting(){
 	 
-		// TODO
-		if(_Type == Type_Light){
-				Timer_Beacon(500);
-				BeaconEnabled = 1;
-		}
-		else if(_Type == Type_Switch){
-				Timer_Beacon(200);
-				BeaconEnabled = 1;
-		}
-		else{ 												// not defined type
-				//Timer_Beacon(0);				// no beacon? 
-				BeaconEnabled = 0;
-		}
+	// TODO
+	if(_Type == Type_Light){
+			Timer_Beacon(500);
+			BeaconEnabled = 1;
+	}
+	else if(_Type == Type_Switch){
+			Timer_Beacon(200);
+			BeaconEnabled = 1;
+	}
+	else{ 												// not defined type
+			//Timer_Beacon(0);				// no beacon? 
+			BeaconEnabled = 0;
+	}
 }
 
 void beacon(void){
 	
-		if(BeaconEnabled == 1){
-					
-			if(RF_RX_AUTONET()){						// check AutoNet header
-				packet_receive();						// receive sensors' data from others
-			}
-			
-			if(BeaconTimerFlag == 1){
-				update_sensor_table();
-				broadcastSend();
-				BeaconTimerFlag = 0;
-			}
+	if(BeaconEnabled == 1){
+		
+		// Receive others' beacon frames
+		if(RF_RX_AUTONET()){				// check AutoNet header
+			packet_receive();					// receive sensors' data from others
 		}
-		else;
+		// Beacon 
+		if(BeaconTimerFlag == 1){
+			update_sensor_table();
+			broadcastSend();
+			BeaconTimerFlag = 0;
+		}
+	}
+	else;
 }
 
 void broadcastSend(void)
@@ -210,6 +211,8 @@ void packet_receive(void)
 	addr = pRxData[FRAME_BYTE_SRCADDR+RX_OFFSET];
 	index = ScanTableByAddress(addr);
 	
+	// for now, new members will fill in the position values 0xFF
+	// considering sort out the table
 	if(index == 0xFF){														// no such address in the table
 		newIndex = ScanTableByAddress(0xFF);
 		if(newIndex != 0xFF){
@@ -262,63 +265,6 @@ void PIN_OFF(uint8_t n){
 	}
 }
 
-
-void getSrcAddr(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[10];
-	  data_out[1] = data_in[11];
-}
-
-void getDestAddr(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[6];
-	  data_out[1] = data_in[7];
-}
-
-void getSrcPanID(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[8];
-	  data_out[1] = data_in[9];
-}
-
-void getDestPanID(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[4];
-	  data_out[1] = data_in[5];
-}
-
-void getSeqNum(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[3];
-}
-
-void getFrameControl(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[1];
-	  data_out[1] = data_in[2];
-}
-
-void getPayload(uint8_t* data_out, uint8_t* data_in, uint8_t Data_Length){
-
-	  int i;
-		
-	  memset(data_out,0x00,sizeof(data_out));
-		for(i=0 ; i<Data_Length ; i++)
-			data_out[i] = data_in[i+RX_OFFSET];
-}
-
-void getPayloadLength(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[0];
-}
-
 uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t difference){
 	  int NumofDevice = 0;
 	/*	for(i=0;i<10;i++)
@@ -355,33 +301,21 @@ void Group_Configuration(){
 }
 
 void lighting(uint8_t State){
-    switch (State){
-        case 0:
-						GPIOB->BRR = GPIO_Pin_13;
-            break;
-        case 1:
-						GPIOB->BSRR = GPIO_Pin_13;
-						break;
-        default:
-						GPIOB->BRR = GPIO_Pin_13;
-						break;
-		}
+	switch (State){
+		case 0:
+				GPIOB->BRR = GPIO_Pin_13;
+				break;
+		case 1:
+				GPIOB->BSRR = GPIO_Pin_13;
+				break;
+		default:
+				GPIOB->BRR = GPIO_Pin_13;
+				break;
+	}
 }
 
 void Autonet_search_type(char *a){
 
-}
-
-void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length) {
-	  
-		int i;	
-	
-	  for(i=0; i< strlen((char*)data_out); i++)
-			data_out[i] = 0;
-		
-		for(i=0; i< d_length; i++)
-			data_out[i] = data_in[d_offset+i];
-		
 }
 
 /**
@@ -467,8 +401,44 @@ uint8_t get_direction(int *heading_deg){
 		return 1;
 }
 
-void get_gps(){
-		Lea6SRead(0x84, &Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);   // read data from GPS
+uint8_t get_brightness(unsigned short* brightness){
+	Bh1750fviReadLx(0x46, brightness);
+	
+	// TODO: to test the minimum value of the device
+	if(*brightness !=0)
+		return 1;
+	else return 0;
+}
+
+uint8_t get_temperature(float* temp){
+	Tmp75ReadTemperature(0x90, temp);
+	
+	// TODO: to test the minimum value of the device
+	if(*temp !=0)
+		return 1;
+	else return 0;
+}
+
+uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, uint8_t* Long_min, uint8_t* Long_sec, uint8_t* Lat_dir, uint8_t* Long_dir){
+	Lea6SRead(0x84, Lat_deg, Lat_min, Lat_sec, Long_deg, Long_min, Long_sec, Lat_dir, Long_dir);
+/*
+	if()
+		return 1;
+	else return 0;
+*/
+}
+uint8_t get_velocity(int* speed){
+	
+	
+	
+}
+void IR_read(uint8_t flag, uint8_t IR_BufferRx, uint8_t index){
+
+
+}
+void IR_write(uint8_t flag, uint8_t IR_BufferTx, uint8_t length, uint8_t index){
+
+
 }
 
 // --------------  Matnetometer functions by chih-wei -----------------
@@ -562,22 +532,92 @@ void get_LOS_address(char *f_id, char *r_id){
 
 
 void update_sensor_table(){
-		get_direction(&flat_heading);
-		//ToDo: More sensor data
-	
-		myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
-		myAttribute.attribute[ATTRIBUTE_GPS_LAT_DEG] = Lat_deg;
-		myAttribute.attribute[ATTRIBUTE_GPS_LAT_MIN] = Lat_min;
-		myAttribute.attribute[ATTRIBUTE_GPS_LAT_SEC] = Lat_sec;
-		myAttribute.attribute[ATTRIBUTE_GPS_LAT_DIR] = Lat_dir;
-		myAttribute.attribute[ATTRIBUTE_GPS_LONG_DEG] = Long_deg;
-		myAttribute.attribute[ATTRIBUTE_GPS_LONG_MIN] = Long_min;
-		myAttribute.attribute[ATTRIBUTE_GPS_LONG_SEC] = Long_sec;
-		myAttribute.attribute[ATTRIBUTE_GPS_LONG_DIR] = Long_dir;
-		myAttribute.attribute[ATTRIBUTE_HEADING] = flat_heading;
-		myAttribute.attribute[ATTRIBUTE_LOS_FRONT] = FrontID;
-		myAttribute.attribute[ATTRIBUTE_LOS_REAR] = RearID;
+	get_direction(&flat_heading);
+
+	//ToDo: More sensor data
+
+	myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
+	myAttribute.attribute[ATTRIBUTE_GPS_LAT_DEG] = Lat_deg;
+	myAttribute.attribute[ATTRIBUTE_GPS_LAT_MIN] = Lat_min;
+	myAttribute.attribute[ATTRIBUTE_GPS_LAT_SEC] = Lat_sec;
+	myAttribute.attribute[ATTRIBUTE_GPS_LAT_DIR] = Lat_dir;
+	myAttribute.attribute[ATTRIBUTE_GPS_LONG_DEG] = Long_deg;
+	myAttribute.attribute[ATTRIBUTE_GPS_LONG_MIN] = Long_min;
+	myAttribute.attribute[ATTRIBUTE_GPS_LONG_SEC] = Long_sec;
+	myAttribute.attribute[ATTRIBUTE_GPS_LONG_DIR] = Long_dir;
+	myAttribute.attribute[ATTRIBUTE_HEADING] = flat_heading;
+	myAttribute.attribute[ATTRIBUTE_LOS_FRONT] = FrontID;
+	myAttribute.attribute[ATTRIBUTE_LOS_REAR] = RearID;
 }
+
+void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length) {
+	  
+		int i;	
+	
+	  for(i=0; i< strlen((char*)data_out); i++)
+			data_out[i] = 0;
+		
+		for(i=0; i< d_length; i++)
+			data_out[i] = data_in[d_offset+i];
+		
+}
+
+void getSrcAddr(uint8_t* data_out, uint8_t* data_in){
+
+		memset(data_out,0x00,sizeof(data_out));
+  	data_out[0] = data_in[10];
+	  data_out[1] = data_in[11];
+}
+
+void getDestAddr(uint8_t* data_out, uint8_t* data_in){
+
+		memset(data_out,0x00,sizeof(data_out));
+  	data_out[0] = data_in[6];
+	  data_out[1] = data_in[7];
+}
+
+void getSrcPanID(uint8_t* data_out, uint8_t* data_in){
+
+		memset(data_out,0x00,sizeof(data_out));
+  	data_out[0] = data_in[8];
+	  data_out[1] = data_in[9];
+}
+
+void getDestPanID(uint8_t* data_out, uint8_t* data_in){
+
+		memset(data_out,0x00,sizeof(data_out));
+  	data_out[0] = data_in[4];
+	  data_out[1] = data_in[5];
+}
+
+void getSeqNum(uint8_t* data_out, uint8_t* data_in){
+
+		memset(data_out,0x00,sizeof(data_out));
+  	data_out[0] = data_in[3];
+}
+
+void getFrameControl(uint8_t* data_out, uint8_t* data_in){
+
+		memset(data_out,0x00,sizeof(data_out));
+  	data_out[0] = data_in[1];
+	  data_out[1] = data_in[2];
+}
+
+void getPayload(uint8_t* data_out, uint8_t* data_in, uint8_t Data_Length){
+
+	  int i;
+		
+	  memset(data_out,0x00,sizeof(data_out));
+		for(i=0 ; i<Data_Length ; i++)
+			data_out[i] = data_in[i+RX_OFFSET];
+}
+
+void getPayloadLength(uint8_t* data_out, uint8_t* data_in){
+
+		memset(data_out,0x00,sizeof(data_out));
+  	data_out[0] = data_in[0];
+}
+
 
 /**
 * @title Autonet_spatial_dynamic (API for AutoNet demo)

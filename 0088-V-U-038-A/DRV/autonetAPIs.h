@@ -78,7 +78,14 @@ void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d
 
 /* utility APIs */
 uint8_t get_direction(int *heading_deg);
-void get_gps(void);
+uint8_t get_brightness (unsigned short* brightness);
+uint8_t get_gps(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
+uint8_t get_temperature(float* temp);
+uint8_t get_velocity(int* speed);
+void IR_read(uint8_t flag, uint8_t IR_BufferRx, uint8_t index);
+void IR_write(uint8_t flag, uint8_t IR_BufferTx, uint8_t length, uint8_t index);
+
+//void get_gps(void);
 void get_LOS_address(char *f_id, char *r_id);
 void update_sensor_table(void);
 

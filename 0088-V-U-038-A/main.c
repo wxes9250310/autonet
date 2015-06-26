@@ -119,6 +119,9 @@ void app_light_direction(){
 *******************************************************************************/
 void app_control_light(){ 
 	
+	// Task:
+	// Use IR to beacon
+	
 		uint8_t i,k;
 	  uint8_t state;
 	  uint8_t detect;  
@@ -214,6 +217,9 @@ void app_control_light(){
 					
 					if(msgLightFlag){	 										 // need to send lighting messages
 
+						for(i =0; i<= 10; i++){
+							TxData[i] = 0;
+						}
 						// contruction of lighting message frame
 						TxData[0]= Message_Light;		
 						for(i =1; i<= neighborNum; i++){
