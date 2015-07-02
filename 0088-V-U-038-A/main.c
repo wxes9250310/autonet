@@ -14,6 +14,9 @@
 #include "bh1750fviAPIs.h"
 #include "mag3110APIs.h"
 
+
+#include "app_local_grouping.h"
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MAC_HEADER_LENGTH 12
@@ -21,10 +24,7 @@
 #define Message_Light 0x03
 
 /* Private variable ----------------------------------------------------------*/
-uint8_t Type;
-uint16_t Addr;
-uint16_t radio_freq;
-uint16_t radio_panID;
+
 
 /* Private function ----------------------------------------------------------*/
 void app_light_direction(void);
@@ -49,10 +49,15 @@ int main(void)
 {
 		//app_light_direction();
 		app_control_light();
+	  app_local_grouping();
 }
 
 void app_light_direction(){
 	
+	  uint8_t Type;
+		uint16_t Addr;
+		uint16_t radio_freq;
+		uint16_t radio_panID;
 		// local variables definition
 		uint8_t TxData[256];  
 		uint8_t RxData[256];
@@ -120,7 +125,11 @@ void app_light_direction(){
 * Author            : Ed Kung
 *******************************************************************************/
 void app_control_light(){ 
-	
+		
+	  uint8_t Type;
+		uint16_t Addr;
+		uint16_t radio_freq;
+		uint16_t radio_panID;
 	// Task:
 	// Use IR to beacon
 	
