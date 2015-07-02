@@ -48,7 +48,7 @@ enum{
 int main(void)
 {
 		//app_light_direction();
-		app_control_light();
+		//app_control_light();
 	  app_local_grouping();
 }
 
