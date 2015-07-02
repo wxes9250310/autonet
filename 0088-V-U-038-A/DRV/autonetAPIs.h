@@ -46,6 +46,7 @@ typedef struct{
 	uint16_t type;
 	uint16_t address;
 	uint16_t attribute[ATTRIBUTE_NUM];
+	uint8_t RSSI;
 }Device;
 
 typedef struct{
@@ -82,8 +83,8 @@ uint8_t get_brightness (unsigned short* brightness);
 uint8_t get_gps(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
 uint8_t get_temperature(float* temp);
 uint8_t get_velocity(int* speed);
-void IR_read(uint8_t flag, uint8_t IR_BufferRx, uint8_t index);
-void IR_write(uint8_t flag, uint8_t IR_BufferTx, uint8_t length, uint8_t index);
+void IR_read(uint8_t, uint8_t, uint8_t, uint8_t);
+void IR_write(uint8_t, uint8_t, uint8_t, uint8_t);
 
 //void get_gps(void);
 void get_LOS_address(char *f_id, char *r_id);

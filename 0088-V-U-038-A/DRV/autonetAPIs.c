@@ -137,7 +137,7 @@ void TimerBeaconSetting(){
 	 
 	// TODO
 	if(_Type == Type_Light){
-			Timer_Beacon(500);
+			Timer_Beacon(200);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
@@ -432,13 +432,16 @@ uint8_t get_velocity(int* speed){
 	
 	
 }
-void IR_read(uint8_t flag, uint8_t IR_BufferRx, uint8_t index){
-
-
+void IR_read(uint8_t flag, uint8_t IR_BufferRx, uint8_t length, uint8_t index){
+	// TODO: to ensure the correctness
+	Mcp2120Proc(&IR_BufferRx, &length, index);
+	Delay(10);
 }
+
 void IR_write(uint8_t flag, uint8_t IR_BufferTx, uint8_t length, uint8_t index){
-
-
+	// TODO: to ensure the correctness
+	Mcp2120Tx(&IR_BufferTx, length , index);
+	Delay(10);
 }
 
 // --------------  Matnetometer functions by chih-wei -----------------

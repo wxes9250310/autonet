@@ -17,6 +17,8 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MAC_HEADER_LENGTH 12
+#define Message_BroadcastType 0xFF
+#define Message_Light 0x03
 
 /* Private variable ----------------------------------------------------------*/
 uint8_t Type;
@@ -32,8 +34,8 @@ void app_control_light(void);
 enum{
 		Message_Control,
 		Message_Type,
-		Message_BroadcastType,
-		Message_Light,
+//		Message_BroadcastType = 0xFF,
+//		Message_Light = 0x03,
 };
 
 // application - Control light
@@ -122,6 +124,7 @@ void app_control_light(){
 	// Task:
 	// Use IR to beacon
 	
+	  int times =0;
 		uint8_t i,k;
 	  uint8_t state;
 	  uint8_t detect;  
@@ -132,38 +135,43 @@ void app_control_light(){
 		uint8_t Rx_DataLen;
 		uint8_t Rx_Payload[256];
 	  uint8_t neighborNum = 0;
-		uint8_t addFlag=0;		// record whether to renew the lighting table in the controller
+		uint8_t addFlag=0;							// record whether to renew the lighting table in the controller
 	  uint8_t outFlag =0;
 		uint16_t neighbor[10];
-	  uint16_t RSSI_THRESHOLD = 200;		// not quite sure the range
+	  uint16_t RSSI_THRESHOLD = 200;	
 		uint8_t r_DeviceAddr;						// the address of received devices 
 		uint8_t msgLightFlag;
 	
 		// Initialization
-		Addr = 0x00FF;
-		//type = Type_Light;
-		Type = Type_Controller;
+		Addr = 0x0005;
+		Type = Type_Light;
+		//Type = Type_Controller;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
 		Initial(Addr, Type, radio_freq, radio_panID);
 		
 		// set timers
-		setTimer(1, 1000, UNIT_MS);
+		setTimer(1, 500, UNIT_MS);
 		setTimer(2, 500, UNIT_MS);
 
 		while(1){ 	
 			if(Type == Type_Light){											// Light
-					beacon();  													// broadcast beacon information	  
+					beacon();  															// broadcast beacon information	  
 				  Delay(10);
 				  // check whether the device should open the light or not
 					if(checkTimer(1)){											// check every 1000 ms							
+						times++;
+						if(times==4){												  // every 2000 ms reset the light
+							times=0;
+							PIN_OFF(1);
+						}
 						if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){	// returns 1 if it has received something
 							if(RxData[MAC_HEADER_LENGTH + 0] == Message_Light){		// lighting message
 								// check the address of the devices whether exists or not
 								for(i=1; i<= (Rx_DataLen-MAC_HEADER_LENGTH); i++){											
 									if(RxData[MAC_HEADER_LENGTH + i]==Addr){
 										// bug
-										blink();
+										PIN_ON(1);
 									}
 								}	
 							}
@@ -175,9 +183,9 @@ void app_control_light(){
 				// check whether the device should open the light or not
 				if(checkTimer(2)){										
 					if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){		// check whether a received frame exists
-						if(RxData[MAC_HEADER_LENGTH + 0] == Message_BroadcastType 
-												&& RxData[MAC_HEADER_LENGTH + 1] == Type_Light){
-							r_DeviceAddr = RxData[MAC_HEADER_LENGTH + 2];
+						if(RxData[MAC_HEADER_LENGTH + 0] == 0xFF 
+												&& RxData[MAC_HEADER_LENGTH + 2] == Type_Light){
+							r_DeviceAddr = RxData[MAC_HEADER_LENGTH + 1];
 						
 							if(RSSI >= RSSI_THRESHOLD){						// near enough
 								addFlag = 0;												
