@@ -38,7 +38,7 @@
 
 #define NUMOFBUFFER 		128
 #define NUMOFSENSOR 		4
-#define RX_OFFSET  12
+#define MAC_HEADER_LENGTH  12
 #define PAN_ID  0x00AA  
 #define FRONT 1
 #define REAR 2
@@ -194,8 +194,8 @@ void packet_receive(void)
 	uint8_t type;
 	uint16_t addr;
 	
-	type = pRxData[FRAME_BYTE_TYPE+RX_OFFSET];
-	addr = pRxData[FRAME_BYTE_SRCADDR+RX_OFFSET];
+	type = pRxData[FRAME_BYTE_TYPE + MAC_HEADER_LENGTH];
+	addr = pRxData[FRAME_BYTE_SRCADDR + MAC_HEADER_LENGTH];
 	index = ScanTableByAddress(addr);
 	
 	// for now, new members will fill in the position values 0xFF
@@ -224,7 +224,7 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
 	table.device[n].type = device_type;
 	table.device[n].address = device_addr;
   for(i=0; i<ATTRIBUTE_NUM; i++)
-		table.device[n].attribute[i] = pRxData[2*i+5+RX_OFFSET] | (pRxData[2*i+4+RX_OFFSET]<<8);
+		table.device[n].attribute[i] = pRxData[2*i+5+MAC_HEADER_LENGTH] | (pRxData[2*i+4+MAC_HEADER_LENGTH]<<8);
 }
 
 void blink(){
@@ -415,17 +415,16 @@ uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* L
 */
 }
 uint8_t get_velocity(int* speed){
-	
-	
-	
+		
 }
-void IR_read(uint8_t flag, uint8_t IR_BufferRx, uint8_t length, uint8_t index){
+
+uint8_t IR_read(uint8_t IR_BufferRx, uint8_t length, uint8_t index){
 	// TODO: to ensure the correctness
 	Mcp2120Proc(&IR_BufferRx, &length, index);
 	Delay(10);
 }
 
-void IR_write(uint8_t flag, uint8_t IR_BufferTx, uint8_t length, uint8_t index){
+uint8_t IR_write(uint8_t IR_BufferTx, uint8_t length, uint8_t index){
 	// TODO: to ensure the correctness
 	Mcp2120Tx(&IR_BufferTx, length , index);
 	Delay(10);
@@ -599,7 +598,7 @@ void getPayload(uint8_t* data_out, uint8_t* data_in, uint8_t Data_Length){
 		
 	  memset(data_out,0x00,sizeof(data_out));
 		for(i=0 ; i<Data_Length ; i++)
-			data_out[i] = data_in[i+RX_OFFSET];
+			data_out[i] = data_in[i+MAC_HEADER_LENGTH];
 }
 
 void getPayloadLength(uint8_t* data_out, uint8_t* data_in){

@@ -83,8 +83,8 @@ uint8_t get_brightness (unsigned short* brightness);
 uint8_t get_gps(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
 uint8_t get_temperature(float* temp);
 uint8_t get_velocity(int* speed);
-void IR_read(uint8_t, uint8_t, uint8_t, uint8_t);
-void IR_write(uint8_t, uint8_t, uint8_t, uint8_t);
+uint8_t  IR_read(uint8_t, uint8_t, uint8_t);
+uint8_t  IR_write(uint8_t, uint8_t, uint8_t);
 
 //void get_gps(void);
 void get_LOS_address(char *f_id, char *r_id);
