@@ -69,7 +69,7 @@ void beacon(void);
 // Lights Control
 void PIN_ON(uint8_t n);
 void PIN_OFF(uint8_t n);
-void blink(void);
+void blink(uint8_t n);
 
 /* 9-axis */
 void Mag_Error_Handle (short *pX,short *pY,short *pZ, short *max_x, short *min_x, short *max_y, short *min_y, short *max_z, short *min_z);

@@ -29,6 +29,7 @@
 /* Private function ----------------------------------------------------------*/
 void app_light_direction(void);
 void app_control_light(void);
+void light_testing(void);
 
 // application - Light direction
 enum{
@@ -48,8 +49,45 @@ enum{
 int main(void)
 {
 		//app_light_direction();
-		app_control_light();
-	  app_local_grouping();
+		//app_control_light();
+	  //app_local_grouping();
+	  light_testing();
+}
+
+void light_testing(){
+	
+	uint8_t Type;
+	uint16_t Addr;
+	uint16_t radio_freq;
+	uint16_t radio_panID;
+	
+	Addr = 0x0000;
+	Type = Type_Controller;
+	radio_freq = 2475;
+	radio_panID = 0x00AA;
+	Initial(Addr, Type, radio_freq, radio_panID);	
+	
+	while(1){
+		PIN_ON(1);
+		Delay(500);
+		
+		PIN_OFF(1);
+		Delay(500);
+		
+		PIN_ON(2);
+		Delay(500);
+		
+		PIN_OFF(2);
+		Delay(500);
+		
+		PIN_ON(1);
+		PIN_ON(2);
+		Delay(1000);
+		
+		PIN_OFF(1);
+		PIN_OFF(2);
+		Delay(500);
+	}
 }
 
 void app_light_direction(){
