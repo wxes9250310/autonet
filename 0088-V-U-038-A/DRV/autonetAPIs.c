@@ -132,7 +132,8 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	_Addr = srcAddr;
 	_Type = type;
 	
-	blink();
+	blink(1);
+	blink(2);
 	TimerBeaconSetting();
 }
 
@@ -227,28 +228,33 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
 		table.device[n].attribute[i] = pRxData[2*i+5+MAC_HEADER_LENGTH] | (pRxData[2*i+4+MAC_HEADER_LENGTH]<<8);
 }
 
-void blink(){
-		PIN_ON(1);
+void blink(uint8_t n){
+	if(n==1 || n==2){
+		PIN_ON(n);
 		Delay(100);
-		PIN_OFF(1);
+		PIN_OFF(n);
+	}
 }
 
 void PIN_ON(uint8_t n){
-	// TODO: to distinguish GPIOA and GPIOB
-	// TODO: to find available GPIO
 	switch(n){
 		case 1:
 			GPIOB->BSRR = GPIO_Pin_13;
-		break;
+			break;
+	  case 2:
+			GPIOB->BSRR = GPIO_Pin_14;
+			break;
 	}
 }
 
 void PIN_OFF(uint8_t n){
-	// TODO: to distinguish GPIOA and GPIOB
 	switch(n){
 		case 1:
 			GPIOB->BRR = GPIO_Pin_13;
-		break;
+			break;
+		case 2:
+			GPIOB->BRR = GPIO_Pin_14;
+			break;
 	}
 }
 
