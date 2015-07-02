@@ -33,6 +33,9 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#define Message_BroadcastType 0xFF
+#define Message_Light 0x03
+
 #define NUMOFBUFFER 		128
 #define NUMOFSENSOR 		4
 #define RX_OFFSET  12
@@ -62,8 +65,8 @@ int ConfirmGroupTime = 10;
 enum{
 	Message_Control,
 	Message_Type,
-	Message_BroadcastType,
-	Message_Light,
+//	Message_BroadcastType,
+//	Message_Light,
 };
 
 enum{
@@ -135,7 +138,6 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 
 void TimerBeaconSetting(){
 	 
-	// TODO
 	if(_Type == Type_Light){
 			Timer_Beacon(200);
 			BeaconEnabled = 1;
@@ -152,8 +154,7 @@ void TimerBeaconSetting(){
 
 void beacon(void){
 	
-	if(BeaconEnabled == 1){
-		
+	if(BeaconEnabled == 1){	
 		// Receive others' beacon frames
 		if(RF_RX_AUTONET()){				// check AutoNet header
 			packet_receive();					// receive sensors' data from others
@@ -170,34 +171,20 @@ void beacon(void){
 
 void broadcastSend(void)
 {
-	  uint8_t i;
-		
-		pTxData[FRAME_BYTE_HEADER] 			= 0xFF;
-		pTxData[FRAME_BYTE_SRCADDR] 		= _Addr;
-	  pTxData[FRAME_BYTE_TYPE]				= _Type;
-		pTxData[FRAME_BYTE_NUMOFSENSOR] = NUMOFSENSOR;
+	uint8_t i;
 	
-	  for(i=0;i<ATTRIBUTE_NUM;i++){
-		  pTxData[FRAME_BYTE_ATTRIBUTE + 2*i] = myAttribute.attribute[i] >> 8;
-			pTxData[FRAME_BYTE_ATTRIBUTE + 2*i + 1] = myAttribute.attribute[i];
-		}
-		framelength = FRAME_BYTE_ATTRIBUTE + 2*ATTRIBUTE_NUM;
-		
-		RF_Tx(0xFFFF, pTxData, framelength);
-}
+	pTxData[FRAME_BYTE_HEADER] 			= 0xFF;
+	pTxData[FRAME_BYTE_SRCADDR] 		= _Addr;
+	pTxData[FRAME_BYTE_TYPE]				= _Type;
+	pTxData[FRAME_BYTE_NUMOFSENSOR] = NUMOFSENSOR;
 
-void broadcast(void)
-{
-	  uint8_t i;
-		
-		pTxData[0] = Message_BroadcastType;
-		pTxData[1] = _Type;
-	  pTxData[2] = _Addr;
-
-		for(i=3;i<128;i++){
-			pTxData[i]=0x00;
-		}	
-		RF_Tx(0xFFFF, pTxData, 10);
+	for(i=0;i<ATTRIBUTE_NUM;i++){
+		pTxData[FRAME_BYTE_ATTRIBUTE + 2*i] = myAttribute.attribute[i] >> 8;
+		pTxData[FRAME_BYTE_ATTRIBUTE + 2*i + 1] = myAttribute.attribute[i];
+	}
+	framelength = FRAME_BYTE_ATTRIBUTE + 2*ATTRIBUTE_NUM;
+	
+	RF_Tx(0xFFFF, pTxData, framelength);
 }
 
 void packet_receive(void)
@@ -236,7 +223,7 @@ uint8_t ScanTableByAddress(uint8_t scan_value){
 void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
 	table.device[n].type = device_type;
 	table.device[n].address = device_addr;
-  for(i=0;i<ATTRIBUTE_NUM;i++)
+  for(i=0; i<ATTRIBUTE_NUM; i++)
 		table.device[n].attribute[i] = pRxData[2*i+5+RX_OFFSET] | (pRxData[2*i+4+RX_OFFSET]<<8);
 }
 
