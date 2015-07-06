@@ -19,13 +19,15 @@
 #define NumofDeviceInTable 10
 #define Length 256
 
+int MyHeading;
 uint16_t addr[NumofDeviceInTable],heading[NumofDeviceInTable],weight[NumofDeviceInTable];
-uint16_t temp_addr,temp_heading,FollowingDevice,Addr,MyHeading,MyWeight,MyCommand;
+uint16_t temp_addr,temp_heading,FollowingDevice,Addr,MyWeight,MyCommand,MyState;
 uint8_t RxData[Length],TxData[Length],RxLength,TxLength,RxPayload[Length],command[NumofDeviceInTable],temp_weight,temp_command;
 uint8_t RSSI;
 uint8_t Type;
 uint16_t radio_freq;
 uint16_t radio_panID;
+uint8_t commandList[5];
 
 enum{
 	Payload_Address_L,
@@ -79,24 +81,53 @@ void ReGenerateCommand(){
 }
 
 uint16_t FindFollowingDevice(){
-	return 16;
+	
 }
 
 void ChangeLight(){
+	uint8_t i;
 	FollowingDevice = FindFollowingDevice();
 	if(FollowingDevice == Addr){
-
+		for(i=0;i<5;i++)
+			if(commandList[i]!=1){
+				MyCommand = i;
+				MyState = i;
+				break;
+			}				
 	}
 	else{
-
+		MyState = command[ScanTableByAddress2(Addr)];
+	}
+	switch(MyState){
+		case 1:
+			PIN_ON(1);
+			PIN_OFF(2);
+		break;
+		case 2:
+			PIN_ON(2);
+			PIN_OFF(1);
+		break;
+		case 3:
+			PIN_ON(1);
+			PIN_ON(2);
+		break;
+		case 4:
+		break;
+		case 5:
+		break;
+		case 6:
+		break;
 	}
 }
 
 void app_local_grouping(){
 	uint8_t idx;
 	Initial(Addr, Type, radio_freq, radio_panID);
-	setTimer(1,1000,UNIT_MS);
+	setTimer(1,500,UNIT_MS);
+	MyCommand = 0xFF;
 	while(1){
+		get_direction(&MyHeading);
+		
 		if(checkTimer(1)){
 			TxData[Payload_Address_L] = Addr;
 			TxData[Payload_Address_H] = Addr>>8;
@@ -125,6 +156,9 @@ void app_local_grouping(){
 			}
 			else{
 				setInfoTable(idx,temp_addr,temp_heading,temp_weight,temp_command);
+			}
+			if(temp_command!=0xFF){
+				commandList[temp_command] = 1;
 			}
 			ChangeLight();
 		}
