@@ -62,6 +62,7 @@ int main(void)
 * Description    		: test whether PB14 functionally
 * Author            : Ed Kung
 *******************************************************************************/
+/*
 void light_testing(){
 	
 	uint8_t Type;
@@ -162,7 +163,7 @@ void app_light_direction(){
 		}
 		
 }
-
+*/
 
 /*******************************************************************************
 * Application Name  : Automatically turns on near lights
@@ -170,6 +171,7 @@ void app_light_direction(){
 *                   : their lights automatically
 * Author            : Ed Kung
 *******************************************************************************/
+/*
 void app_control_light(){ 
 		
 	  uint8_t Type;
@@ -295,7 +297,7 @@ void app_control_light(){
 			}
 	}
 }
-
+*/
 /*******************************************************************************
 * Application Name  : IR testing 
 * Description    		: 1. transmitter and receiver
@@ -310,11 +312,14 @@ void IR_testing(){
 	  uint8_t detect;
 	  uint16_t radio_freq;
 		uint16_t radio_panID;
-	  uint8_t IR_Buffer_Length1;
-	  uint8_t IR_Buffer_Length2=0;
+	  unsigned short IR_Buffer_Length1;
+	  unsigned short IR_Buffer_Length2;
 	 
+	  unsigned char rcvd_type1, rcvd_type2;
+	  unsigned char rcvd_addr1, rcvd_addr2;
+	
 	  unsigned char IR_BufferTx[64] = {0x0};
-		unsigned char IR_BufferRx[64] = {0x0};
+		unsigned char IR_BufferRx1[64] = {0x0};
 		unsigned char IR_BufferRx2[64] = {0x0};
 		unsigned short Lux =0;
 	
@@ -332,9 +337,28 @@ void IR_testing(){
 			
 			if(checkTimer(1)){
 				if(Type == 0x01){		// observer
-					//Mcp2120Proc((unsigned char *)IR_BufferRx, 1);
+					Mcp2120Proc(IR_BufferRx1, &IR_Buffer_Length1, 1);
 					Delay(10);
 					Mcp2120Proc(IR_BufferRx2, &IR_Buffer_Length2, 2);
+					
+					if(IR_Buffer_Length1 !=0 || IR_Buffer_Length2 !=0)
+					{
+						  blink(1);
+						
+						// TODO: not retrieve succesfully
+						  rcvd_type1 =  IR_BufferRx1[2];
+						  rcvd_addr1 =  IR_BufferRx1[3];
+						  rcvd_type2 =  IR_BufferRx2[2];
+						  rcvd_addr2 =  IR_BufferRx2[3];
+						
+						  if(rcvd_type1 == 0x02 && rcvd_addr1 == 0x05){
+								blink(1);
+							}
+							if(rcvd_type2 == 0x02 && rcvd_addr2 == 0x05){
+								blink(1);
+							}
+					}
+					
 					Delay(10);
 					state=1;
 				}
@@ -356,6 +380,7 @@ void IR_testing(){
 					state=2;
 				}
 				
+				IR_Buffer_Length1 =0;
 				IR_Buffer_Length2 =0;
 			}
 		}
