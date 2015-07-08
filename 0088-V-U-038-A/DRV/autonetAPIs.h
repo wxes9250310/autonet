@@ -67,8 +67,8 @@ void Autonet_search_type(char *a);
 void beacon(void);
 
 // Lights Control
-void PIN_ON(uint8_t n);
-void PIN_OFF(uint8_t n);
+void GPIO_ON(uint8_t n);
+void GPIO_OFF(uint8_t n);
 void blink(uint8_t n);
 
 /* 9-axis */

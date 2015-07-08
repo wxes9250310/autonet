@@ -102,7 +102,7 @@ void Mcp2120Tx(unsigned char *p, unsigned short p_len, int COM)
 * Output         : - Temperature: Temperature from Temperature Senson.
 * Return         : None
 *******************************************************************************/
-void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
+void Mcp2120Proc(unsigned char *p, unsigned short COM)
 {
   unsigned char Checksum = 0;
 	char SrcAddr = 0x00;
@@ -111,7 +111,7 @@ void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
 		if (CommandRxBufferLen != 0x00) {  // FRONT Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
 				memcpy(&p, CommandRxBuffer, CommandRxBufferLen);
-				*Length =  CommandRxBufferLen;
+				//*Length =  CommandRxBufferLen;
 				TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
 			}
 			CommandRxBufferLen = 0x00;
@@ -121,7 +121,7 @@ void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
 		if (CommandRxBufferLen2 != 0x00) { // REAR Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
 				memcpy(&p, CommandRxBuffer2, CommandRxBufferLen2);
-				*Length =  CommandRxBufferLen2;
+				//*Length =  CommandRxBufferLen2;
 				TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
 			}
 			CommandRxBufferLen2 = 0x00;
