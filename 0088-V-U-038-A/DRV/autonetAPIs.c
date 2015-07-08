@@ -133,7 +133,7 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	_Type = type;
 	
 	blink(1);
-	blink(2);
+	//blink(2);
 	TimerBeaconSetting();
 }
 
@@ -230,13 +230,13 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
 
 void blink(uint8_t n){
 	if(n==1 || n==2){
-		PIN_ON(n);
+		GPIO_ON(n);
 		Delay(100);
-		PIN_OFF(n);
+		GPIO_OFF(n);
 	}
 }
 
-void PIN_ON(uint8_t n){
+void GPIO_ON(uint8_t n){
 	switch(n){
 		case 1:
 			GPIOB->BSRR = GPIO_Pin_13;
@@ -247,7 +247,7 @@ void PIN_ON(uint8_t n){
 	}
 }
 
-void PIN_OFF(uint8_t n){
+void GPIO_OFF(uint8_t n){
 	switch(n){
 		case 1:
 			GPIOB->BRR = GPIO_Pin_13;
@@ -423,7 +423,7 @@ uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* L
 uint8_t get_velocity(int* speed){
 		
 }
-
+/*
 uint8_t IR_read(uint8_t IR_BufferRx, uint8_t length, uint8_t index){
 	// TODO: to ensure the correctness
 	Mcp2120Proc(&IR_BufferRx, &length, index);
@@ -435,7 +435,7 @@ uint8_t IR_write(uint8_t IR_BufferTx, uint8_t length, uint8_t index){
 	Mcp2120Tx(&IR_BufferTx, length , index);
 	Delay(10);
 }
-
+*/
 // --------------  Matnetometer functions by chih-wei -----------------
 void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)
 {

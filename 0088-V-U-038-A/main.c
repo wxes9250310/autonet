@@ -30,6 +30,7 @@
 void app_light_direction(void);
 void app_control_light(void);
 void light_testing(void);
+void ControlLight();
 
 // application - Light direction
 enum{
@@ -48,6 +49,7 @@ enum{
 
 int main(void)
 {
+	  //ControlLight();
 		//app_light_direction();
 		//app_control_light();
 	  //app_local_grouping();
@@ -67,27 +69,31 @@ void light_testing(){
 	radio_panID = 0x00AA;
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	
+	GPIO_ON(1);
+	/*
 	while(1){
-		PIN_ON(1);
+		
+		GPIO_ON(1);
 		Delay(500);
 		
-		PIN_OFF(1);
+		GPIO_OFF(1);
 		Delay(500);
 		
-		PIN_ON(2);
+		GPIO_ON(2);
 		Delay(500);
 		
-		PIN_OFF(2);
+		GPIO_OFF(2);
 		Delay(500);
 		
-		PIN_ON(1);
-		PIN_ON(2);
+		GPIO_ON(1);
+		GPIO_ON(2);
 		Delay(1000);
 		
-		PIN_OFF(1);
-		PIN_OFF(2);
+		GPIO_OFF(1);
+		GPIO_OFF(2);
 		Delay(500);
 	}
+	*/
 }
 
 void app_light_direction(){
@@ -146,9 +152,9 @@ void app_light_direction(){
 						}
 					}
 					if(Lighting_Flag == 1)
-						PIN_ON(1);
+						GPIO_ON(1);
 					else
-						PIN_OFF(1);
+						GPIO_OFF(1);
 				}
 			}
 		}
@@ -190,10 +196,11 @@ void app_control_light(){
 		uint8_t msgLightFlag;
 	
 		// Initialization
-		Addr = 0x0005;
-		Type = Type_Light;
-		//Type = Type_Controller;
-		radio_freq = 2475;
+		//Addr = 0x0005;
+		//Type = Type_Light;
+		Addr = 0x00FF;
+		Type = Type_Controller;
+		radio_freq = 2450;
 		radio_panID = 0x00AA;
 		Initial(Addr, Type, radio_freq, radio_panID);
 		
@@ -210,7 +217,7 @@ void app_control_light(){
 						times++;
 						if(times==4){												  // every 2000 ms reset the light
 							times=0;
-							PIN_OFF(1);
+							GPIO_OFF(1);
 						}
 						if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){	// returns 1 if it has received something
 							if(RxData[MAC_HEADER_LENGTH + 0] == Message_Light){		// lighting message
@@ -218,7 +225,7 @@ void app_control_light(){
 								for(i=1; i<= (Rx_DataLen-MAC_HEADER_LENGTH); i++){											
 									if(RxData[MAC_HEADER_LENGTH + i]==Addr){
 										// bug
-										PIN_ON(1);
+										GPIO_ON(1);
 									}
 								}	
 							}
@@ -288,7 +295,7 @@ void app_control_light(){
 	}
 }
 
-/*
+
 void ControlLight(){
 	
 		uint16_t radio_freq;
@@ -297,15 +304,23 @@ void ControlLight(){
 		uint8_t type;
 	  uint8_t state;
 	  uint8_t detect;
-	  uint8_t* IR_Buffer_Length1;
-	  uint8_t* IR_Buffer_Length2;
+	  uint8_t IR_Buffer_Length1;
+	  
 	 
-	  unsigned char* IR_BufferTx[64] = {0x0};
-		unsigned char* IR_BufferRx[64] = {0x0};
-		unsigned char* IR_BufferRx2[64] = {0x0};
+	  //uint8_t* IR_BufferTx[64] = {0x0};
+	  unsigned char IR_BufferTx[64] = {0x0};
+		unsigned char IR_BufferRx[64] = {0x0};
+		unsigned char IR_BufferRx2[64] = {0x0};
 		unsigned short Lux =0;
-	
-		radio_freq = 2475;
+		unsigned short IR_Buffer_Length2;
+
+	  type = 0x01;
+		srcAddr = 0x10;
+    
+		//type = 0x02;
+		//srcAddr = 0x0A;
+		
+		radio_freq = 2450;
 		radio_panID = 0x00AA;
 		Initial(srcAddr, type, radio_freq, radio_panID);
 		
@@ -319,14 +334,18 @@ void ControlLight(){
 					if(type == 0x01){		// observer
 						//Mcp2120Proc((unsigned char *)IR_BufferRx, 1);
 						Delay(10);
-						Mcp2120Proc((unsigned char *)IR_BufferRx2, IR_Buffer_Length2, 2);
+						Mcp2120Proc((unsigned char *)IR_BufferRx2, 2);
+						/*if(IR_BufferRx2[3] == 0x02 && IR_BufferRx2[4] == 0x0A){
+							blink(1);
+						}*/
+						blink(1);
 						Delay(10);
 						state=1;
 					}
 					else if(type == 0x02){		// light
 						
-						*IR_BufferTx[0] = type;
-						*IR_BufferTx[1] = srcAddr;
+						IR_BufferTx[0]=type;
+						IR_BufferTx[1]=srcAddr;
 						
 						Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 1);
 						Delay(10);
@@ -334,23 +353,14 @@ void ControlLight(){
 						Delay(10);
 						state=2;
 					}
-					else{
-						// do nothing
-					}
 				}
 				
-				if(*IR_BufferRx[0] == 0x02){
-						detect = 1;
-				}
-				
-				if(*IR_BufferRx2[0] == 0x02){
-						detect = 2;
-				}
-				
+				/*
 				if(checkTimer(2)){
 						Bh1750fviReadLx(0x46, &Lux);
 						Delay(10);
-				}
+				}*/
+				
 		}
 }
-*/
+
