@@ -122,12 +122,12 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	//Us2400Init(Freq, PanID, SrcAddr, TPower);
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
-	Mpu6050Init(0xD0);
-	Ak8975Init(0x18);
-	Mcp2120Init();       	/* MCP2120 Initialize */
-	Bh1750fviInit(0x46);
-	Tmp75Init(0x90);
-	Mag3110Init(0x1C);
+	//Mpu6050Init(0xD0);
+	//Ak8975Init(0x18);
+	//Mcp2120Init();       	/* MCP2120 Initialize */
+	//Bh1750fviInit(0x46);
+	//Tmp75Init(0x90);
+	//Mag3110Init(0x1C);
 	
 	_Addr = srcAddr;
 	_Type = type;
@@ -423,8 +423,8 @@ uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* L
 uint8_t get_velocity(int* speed){
 		
 }
-
-uint8_t IR_read(uint8_t IR_BufferRx, uint8_t length, uint8_t index){
+/*
+uint8_t IR_read(uint8_t IR_BufferRx, unsigned short length, uint8_t index){
 	// TODO: to ensure the correctness
 	Mcp2120Proc(&IR_BufferRx, &length, index);
 	Delay(10);
@@ -435,6 +435,7 @@ uint8_t IR_write(uint8_t IR_BufferTx, uint8_t length, uint8_t index){
 	Mcp2120Tx(&IR_BufferTx, length , index);
 	Delay(10);
 }
+*/
 
 // --------------  Matnetometer functions by chih-wei -----------------
 void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)

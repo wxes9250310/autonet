@@ -13,12 +13,10 @@
 #include "mcp2120APIs.h"
 #include "st.h"
 
-/*ChihWEI*/
 #define FRONT 1
 #define REAR 2
 extern char FrontID;
 extern char RearID;
-/*ChihWEI*/
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -34,6 +32,8 @@ unsigned char CommandRxBuffer[64] = {0x0};
 unsigned char CommandRxBufferLen = 0x00;
 unsigned char CommandRxBuffer2[64] = {0x0};
 unsigned char CommandRxBufferLen2 = 0x00;
+
+uint8_t count =0;
 
 /* Exported variables --------------------------------------------------------*/
 extern TimObjTypeDef_s TimObj;
@@ -92,6 +92,7 @@ void Mcp2120Tx(unsigned char *p, unsigned short p_len, int COM)
 	if(COM == 2)
 	{
 		while(COM2_Tx(CommandTxBuffer, p_len + 6) == ERROR);
+		count ++;
 	}
 }
 
@@ -102,17 +103,16 @@ void Mcp2120Tx(unsigned char *p, unsigned short p_len, int COM)
 * Output         : - Temperature: Temperature from Temperature Senson.
 * Return         : None
 *******************************************************************************/
-void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
+void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 {
   unsigned char Checksum = 0;
-	char SrcAddr = 0x00;
 
 	if(COM == 1){
 		if (CommandRxBufferLen != 0x00) {  // FRONT Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
 				memcpy(&p, CommandRxBuffer, CommandRxBufferLen);
 				*Length =  CommandRxBufferLen;
-				TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
+				//TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
 			}
 			CommandRxBufferLen = 0x00;
 		}
@@ -122,7 +122,7 @@ void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
 				memcpy(&p, CommandRxBuffer2, CommandRxBufferLen2);
 				*Length =  CommandRxBufferLen2;
-				TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
+				//TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
 			}
 			CommandRxBufferLen2 = 0x00;
 		}
