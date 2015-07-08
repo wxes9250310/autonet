@@ -110,9 +110,9 @@ void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
 	if(COM == 1){
 		if (CommandRxBufferLen != 0x00) {  // FRONT Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
-				memcpy(&p, CommandRxBuffer, CommandRxBufferLen);
-				*Length =  CommandRxBufferLen;
-				TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
+				//memcpy(&p, CommandRxBuffer, CommandRxBufferLen);
+				//*Length =  CommandRxBufferLen;
+				//TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
 			}
 			CommandRxBufferLen = 0x00;
 		}
@@ -120,9 +120,9 @@ void Mcp2120Proc(unsigned char *p, uint8_t* Length, unsigned short COM)
 	else if(COM == 2){
 		if (CommandRxBufferLen2 != 0x00) { // REAR Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
-				memcpy(&p, CommandRxBuffer2, CommandRxBufferLen2);
-				*Length =  CommandRxBufferLen2;
-				TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
+				//memcpy(&p, CommandRxBuffer2, CommandRxBufferLen2);
+				//*Length =  CommandRxBufferLen2;
+				//TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
 			}
 			CommandRxBufferLen2 = 0x00;
 		}

@@ -122,12 +122,12 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	//Us2400Init(Freq, PanID, SrcAddr, TPower);
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
-	Mpu6050Init(0xD0);
-	Ak8975Init(0x18);
-	Mcp2120Init();       	/* MCP2120 Initialize */
-	Bh1750fviInit(0x46);
-	Tmp75Init(0x90);
-	Mag3110Init(0x1C);
+	//Mpu6050Init(0xD0);
+	//Ak8975Init(0x18);
+	//Mcp2120Init();       	/* MCP2120 Initialize */
+	//Bh1750fviInit(0x46);
+	//Tmp75Init(0x90);
+	//Mag3110Init(0x1C);
 	
 	_Addr = srcAddr;
 	_Type = type;

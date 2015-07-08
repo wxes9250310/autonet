@@ -30,6 +30,7 @@
 void app_light_direction(void);
 void app_control_light(void);
 void light_testing(void);
+void IR_testing(void);
 
 // application - Light direction
 enum{
@@ -51,9 +52,16 @@ int main(void)
 		//app_light_direction();
 		//app_control_light();
 	  //app_local_grouping();
-	  light_testing();
+	  
+	  IR_testing();
+	  //light_testing();
 }
 
+/*******************************************************************************
+* Application Name  : Light testing
+* Description    		: test whether PB14 functionally
+* Author            : Ed Kung
+*******************************************************************************/
 void light_testing(){
 	
 	uint8_t Type;
@@ -288,69 +296,67 @@ void app_control_light(){
 	}
 }
 
-/*
-void ControlLight(){
+/*******************************************************************************
+* Application Name  : IR testing 
+* Description    		: 1. transmitter and receiver
+*                   : 2. IR beacon
+* Author            : Ed Kung
+*******************************************************************************/
+void IR_testing(){
 	
-		uint16_t radio_freq;
-		uint16_t radio_panID;
-		uint16_t srcAddr;
-		uint8_t type;
+		uint16_t Addr;
+		uint8_t Type;
 	  uint8_t state;
 	  uint8_t detect;
-	  uint8_t* IR_Buffer_Length1;
-	  uint8_t* IR_Buffer_Length2;
+	  uint16_t radio_freq;
+		uint16_t radio_panID;
+	  uint8_t IR_Buffer_Length1;
+	  uint8_t IR_Buffer_Length2=0;
 	 
-	  unsigned char* IR_BufferTx[64] = {0x0};
-		unsigned char* IR_BufferRx[64] = {0x0};
-		unsigned char* IR_BufferRx2[64] = {0x0};
+	  unsigned char IR_BufferTx[64] = {0x0};
+		unsigned char IR_BufferRx[64] = {0x0};
+		unsigned char IR_BufferRx2[64] = {0x0};
 		unsigned short Lux =0;
 	
+    Type = 0x01;
+		Addr = 0x00AA;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
-		Initial(srcAddr, type, radio_freq, radio_panID);
+		Initial(Addr, Type, radio_freq, radio_panID);
 		
 		//Timer_Beacon(100);	
-		setTimer(1, 100, UNIT_MS);
-		setTimer(2, 200, UNIT_MS);
+		setTimer(1, 200, UNIT_MS);
+		setTimer(2, 1000, UNIT_MS);
 
 		while(1){ 	
 			
-				if(checkTimer(1)){
-					if(type == 0x01){		// observer
-						//Mcp2120Proc((unsigned char *)IR_BufferRx, 1);
-						Delay(10);
-						Mcp2120Proc((unsigned char *)IR_BufferRx2, IR_Buffer_Length2, 2);
-						Delay(10);
-						state=1;
-					}
-					else if(type == 0x02){		// light
-						
-						*IR_BufferTx[0] = type;
-						*IR_BufferTx[1] = srcAddr;
-						
-						Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 1);
-						Delay(10);
-						Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 2);
-						Delay(10);
-						state=2;
-					}
-					else{
-						// do nothing
-					}
+			if(checkTimer(1)){
+				if(Type == 0x01){		// observer
+					//Mcp2120Proc((unsigned char *)IR_BufferRx, 1);
+					Delay(10);
+					Mcp2120Proc(IR_BufferRx2, &IR_Buffer_Length2, 2);
+					Delay(10);
+					state=1;
+				}
+			}
+		  if(checkTimer(2)){
+				if(Type == 0x02){
+					
+					//IR_BufferTx[0] = (unsigned char *) Type;
+					//IR_BufferTx[1] = (unsigned char *) Addr;
+					
+					IR_BufferTx[0] = (unsigned char) Addr;
+					IR_BufferTx[1] = (unsigned char) Type;
+
+					blink(1);
+					Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 1);
+					Delay(10);
+					Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 2);
+					Delay(10);
+					state=2;
 				}
 				
-				if(*IR_BufferRx[0] == 0x02){
-						detect = 1;
-				}
-				
-				if(*IR_BufferRx2[0] == 0x02){
-						detect = 2;
-				}
-				
-				if(checkTimer(2)){
-						Bh1750fviReadLx(0x46, &Lux);
-						Delay(10);
-				}
+				IR_Buffer_Length2 =0;
+			}
 		}
 }
-*/
