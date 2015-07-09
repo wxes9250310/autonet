@@ -79,10 +79,16 @@ void light_testing(){
 	
 	while(1){
 		
-		GPIO_ON(0);
+		setGPIO(1, 1);
 		Delay(500);
 		
-		GPIO_OFF(0);
+		setGPIO(1, 0);
+		Delay(500);
+		
+		setGPIO(5, 1);
+		Delay(500);
+		
+		setGPIO(5, 0);
 		Delay(500);
 	}
 }

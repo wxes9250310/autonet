@@ -236,6 +236,15 @@ void blink(uint8_t n){
 	}
 }
 
+void setGPIO(uint8_t pin_idx, uint8_t state){
+	if(pin_idx >= 1 && pin_idx <= 5){
+			if(state == 1)	
+					GPIO_ON(pin_idx);
+			else if(state == 0)
+					GPIO_OFF(pin_idx);
+	}
+}
+
 void GPIO_ON(uint8_t n){
 	switch(n){
 		case 1:

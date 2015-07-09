@@ -67,6 +67,7 @@ void Autonet_search_type(char *a);
 void beacon(void);
 
 // Lights Control
+void setGPIO(uint8_t pin_idx, uint8_t state);
 void GPIO_ON(uint8_t n);
 void GPIO_OFF(uint8_t n);
 void blink(uint8_t n);
