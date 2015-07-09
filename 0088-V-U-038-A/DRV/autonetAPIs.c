@@ -10,6 +10,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
+#include <stdlib.h>
 #include "autonetAPIs.h"
 #include "st.h"
 #include "i2c.h"
@@ -52,15 +53,13 @@ uint8_t CommanderID = 0xFF;
 Table table;
 Device myAttribute;
 uint8_t  Group[NumOfDeviceInTable];
-uint16_t Condition[ATTRIBUTE_NUM] = {0x10,0xFF,0xFF};
 
 int BeaconEnabled = 0;
-int Group_count = 0;
-int Group_flag = 0;
 int num;
 int i,j,k,gps_m;
 int CheckTime;
 int ConfirmGroupTime = 10;
+uint8_t I2COccupied = 0;
 
 enum{
 	Message_Control,
@@ -78,7 +77,6 @@ enum{
 uint16_t _Addr;
 uint8_t _Type;
 
-uint8_t framelength = 0;
 extern uint8_t Data[]; 
 extern uint8_t DataLen;
 
@@ -122,12 +120,12 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	//Us2400Init(Freq, PanID, SrcAddr, TPower);
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
-	//Mpu6050Init(0xD0);
-	//Ak8975Init(0x18);
+	Mpu6050Init(0xD0);
+	Ak8975Init(0x18);
 	//Mcp2120Init();       	/* MCP2120 Initialize */
-	//Bh1750fviInit(0x46);
-	//Tmp75Init(0x90);
-	//Mag3110Init(0x1C);
+	Bh1750fviInit(0x46);
+	Tmp75Init(0x90);
+	Mag3110Init(0x1C);
 	
 	_Addr = srcAddr;
 	_Type = type;
@@ -140,11 +138,11 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
-			Timer_Beacon(200);
+			Timer_Beacon(1000);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
-			Timer_Beacon(200);
+			Timer_Beacon(1000);
 			BeaconEnabled = 1;
 	}
 	else{ 												// not defined type
@@ -154,25 +152,12 @@ void TimerBeaconSetting(){
 }
 
 void beacon(void){
-	
-	if(BeaconEnabled == 1){	
-		// Receive others' beacon frames
-		if(RF_RX_AUTONET()){				// check AutoNet header
-			packet_receive();					// receive sensors' data from others
-		}
-		// Beacon 
-		if(BeaconTimerFlag == 1){
-			update_sensor_table();
-			broadcastSend();
-			BeaconTimerFlag = 0;
-		}
-	}
-	else;
+
 }
 
 void broadcastSend(void)
 {
-	uint8_t i;
+	uint8_t i,framelength;
 	
 	pTxData[FRAME_BYTE_HEADER] 			= 0xFF;
 	pTxData[FRAME_BYTE_SRCADDR] 		= _Addr;
@@ -290,38 +275,17 @@ void GPIO_OFF(uint8_t n){
 }
 
 uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t difference){
-	  int NumofDevice = 0;
-	/*	for(i=0;i<10;i++)
-			ID[i] = 0xFFFF;
-	  for(i=0;i<NUMOFSENSOR;i++)
-			Condition[i] = 0xFF;
-		// ------------ set Condition --------------//
-		Condition[type] = difference;
-		// ----- AutoNet algorithm ----- //
-		Group_Configuration();
+	int NumofDevice = 0;
+	for(i=0;i<NumOfDeviceInTable;i++)
+		ID[i] = 0xFFFF;
 	
-		for(i=0;i<NUMOFDEVICE;i++){
-			Group_flag = 1;
-			if(Condition[type] != 0xFF && abs(Data_table[i][type]-center) > Condition[type])  		// Not complete yet
-				Group_flag = 0;																							                        // buffers is needed
-			//TODO: grouping results will be accumulated to be a threshold to change the original group
-			if(Group_flag == 1)
-				Group[i]++;
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(difference != 0xFF && abs(table.device[i].attribute[type]-center) < difference){
+			ID[NumofDevice] = table.device[i].address;
+			NumofDevice++;
 		}
-		for(i=0;i<NUMOFDEVICE;i++)
-			if(Group[i] > 0){
-				ID[NumofDevice+1] = i;
-				NumofDevice++;
-			}
-		ID[0] = NumofDevice;
-		*/
-		return NumofDevice;
-}
-
-void Group_Configuration(){
-		for(i =0; i < NumOfDeviceInTable; i++){
-			Group[i] = 0x00;
-		}
+	}
+	return NumofDevice;
 }
 
 void lighting(uint8_t State){
@@ -404,7 +368,7 @@ unsigned char pos2;
 //int Minute = 0;
 
 uint8_t get_direction(int *heading_deg){
-	
+	  I2COccupied = 1;
     Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
 		Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
 		
@@ -422,6 +386,7 @@ uint8_t get_direction(int *heading_deg){
 //		tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
 	
 	  *heading_deg = flat_heading;
+	  I2COccupied = 0;
 		return 1;
 }
 

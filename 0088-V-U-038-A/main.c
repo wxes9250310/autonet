@@ -14,9 +14,6 @@
 #include "bh1750fviAPIs.h"
 #include "mag3110APIs.h"
 
-
-#include "app_local_grouping.h"
-
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MAC_HEADER_LENGTH 12
@@ -55,7 +52,25 @@ int main(void)
 	//app_local_grouping();
 
 	//IR_testing();
-  light_testing();
+  //light_testing();
+	
+	uint8_t Type;
+	uint16_t Addr;
+	uint16_t radio_freq;
+	uint16_t radio_panID;
+	uint16_t GroupAddr[10];
+	uint8_t n;
+	int direction;
+	Addr = 0x0002;
+	Type = Type_Light;
+	radio_freq = 2475;
+	radio_panID = 0x00AA;
+	Initial(Addr, Type, radio_freq, radio_panID);	
+	
+	while(1){
+		get_direction(&direction);
+		n = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x20);
+	}
 }
 
 /*******************************************************************************
@@ -71,7 +86,7 @@ void light_testing(){
 	uint16_t radio_freq;
 	uint16_t radio_panID;
 	
-	Addr = 0x0000;
+	Addr = 0x0001;
 	Type = Type_Controller;
 	radio_freq = 2475;
 	radio_panID = 0x00AA;

@@ -19,9 +19,6 @@
 #include "st.h"
 	 
 /* Private define ------------------------------------------------------------*/
-#define Direction 	1 
-#define Velocity 		2
-#define LOS 				3
 #define NumOfDeviceInTable 10
 
 /* Structure definition ------------------------------------------------------*/
@@ -45,8 +42,8 @@ enum RECEVIE_DATA_TABLE
 typedef struct{
 	uint16_t type;
 	uint16_t address;
+	uint16_t Rssi;
 	uint16_t attribute[ATTRIBUTE_NUM];
-	uint8_t RSSI;
 }Device;
 
 typedef struct{
