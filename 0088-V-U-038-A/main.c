@@ -303,22 +303,22 @@ void IR_testing(){
 
 		uint16_t Addr;
 		uint8_t Type;
-	  uint8_t state;
-	  uint8_t detect;
-	  uint16_t radio_freq;
+		uint8_t state;
+		uint8_t detect;
+		uint16_t radio_freq;
 		uint16_t radio_panID;
-	  unsigned short IR_Buffer_Length1;
-	  unsigned short IR_Buffer_Length2;
-	 
-	  unsigned char rcvd_type1, rcvd_type2;
-	  unsigned char rcvd_addr1, rcvd_addr2;
-	
-	  unsigned char IR_BufferTx[64] = {0x0};
+		unsigned short IR_Buffer_Length1;
+		unsigned short IR_Buffer_Length2;
+
+		unsigned char rcvd_type1, rcvd_type2;
+		unsigned char rcvd_addr1, rcvd_addr2;
+
+		unsigned char IR_BufferTx[64] = {0x0};
 		unsigned char IR_BufferRx1[64] = {0x0};
 		unsigned char IR_BufferRx2[64] = {0x0};
 		unsigned short Lux =0;
 	
-    Type = 0x01;
+		Type = 0x01;
 		Addr = 0x00AA;
 		radio_freq = 2475;
 		radio_panID = 0x00AA;
@@ -334,35 +334,35 @@ void IR_testing(){
 					Mcp2120Proc(IR_BufferRx1, &IR_Buffer_Length1, 1);
 					Delay(10);
 					Mcp2120Proc(IR_BufferRx2, &IR_Buffer_Length2, 2);
-					
+
 					if(IR_Buffer_Length1 !=0 || IR_Buffer_Length2 !=0)
 					{
-						  blink(1);
-						
+						blink(1);
+
 						// TODO: not retrieve succesfully
-						  rcvd_type1 =  IR_BufferRx1[2];
-						  rcvd_addr1 =  IR_BufferRx1[3];
-						  rcvd_type2 =  IR_BufferRx2[2];
-						  rcvd_addr2 =  IR_BufferRx2[3];
-						
-						  if(rcvd_type1 == 0x02 && rcvd_addr1 == 0x55){
-								blink(1);
-							}
-							if(rcvd_type2 == 0x02 && rcvd_addr2 == 0x55){
-								blink(1);
-							}
+						rcvd_type1 =  IR_BufferRx1[2];
+						rcvd_addr1 =  IR_BufferRx1[3];
+						rcvd_type2 =  IR_BufferRx2[2];
+						rcvd_addr2 =  IR_BufferRx2[3];
+
+						if(rcvd_type1 == 0x02 && rcvd_addr1 == 0x55){
+							blink(1);
+						}
+						if(rcvd_type2 == 0x02 && rcvd_addr2 == 0x55){
+							blink(1);
+						}
 					}
-					
+
 					Delay(10);
 					state=1;
 				}
 			}
-		  if(checkTimer(2)){
+			if(checkTimer(2)){
 				if(Type == 0x02){
 					
 					//IR_BufferTx[0] = (unsigned char *) Type;
 					//IR_BufferTx[1] = (unsigned char *) Addr;
-					
+
 					IR_BufferTx[0] = (unsigned char) Addr;
 					IR_BufferTx[1] = (unsigned char) Type;
 
@@ -373,7 +373,7 @@ void IR_testing(){
 					Delay(10);
 					state=2;
 				}
-				
+
 				IR_Buffer_Length1 =0;
 				IR_Buffer_Length2 =0;
 			}
