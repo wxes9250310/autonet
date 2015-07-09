@@ -57,7 +57,7 @@ void Mcp2120Tx(unsigned char *p, unsigned short p_len , int COM);
 * Return         : None
 *******************************************************************************/
 //void Mcp2120Proc(void);
-void Mcp2120Proc(unsigned char *p, unsigned short COM);
+void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM);
 
 #ifdef __cplusplus
 }

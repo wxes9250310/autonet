@@ -122,12 +122,12 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	//Us2400Init(Freq, PanID, SrcAddr, TPower);
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
-	Mpu6050Init(0xD0);
-	Ak8975Init(0x18);
-	Mcp2120Init();       	/* MCP2120 Initialize */
-	Bh1750fviInit(0x46);
-	Tmp75Init(0x90);
-	Mag3110Init(0x1C);
+	//Mpu6050Init(0xD0);
+	//Ak8975Init(0x18);
+	//Mcp2120Init();       	/* MCP2120 Initialize */
+	//Bh1750fviInit(0x46);
+	//Tmp75Init(0x90);
+	//Mag3110Init(0x1C);
 	
 	_Addr = srcAddr;
 	_Type = type;
@@ -238,22 +238,46 @@ void blink(uint8_t n){
 
 void GPIO_ON(uint8_t n){
 	switch(n){
-		case 1:
+		case 13:
 			GPIOB->BSRR = GPIO_Pin_13;
 			break;
-	  case 2:
+	  case 14:
 			GPIOB->BSRR = GPIO_Pin_14;
+			break;
+		case 15:
+			GPIOB->BSRR = GPIO_Pin_15;
+			break;
+		case 6:
+			GPIOB->BSRR = GPIO_Pin_6;
+			break;
+		case 7:
+			GPIOB->BSRR = GPIO_Pin_7;
+			break;
+		default:
+			GPIOB->BSRR = GPIO_Pin_13;
 			break;
 	}
 }
 
 void GPIO_OFF(uint8_t n){
 	switch(n){
-		case 1:
+		case 13:
 			GPIOB->BRR = GPIO_Pin_13;
 			break;
-		case 2:
+	  case 14:
 			GPIOB->BRR = GPIO_Pin_14;
+			break;
+		case 15:
+			GPIOB->BRR = GPIO_Pin_15;
+			break;
+		case 6:
+			GPIOB->BRR = GPIO_Pin_6;
+			break;
+		case 7:
+			GPIOB->BRR = GPIO_Pin_7;
+			break;
+		default:
+			GPIOB->BRR = GPIO_Pin_13;
 			break;
 	}
 }
@@ -414,17 +438,19 @@ uint8_t get_temperature(float* temp){
 
 uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, uint8_t* Long_min, uint8_t* Long_sec, uint8_t* Lat_dir, uint8_t* Long_dir){
 	Lea6SRead(0x84, Lat_deg, Lat_min, Lat_sec, Long_deg, Long_min, Long_sec, Lat_dir, Long_dir);
-/*
-	if()
-		return 1;
-	else return 0;
-*/
+
+	return 1;
 }
 uint8_t get_velocity(int* speed){
 		
+	return 1;
 }
 /*
+<<<<<<< HEAD
 uint8_t IR_read(uint8_t IR_BufferRx, uint8_t length, uint8_t index){
+=======
+uint8_t IR_read(uint8_t IR_BufferRx, unsigned short length, uint8_t index){
+>>>>>>> 07a17be1a7096f89cc4ac17e45d2972fe8efbde6
 	// TODO: to ensure the correctness
 	Mcp2120Proc(&IR_BufferRx, &length, index);
 	Delay(10);
@@ -436,6 +462,7 @@ uint8_t IR_write(uint8_t IR_BufferTx, uint8_t length, uint8_t index){
 	Delay(10);
 }
 */
+
 // --------------  Matnetometer functions by chih-wei -----------------
 void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)
 {
@@ -670,16 +697,27 @@ static void GPIO_Configuration(void)
   GPIO_InitTypeDef GPIO_InitStructure;
 
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_15;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
-
+/*
   GPIOB->BSRR = GPIO_Pin_14;
-	// To represent different states by controlling LEDs
 	GPIOB->BSRR = GPIO_Pin_13;
+	GPIOB->BSRR = GPIO_Pin_6;
+	GPIOB->BSRR = GPIO_Pin_7;
+	GPIOB->BSRR = GPIO_Pin_15;
+	
+	Delay(20);
+	
+	GPIOB->BRR = GPIO_Pin_14;
+	GPIOB->BRR = GPIO_Pin_13;
+	GPIOB->BRR = GPIO_Pin_6;
+	GPIOB->BRR = GPIO_Pin_7;
+	GPIOB->BRR = GPIO_Pin_15;
+	*/
 }
 
 /**
