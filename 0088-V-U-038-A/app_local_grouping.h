@@ -127,7 +127,6 @@ void app_local_grouping(){
 	MyCommand = 0xFF;
 	while(1){
 		get_direction(&MyHeading);
-		
 		if(checkTimer(1)){
 			TxData[Payload_Address_L] = Addr;
 			TxData[Payload_Address_H] = Addr>>8;
