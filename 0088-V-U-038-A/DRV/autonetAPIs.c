@@ -238,46 +238,44 @@ void blink(uint8_t n){
 
 void GPIO_ON(uint8_t n){
 	switch(n){
-		case 13:
+		case 1:
 			GPIOB->BSRR = GPIO_Pin_13;
 			break;
-	  case 14:
+	  case 2:
 			GPIOB->BSRR = GPIO_Pin_14;
 			break;
-		case 15:
+		case 3:
 			GPIOB->BSRR = GPIO_Pin_15;
 			break;
-		case 6:
+		case 4:
 			GPIOB->BSRR = GPIO_Pin_6;
 			break;
-		case 7:
+		case 5:
 			GPIOB->BSRR = GPIO_Pin_7;
 			break;
 		default:
-			GPIOB->BSRR = GPIO_Pin_13;
 			break;
 	}
 }
 
 void GPIO_OFF(uint8_t n){
 	switch(n){
-		case 13:
+		case 1:
 			GPIOB->BRR = GPIO_Pin_13;
 			break;
-	  case 14:
+	  case 2:
 			GPIOB->BRR = GPIO_Pin_14;
 			break;
-		case 15:
+		case 3:
 			GPIOB->BRR = GPIO_Pin_15;
 			break;
-		case 6:
+		case 4:
 			GPIOB->BRR = GPIO_Pin_6;
 			break;
-		case 7:
+		case 5:
 			GPIOB->BRR = GPIO_Pin_7;
 			break;
 		default:
-			GPIOB->BRR = GPIO_Pin_13;
 			break;
 	}
 }
@@ -703,21 +701,6 @@ static void GPIO_Configuration(void)
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
-/*
-  GPIOB->BSRR = GPIO_Pin_14;
-	GPIOB->BSRR = GPIO_Pin_13;
-	GPIOB->BSRR = GPIO_Pin_6;
-	GPIOB->BSRR = GPIO_Pin_7;
-	GPIOB->BSRR = GPIO_Pin_15;
-	
-	Delay(20);
-	
-	GPIOB->BRR = GPIO_Pin_14;
-	GPIOB->BRR = GPIO_Pin_13;
-	GPIOB->BRR = GPIO_Pin_6;
-	GPIOB->BRR = GPIO_Pin_7;
-	GPIOB->BRR = GPIO_Pin_15;
-	*/
 }
 
 /**
