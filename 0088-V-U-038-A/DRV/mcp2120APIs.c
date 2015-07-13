@@ -33,6 +33,8 @@ unsigned char CommandRxBufferLen = 0x00;
 unsigned char CommandRxBuffer2[64] = {0x0};
 unsigned char CommandRxBufferLen2 = 0x00;
 
+uint8_t IRTxState = 0;
+uint8_t IRRxState = 0;
 uint8_t count =0;
 
 /* Exported variables --------------------------------------------------------*/
@@ -43,7 +45,7 @@ static unsigned char Mcp2120ComplementCalc(unsigned char *p, unsigned char num);
 /* Exported functions --------------------------------------------------------*/
 /*******************************************************************************
 * Function Name  : MCP2120_Init
-* Description    : Initializes peripherals used by the Temperature Sensor driver.
+* Description    : Initializes peripherals used by the IR Sensor driver.
 * Input          : None
 * Output         : None
 * Return         : None
@@ -76,14 +78,15 @@ void Mcp2120Init(void)
 */
 
 /*******************************************************************************
-* Function Name  : MCP2120_ReadTemperature
-* Description    : Read Temperature from the Temperature Sensor driver.
+* Function Name  : MCP2120_write Infrared 
+* Description    :
 * Input          : None
-* Output         : - Temperature: Temperature from Temperature Senson.
+* Output         : 
 * Return         : None
 *******************************************************************************/
 void Mcp2120Tx(unsigned char *p, unsigned short p_len, int COM)
 {
+	IRTxState = 1;
 	CommandTxBuffer[COMMUNICATION_DATALEN_OFFSET] = p_len;
 	memcpy(&CommandTxBuffer[COMMUNICATION_DATA_OFFSET], p, p_len);
 	CommandTxBuffer[p_len + 3] = Mcp2120ComplementCalc(CommandTxBuffer, p_len + 3);
@@ -96,23 +99,65 @@ void Mcp2120Tx(unsigned char *p, unsigned short p_len, int COM)
 	if(COM == 2)
 	{
 		while(COM2_Tx(CommandTxBuffer, p_len + 6) == ERROR);
-		count ++;
+	}
+	IRTxState = 0;
+}
+
+void IR_write(unsigned char *p, unsigned short p_len, int COM)
+{
+	IRTxState = 1; 
+	CommandTxBuffer[COMMUNICATION_DATALEN_OFFSET] = p_len;
+	memcpy(&CommandTxBuffer[COMMUNICATION_DATA_OFFSET], p, p_len);
+	CommandTxBuffer[p_len + 3] = Mcp2120ComplementCalc(CommandTxBuffer, p_len + 3);
+	CommandTxBuffer[p_len + 4] = 0x0D;
+  CommandTxBuffer[p_len + 5] = 0x0A;
+	if(COM == 1)
+	{
+		while(COM1_Tx(CommandTxBuffer, p_len + 6) == ERROR);
+	}
+	if(COM == 2)
+	{
+		while(COM2_Tx(CommandTxBuffer, p_len + 6) == ERROR);
+	}
+	IRTxState = 0;
+}
+
+void IR_broadcast(uint16_t addr, uint8_t type, int COM)
+{
+	unsigned char p[2];
+	unsigned short length = 2;
+	p[0] = (unsigned char) type;
+	p[1] = (unsigned char) addr;
+	CommandTxBuffer[COMMUNICATION_DATALEN_OFFSET] = length;
+	memcpy(&CommandTxBuffer[COMMUNICATION_DATA_OFFSET], p, length);
+	CommandTxBuffer[length + 3] = Mcp2120ComplementCalc(CommandTxBuffer, length + 3);
+	CommandTxBuffer[length + 4] = 0x0D;
+  CommandTxBuffer[length + 5] = 0x0A;
+	
+	if(COM == 1)
+	{
+		while(COM1_Tx(CommandTxBuffer, length + 6) == ERROR);
+	}
+	if(COM == 2)
+	{
+		while(COM2_Tx(CommandTxBuffer, length + 6) == ERROR);
 	}
 }
 
+
 /*******************************************************************************
-* Function Name  : MCP2120_ReadTemperature
-* Description    : Read Temperature from the Temperature Sensor driver.
+* Function Name  : MCP2120_Read Infrared 
+* Description    :
 * Input          : None
-* Output         : - Temperature: Temperature from Temperature Senson.
+* Output         : 
 * Return         : None
 *******************************************************************************/
 void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 {
   unsigned char Checksum = 0;
-
+  IRRxState = 1;
 	if(COM == 1){
-		if (CommandRxBufferLen != 0x00) {  // FRONT Rx
+		if (CommandRxBufferLen != 0x00) {  
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
 				memcpy(p, CommandRxBuffer, CommandRxBufferLen);
 				*Length =  CommandRxBufferLen;
@@ -122,7 +167,7 @@ void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 		}
 	}
 	else if(COM == 2){
-		if (CommandRxBufferLen2 != 0x00) { // REAR Rx
+		if (CommandRxBufferLen2 != 0x00) { 
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
 				memcpy(p, CommandRxBuffer2, CommandRxBufferLen2);
 				*Length =  CommandRxBufferLen2;
@@ -131,7 +176,36 @@ void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 			CommandRxBufferLen2 = 0x00;
 		}
 	}
+	IRRxState = 0;
 }
+
+void IR_read(unsigned char *p, unsigned short* Length, int COM)
+{
+  unsigned char Checksum = 0;
+  IRRxState = 1;
+	if(COM == 1){
+		if (CommandRxBufferLen != 0x00) {  
+			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
+				memcpy(p, CommandRxBuffer, CommandRxBufferLen);
+				*Length =  CommandRxBufferLen;
+				//TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
+			}
+			CommandRxBufferLen = 0x00;
+		}
+	}
+	else if(COM == 2){
+		if (CommandRxBufferLen2 != 0x00) { 
+			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
+				memcpy(p, CommandRxBuffer2, CommandRxBufferLen2);
+				*Length =  CommandRxBufferLen2;
+				//TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
+			}
+			CommandRxBufferLen2 = 0x00;
+		}
+	}
+	IRRxState = 0;
+}
+
 
 /*******************************************************************************
 * Function Name  : SmokedetReadSmokeValue

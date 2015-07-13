@@ -37,6 +37,7 @@
 #include "us2400REGs.h"
 #include "us2400APIs.h"
 #include "autonetAPIs.h"
+#include "mcp2120APIs.h"
 #include "TxRx.h"
 /** @addtogroup STM32F0xx_StdPeriph_Templates
   * @{
@@ -48,6 +49,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern TimObjTypeDef_s TimObj;
+
+extern uint16_t _Addr;
+extern uint8_t _Type;
 
 extern uint8_t NbrOfDataToTransfer;
 extern uint8_t NbrOfDataToRead;
@@ -63,7 +67,8 @@ extern unsigned char CommandRxBufferLen;
 extern unsigned char CommandRxBuffer2[16];
 extern unsigned char CommandRxBufferLen2;
 
-
+extern uint8_t IRTxState;
+extern uint8_t IRRxState;
 extern uint8_t RFTxState;
 extern uint8_t RFRxState;
 extern uint8_t RFTxOccupied;
@@ -195,10 +200,12 @@ void SysTick_Handler(void)
 	if(Timer_Connect_Flag_Beacon==1){
 		if(timer_ticks_Beacon != 0)
 			--timer_ticks_Beacon;
-		if(timer_ticks_Beacon == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0){
+		if(timer_ticks_Beacon == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0){
 			//update_sensor_table();
 			broadcastSend();
 			timer_ticks_Beacon = timer_period_Beacon;
+			IR_broadcast(_Addr, _Type, 1);
+			//IR_broadcast(_Addr, _Type, 2);
 		}
 	}
 	

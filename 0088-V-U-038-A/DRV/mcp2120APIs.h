@@ -48,6 +48,8 @@ void Mcp2120Init(void);
 * Return         : None
 *******************************************************************************/
 void Mcp2120Tx(unsigned char *p, unsigned short p_len , int COM);
+void IR_write(unsigned char *p, unsigned short p_len , int COM);
+void IR_broadcast(uint16_t addr, uint8_t type, int COM);
 
 /*******************************************************************************
 * Function Name  : MCP2120_ReadTemperature
@@ -56,8 +58,8 @@ void Mcp2120Tx(unsigned char *p, unsigned short p_len , int COM);
 * Output         : - Temperature: Temperature from Temperature Senson.
 * Return         : None
 *******************************************************************************/
-//void Mcp2120Proc(void);
 void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM);
+void IR_read(unsigned char *p, unsigned short* Length, int COM);
 
 #ifdef __cplusplus
 }

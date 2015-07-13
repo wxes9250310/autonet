@@ -72,6 +72,7 @@ enum{
 	Type_Controller = 0x00,			// delete? 
 	Type_Light = 0x01,
 	Type_Switch = 0x02,
+	Type_IR = 0x03,
 };
 
 uint16_t _Addr;
@@ -146,11 +147,15 @@ void VARIABLE_Configuration(){
 void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
-			Timer_Beacon(1000);
+			Timer_Beacon(1500);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
 			Timer_Beacon(1000);
+			BeaconEnabled = 1;
+	}
+	else if(_Type == Type_IR){
+			Timer_Beacon(2000);
 			BeaconEnabled = 1;
 	}
 	else{ 												// not defined type
@@ -437,23 +442,6 @@ uint8_t get_velocity(int* speed){
 		
 	return 1;
 }
-/*
-<<<<<<< HEAD
-uint8_t IR_read(uint8_t IR_BufferRx, uint8_t length, uint8_t index){
-=======
-uint8_t IR_read(uint8_t IR_BufferRx, unsigned short length, uint8_t index){
->>>>>>> 07a17be1a7096f89cc4ac17e45d2972fe8efbde6
-	// TODO: to ensure the correctness
-	Mcp2120Proc(&IR_BufferRx, &length, index);
-	Delay(10);
-}
-
-uint8_t IR_write(uint8_t IR_BufferTx, uint8_t length, uint8_t index){
-	// TODO: to ensure the correctness
-	Mcp2120Tx(&IR_BufferTx, length , index);
-	Delay(10);
-}
-*/
 
 // --------------  Matnetometer functions by chih-wei -----------------
 void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)
