@@ -121,7 +121,7 @@
 #endif /* HSI_STARTUP_TIMEOUT */
 
 #if !defined  (HSI_VALUE) 
-#define HSI_VALUE  ((uint32_t)8000000) /*!< Value of the Internal High Speed oscillator in Hz.
+#define HSI_VALUE  ((uint32_t)16000000) /*!< Value of the Internal High Speed oscillator in Hz.
                                              The real value may vary depending on the variations
                                              in voltage and temperature.  */
 #endif /* HSI_VALUE */

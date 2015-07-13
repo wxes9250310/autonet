@@ -19,9 +19,6 @@
 #include "st.h"
 	 
 /* Private define ------------------------------------------------------------*/
-#define Direction 	1 
-#define Velocity 		2
-#define LOS 				3
 #define NumOfDeviceInTable 10
 
 /* Structure definition ------------------------------------------------------*/
@@ -45,8 +42,8 @@ enum RECEVIE_DATA_TABLE
 typedef struct{
 	uint16_t type;
 	uint16_t address;
+	uint16_t Rssi;
 	uint16_t attribute[ATTRIBUTE_NUM];
-	uint8_t RSSI;
 }Device;
 
 typedef struct{
@@ -67,10 +64,11 @@ void Autonet_search_type(char *a);
 void beacon(void);
 
 // Lights Control
-void PIN_ON(uint8_t n);
-void PIN_OFF(uint8_t n);
+void setGPIO(uint8_t pin_idx, uint8_t state);
+void GPIO_ON(uint8_t n);
+void GPIO_OFF(uint8_t n);
 void blink(uint8_t n);
-
+void VARIABLE_Configuration(void);
 /* 9-axis */
 void Mag_Error_Handle (short *pX,short *pY,short *pZ, short *max_x, short *min_x, short *max_y, short *min_y, short *max_z, short *min_z);
 int Mag_flatsurface(short *pX,short *pY);
@@ -98,7 +96,7 @@ void commandSend(void);
 void Group_Configuration(void);
 uint8_t Group_Diff(uint16_t* addr_array, uint8_t attribute, uint16_t center, uint16_t difference);
 void lighting(uint8_t State);
-uint8_t ScanTableByAddress(uint8_t);
+uint16_t ScanTableByAddress(uint16_t);
 void setTable(uint8_t,uint16_t,uint8_t);
 
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in);

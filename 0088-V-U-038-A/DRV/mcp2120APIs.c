@@ -48,6 +48,9 @@ static unsigned char Mcp2120ComplementCalc(unsigned char *p, unsigned char num);
 * Output         : None
 * Return         : None
 *******************************************************************************/
+
+// unused initialization
+/*
 void Mcp2120Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
@@ -70,6 +73,7 @@ void Mcp2120Init(void)
   GPIOB->BSRR = GPIO_Pin_7;
   GPIOB->BSRR = GPIO_Pin_15;
 }
+*/
 
 /*******************************************************************************
 * Function Name  : MCP2120_ReadTemperature
@@ -110,7 +114,7 @@ void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 	if(COM == 1){
 		if (CommandRxBufferLen != 0x00) {  // FRONT Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
-				memcpy(&p, CommandRxBuffer, CommandRxBufferLen);
+				memcpy(p, CommandRxBuffer, CommandRxBufferLen);
 				*Length =  CommandRxBufferLen;
 				//TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
 			}
@@ -120,7 +124,7 @@ void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 	else if(COM == 2){
 		if (CommandRxBufferLen2 != 0x00) { // REAR Rx
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
-				memcpy(&p, CommandRxBuffer2, CommandRxBufferLen2);
+				memcpy(p, CommandRxBuffer2, CommandRxBufferLen2);
 				*Length =  CommandRxBufferLen2;
 				//TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
 			}

@@ -10,6 +10,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
+#include <stdlib.h>
 #include "autonetAPIs.h"
 #include "st.h"
 #include "i2c.h"
@@ -52,15 +53,13 @@ uint8_t CommanderID = 0xFF;
 Table table;
 Device myAttribute;
 uint8_t  Group[NumOfDeviceInTable];
-uint16_t Condition[ATTRIBUTE_NUM] = {0x10,0xFF,0xFF};
 
 int BeaconEnabled = 0;
-int Group_count = 0;
-int Group_flag = 0;
 int num;
 int i,j,k,gps_m;
 int CheckTime;
 int ConfirmGroupTime = 10;
+uint8_t I2COccupied = 0;
 
 enum{
 	Message_Control,
@@ -78,7 +77,6 @@ enum{
 uint16_t _Addr;
 uint8_t _Type;
 
-uint8_t framelength = 0;
 extern uint8_t Data[]; 
 extern uint8_t DataLen;
 
@@ -122,29 +120,37 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	//Us2400Init(Freq, PanID, SrcAddr, TPower);
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
-	//Mpu6050Init(0xD0);
-	//Ak8975Init(0x18);
+	VARIABLE_Configuration();
+	
+	Mpu6050Init(0xD0);
+	Ak8975Init(0x18);
 	//Mcp2120Init();       	/* MCP2120 Initialize */
-	//Bh1750fviInit(0x46);
-	//Tmp75Init(0x90);
-	//Mag3110Init(0x1C);
+	Bh1750fviInit(0x46);
+	Tmp75Init(0x90);
+	Mag3110Init(0x1C);
 	
 	_Addr = srcAddr;
 	_Type = type;
 	
 	blink(1);
-	blink(2);
+	//blink(2);
 	TimerBeaconSetting();
+}
+
+void VARIABLE_Configuration(){
+  for(i = 0;i<NumOfDeviceInTable;i++){
+		table.device[i].address = 0xFFFF;
+	}
 }
 
 void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
-			Timer_Beacon(200);
+			Timer_Beacon(1000);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
-			Timer_Beacon(200);
+			Timer_Beacon(1000);
 			BeaconEnabled = 1;
 	}
 	else{ 												// not defined type
@@ -154,7 +160,6 @@ void TimerBeaconSetting(){
 }
 
 void beacon(void){
-	
 	if(BeaconEnabled == 1){	
 		// Receive others' beacon frames
 		if(RF_RX_AUTONET()){				// check AutoNet header
@@ -172,7 +177,7 @@ void beacon(void){
 
 void broadcastSend(void)
 {
-	uint8_t i;
+	uint8_t i,framelength;
 	
 	pTxData[FRAME_BYTE_HEADER] 			= 0xFF;
 	pTxData[FRAME_BYTE_SRCADDR] 		= _Addr;
@@ -202,7 +207,7 @@ void packet_receive(void)
 	// for now, new members will fill in the position values 0xFF
 	// considering sort out the table
 	if(index == 0xFF){														// no such address in the table
-		newIndex = ScanTableByAddress(0xFF);
+		newIndex = ScanTableByAddress(0xFFFF);
 		if(newIndex != 0xFF){
 			setTable(newIndex,addr,type);
 		}
@@ -212,7 +217,7 @@ void packet_receive(void)
 	}
 }
 
-uint8_t ScanTableByAddress(uint8_t scan_value){
+uint16_t ScanTableByAddress(uint16_t scan_value){
 	for(i=0;i<NumOfDeviceInTable;i++){
 		if(scan_value == table.device[i].address){
 			return i;
@@ -230,13 +235,22 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
 
 void blink(uint8_t n){
 	if(n==1 || n==2){
-		PIN_ON(n);
+		GPIO_ON(n);
 		Delay(100);
-		PIN_OFF(n);
+		GPIO_OFF(n);
 	}
 }
 
-void PIN_ON(uint8_t n){
+void setGPIO(uint8_t pin_idx, uint8_t state){
+	if(pin_idx >= 1 && pin_idx <= 5){
+			if(state == 1)	
+					GPIO_ON(pin_idx);
+			else if(state == 0)
+					GPIO_OFF(pin_idx);
+	}
+}
+
+void GPIO_ON(uint8_t n){
 	switch(n){
 		case 1:
 			GPIOB->BSRR = GPIO_Pin_13;
@@ -244,53 +258,54 @@ void PIN_ON(uint8_t n){
 	  case 2:
 			GPIOB->BSRR = GPIO_Pin_14;
 			break;
+		case 3:
+			GPIOB->BSRR = GPIO_Pin_15;
+			break;
+		case 4:
+			GPIOB->BSRR = GPIO_Pin_6;
+			break;
+		case 5:
+			GPIOB->BSRR = GPIO_Pin_7;
+			break;
+		default:
+			break;
 	}
 }
 
-void PIN_OFF(uint8_t n){
+void GPIO_OFF(uint8_t n){
 	switch(n){
 		case 1:
 			GPIOB->BRR = GPIO_Pin_13;
 			break;
-		case 2:
+	  case 2:
 			GPIOB->BRR = GPIO_Pin_14;
+			break;
+		case 3:
+			GPIOB->BRR = GPIO_Pin_15;
+			break;
+		case 4:
+			GPIOB->BRR = GPIO_Pin_6;
+			break;
+		case 5:
+			GPIOB->BRR = GPIO_Pin_7;
+			break;
+		default:
 			break;
 	}
 }
 
 uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t difference){
-	  int NumofDevice = 0;
-	/*	for(i=0;i<10;i++)
-			ID[i] = 0xFFFF;
-	  for(i=0;i<NUMOFSENSOR;i++)
-			Condition[i] = 0xFF;
-		// ------------ set Condition --------------//
-		Condition[type] = difference;
-		// ----- AutoNet algorithm ----- //
-		Group_Configuration();
+	int NumofDevice = 0;
+	for(i=0;i<NumOfDeviceInTable;i++)
+		ID[i] = 0xFFFF;
 	
-		for(i=0;i<NUMOFDEVICE;i++){
-			Group_flag = 1;
-			if(Condition[type] != 0xFF && abs(Data_table[i][type]-center) > Condition[type])  		// Not complete yet
-				Group_flag = 0;																							                        // buffers is needed
-			//TODO: grouping results will be accumulated to be a threshold to change the original group
-			if(Group_flag == 1)
-				Group[i]++;
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(difference != 0xFF && abs(table.device[i].attribute[type]-center) < difference){
+			ID[NumofDevice] = table.device[i].address;
+			NumofDevice++;
 		}
-		for(i=0;i<NUMOFDEVICE;i++)
-			if(Group[i] > 0){
-				ID[NumofDevice+1] = i;
-				NumofDevice++;
-			}
-		ID[0] = NumofDevice;
-		*/
-		return NumofDevice;
-}
-
-void Group_Configuration(){
-		for(i =0; i < NumOfDeviceInTable; i++){
-			Group[i] = 0x00;
-		}
+	}
+	return NumofDevice;
 }
 
 void lighting(uint8_t State){
@@ -373,7 +388,7 @@ unsigned char pos2;
 //int Minute = 0;
 
 uint8_t get_direction(int *heading_deg){
-	
+	  I2COccupied = 1;
     Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
 		Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
 		
@@ -391,6 +406,7 @@ uint8_t get_direction(int *heading_deg){
 //		tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
 	
 	  *heading_deg = flat_heading;
+	  I2COccupied = 0;
 		return 1;
 }
 
@@ -414,17 +430,19 @@ uint8_t get_temperature(float* temp){
 
 uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, uint8_t* Long_min, uint8_t* Long_sec, uint8_t* Lat_dir, uint8_t* Long_dir){
 	Lea6SRead(0x84, Lat_deg, Lat_min, Lat_sec, Long_deg, Long_min, Long_sec, Lat_dir, Long_dir);
-/*
-	if()
-		return 1;
-	else return 0;
-*/
+
+	return 1;
 }
 uint8_t get_velocity(int* speed){
 		
+	return 1;
 }
 /*
+<<<<<<< HEAD
+uint8_t IR_read(uint8_t IR_BufferRx, uint8_t length, uint8_t index){
+=======
 uint8_t IR_read(uint8_t IR_BufferRx, unsigned short length, uint8_t index){
+>>>>>>> 07a17be1a7096f89cc4ac17e45d2972fe8efbde6
 	// TODO: to ensure the correctness
 	Mcp2120Proc(&IR_BufferRx, &length, index);
 	Delay(10);
@@ -609,9 +627,7 @@ void getPayload(uint8_t* data_out, uint8_t* data_in, uint8_t Data_Length){
 }
 
 void getPayloadLength(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[0];
+  	*data_out = data_in[0];
 }
 
 
@@ -671,16 +687,12 @@ static void GPIO_Configuration(void)
   GPIO_InitTypeDef GPIO_InitStructure;
 
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_15;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-  GPIOB->BSRR = GPIO_Pin_14;
-	// To represent different states by controlling LEDs
-	GPIOB->BSRR = GPIO_Pin_13;
 }
 
 /**

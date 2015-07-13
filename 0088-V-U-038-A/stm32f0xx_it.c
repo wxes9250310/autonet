@@ -36,7 +36,8 @@
 #include "com.h"
 #include "us2400REGs.h"
 #include "us2400APIs.h"
-
+#include "autonetAPIs.h"
+#include "TxRx.h"
 /** @addtogroup STM32F0xx_StdPeriph_Templates
   * @{
   */
@@ -65,6 +66,10 @@ extern unsigned char CommandRxBufferLen2;
 
 extern uint8_t RFTxState;
 extern uint8_t RFRxState;
+extern uint8_t RFTxOccupied;
+extern uint8_t RFRxOccupied;
+extern uint8_t I2COccupied;
+extern uint8_t BeaconEnabled;
 extern uint8_t RFSleepState;
 void (*function)(void);
 
@@ -98,10 +103,18 @@ void Timer_Beacon(unsigned int time){
 }
 
 void setTimer(uint8_t index, unsigned int period, uint8_t unit){
-
-	timer_period[index] = period;
-	timer_ticks[index] = period;
-	Timer_Connect_Flag[index] = 1;
+	if(period == 0){
+		timer_period[index] = period;
+		timer_ticks[index] = period;
+		Timer_Connect_Flag[index] = 0;
+		timer_flag[index] = 0;
+	}
+	else{
+		timer_period[index] = period;
+		timer_ticks[index] = period;
+		Timer_Connect_Flag[index] = 1;
+		timer_flag[index] = 0;
+	}
 }
 
 uint8_t checkTimer (uint8_t index){
@@ -166,7 +179,7 @@ void SysTick_Handler(void)
     }
   }
 	for (i = 0; i < 8 ; i++){
-		if(Timer_Connect_Flag[i] ==1){
+		if(Timer_Connect_Flag[i] == 1){
 			if(--timer_ticks[i] == 0){
 				timer_ticks[i] = timer_period[i];
 				timer_flag[i] = 1;
@@ -179,6 +192,23 @@ void SysTick_Handler(void)
 			BeaconTimerFlag = 1;
 		}
 	}
+	/*
+	if(Timer_Connect_Flag_Beacon==1){
+		if(timer_ticks_Beacon != 0)
+			--timer_ticks_Beacon;
+		if(timer_ticks_Beacon == 0 && RFTxOccupied == 0 && BeaconEnabled && I2COccupied == 0){
+			update_sensor_table();
+			broadcastSend();
+			timer_ticks_Beacon = timer_period_Beacon;
+		}
+	}
+	
+	if(RFRxOccupied == 0){	
+		if(RF_RX_AUTONET()){
+			packet_receive();
+		}
+	}
+	*/
 }
 
 /******************************************************************************/

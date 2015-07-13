@@ -11,7 +11,6 @@
 #include "lea6sAPIs.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "autonetAPIs.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -32,7 +31,8 @@ extern uint8_t pRxData[];
 
 uint8_t Data[128] = {0}; 
 uint8_t DataLen = 128;
-
+uint8_t RFTxOccupied = 0;
+uint8_t RFRxOccupied = 0;
 
 uint8_t RFTxBuffer[TXBUFFERSIZE] = {0};
 uint8_t RFLqi = 0;
@@ -72,6 +72,7 @@ enum{
 *******************************************************************************/
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen)
 {
+	RFTxOccupied = 1;
 	TimObj.TimeoutFlag &= (~TIMOUT_FLAG_100MS);
 	TimObj.Tim[TIM_100MS].Ticks = TimObj.Tim[TIM_100MS].Period;
 	RFTxState = 1;
@@ -93,95 +94,96 @@ void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen)
       RFTxState = 0;
 		}
 	}
+	RFTxOccupied = 0;
 }
 
 uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){
-	
-	  int _isReceived =0;
-	  int _checkFlag=0;
-	
-		// ============== Check RX FIFO Full/Overflow ================= //
-		if (Us2400ReadShortReg(0x30) == 0x90){
-			Us2400Rx(Data, &DataLen_temp, &RFLqi, &RFRssi);
-			if (DataLen_temp != 0){
-				DataLen = DataLen_temp;
-				DataLen_temp = 0;
-				
-				memcpy(RxData, Data, DataLen);
-				*Data_Length = DataLen;
-				*RSSI = RFRssi;
-				
-				_checkFlag = headerCheck_AutoNet();			
-				if(!_checkFlag) {							// Not For AutoNet
-					_isReceived = 1;
-					Us2400WriteShortReg(0x0D, Us2400ReadShortReg(0x0D) | 0x01);	
-				}
+	int _isReceived =0;
+	int _checkFlag=0;
+	RFRxOccupied = 1;
+	// ============== Check RX FIFO Full/Overflow ================= //
+	if (Us2400ReadShortReg(0x30) == 0x90){
+		Us2400Rx(Data, &DataLen_temp, &RFLqi, &RFRssi);
+		if (DataLen_temp != 0){
+			DataLen = DataLen_temp;
+			DataLen_temp = 0;
+			
+			memcpy(RxData, Data, DataLen);
+			*Data_Length = DataLen;
+			*RSSI = RFRssi;
+			
+			_checkFlag = headerCheck_AutoNet();			
+			if(!_checkFlag) {							// Not For AutoNet
+				_isReceived = 1;
+				Us2400WriteShortReg(0x0D, Us2400ReadShortReg(0x0D) | 0x01);	
 			}
 		}
-		// ============== Packet Receive ================= //
-		if (RFRxState == 1 || Us2400ReadShortReg(0x30) == 0x80){
-			Us2400Rx(Data, &DataLen_temp, &RFLqi, &rssi);
-			if (DataLen_temp != 0){
-				DataLen = DataLen_temp;
-				DataLen_temp = 0;			
-				
-				memcpy(RxData, Data, DataLen);
-				*Data_Length = DataLen;
-				*RSSI = RFRssi;
-				
-				_checkFlag = headerCheck_AutoNet();
-				if(!_checkFlag) {    					// Not For AutoNet
-					_isReceived = 1;
-					RFRxState = 0;
-				}
+	}
+	// ============== Packet Receive ================= //
+	if (RFRxState == 1 || Us2400ReadShortReg(0x30) == 0x80){
+		Us2400Rx(Data, &DataLen_temp, &RFLqi, &rssi);
+		if (DataLen_temp != 0){
+			DataLen = DataLen_temp;
+			DataLen_temp = 0;			
+			
+			memcpy(RxData, Data, DataLen);
+			*Data_Length = DataLen;
+			*RSSI = RFRssi;
+			
+			_checkFlag = headerCheck_AutoNet();
+			if(!_checkFlag) {    					// Not For AutoNet
+				_isReceived = 1;
+				RFRxState = 0;
 			}
 		}
-		return _isReceived;
+	}
+	RFRxOccupied = 0;
+	return _isReceived;
 }
 
-int RF_RX_AUTONET(){
-	
-	  int _isReceived =0;
-	  int _checkFlag=0;
-
-		// ============== Check RX FIFO Full/Overflow ================= //
-		if (Us2400ReadShortReg(0x30) == 0x90){
-			Us2400Rx(Data, &DataLen_temp, &RFLqi, &RFRssi);
-			if (DataLen_temp != 0){
-				DataLen = DataLen_temp;
-				DataLen_temp = 0;
-				
-				memcpy(pRxData, Data, DataLen);
-				
-				_checkFlag = headerCheck_AutoNet();
-				if(_checkFlag) {					// For AutoNet
-					_isReceived = 1;
-					Us2400WriteShortReg(0x0D, Us2400ReadShortReg(0x0D) | 0x01);	
-				}
+uint8_t RF_RX_AUTONET(){
+	int _isReceived =0;
+	int _checkFlag=0;
+	RFRxOccupied = 1;
+	// ============== Check RX FIFO Full/Overflow ================= //
+	if (Us2400ReadShortReg(0x30) == 0x90){
+		Us2400Rx(Data, &DataLen_temp, &RFLqi, &RFRssi);
+		if (DataLen_temp != 0){
+			DataLen = DataLen_temp;
+			DataLen_temp = 0;
+			
+			memcpy(pRxData, Data, DataLen);
+			
+			_checkFlag = headerCheck_AutoNet();
+			if(_checkFlag) {					// For AutoNet
+				_isReceived = 1;
+				Us2400WriteShortReg(0x0D, Us2400ReadShortReg(0x0D) | 0x01);	
 			}
 		}
-		// ============== Packet Receive ================= //
-		if (RFRxState == 1 || Us2400ReadShortReg(0x30) == 0x80){
-			Us2400Rx(Data, &DataLen_temp, &RFLqi, &rssi);
-			if (DataLen_temp != 0){
-				DataLen = DataLen_temp;
-				DataLen_temp = 0;			
-				
-				memcpy(pRxData, Data, DataLen);
-				
-				_checkFlag = headerCheck_AutoNet();	
-				if(_checkFlag) {					// For AutoNet
-					_isReceived = 1;
-					RFRxState = 0;
-				}
+	}
+	// ============== Packet Receive ================= //
+	if (RFRxState == 1 || Us2400ReadShortReg(0x30) == 0x80){
+		Us2400Rx(Data, &DataLen_temp, &RFLqi, &rssi);
+		if (DataLen_temp != 0){
+			DataLen = DataLen_temp;
+			DataLen_temp = 0;			
+			
+			memcpy(pRxData, Data, DataLen);
+			
+			_checkFlag = headerCheck_AutoNet();	
+			if(_checkFlag) {					// For AutoNet
+				_isReceived = 1;
+				RFRxState = 0;
 			}
 		}
-		return _isReceived;
+	}
+	RFRxOccupied = 0;
+	return _isReceived;
 }
 
 int headerCheck_AutoNet(){
 	
-		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
+		if(Data[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
 			return 1;
 		}
 		return 0;	
