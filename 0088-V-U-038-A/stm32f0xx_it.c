@@ -185,19 +185,18 @@ void SysTick_Handler(void)
 				timer_flag[i] = 1;
 			}
 		}
-  }
+  }/*
 	if(Timer_Connect_Flag_Beacon==1){
 		if(--timer_ticks_Beacon == 0){
 			timer_ticks_Beacon = timer_period_Beacon;
 			BeaconTimerFlag = 1;
 		}
-	}
-	/*
+	}*/
 	if(Timer_Connect_Flag_Beacon==1){
 		if(timer_ticks_Beacon != 0)
 			--timer_ticks_Beacon;
-		if(timer_ticks_Beacon == 0 && RFTxOccupied == 0 && BeaconEnabled && I2COccupied == 0){
-			update_sensor_table();
+		if(timer_ticks_Beacon == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0){
+			//update_sensor_table();
 			broadcastSend();
 			timer_ticks_Beacon = timer_period_Beacon;
 		}
@@ -208,7 +207,6 @@ void SysTick_Handler(void)
 			packet_receive();
 		}
 	}
-	*/
 }
 
 /******************************************************************************/

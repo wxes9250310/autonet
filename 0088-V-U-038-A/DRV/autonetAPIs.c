@@ -122,12 +122,12 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	
 	VARIABLE_Configuration();
 	
-	Mpu6050Init(0xD0);
-	Ak8975Init(0x18);
+	//Mpu6050Init(0xD0);
+	//Ak8975Init(0x18);
 	//Mcp2120Init();       	/* MCP2120 Initialize */
-	Bh1750fviInit(0x46);
-	Tmp75Init(0x90);
-	Mag3110Init(0x1C);
+	//Bh1750fviInit(0x46);
+	//Tmp75Init(0x90);
+	//Mag3110Init(0x1C);
 	
 	_Addr = srcAddr;
 	_Type = type;
