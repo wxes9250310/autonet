@@ -178,6 +178,26 @@ int main(void)
 	//IR_testing();
   //light_testing();
 	//app_group_direction();
+	uint8_t TxBuffer[256],i=0;
+	uint8_t Type;
+	uint16_t Addr;
+	uint16_t radio_freq;
+	uint16_t radio_panID;
+	Addr = 0x0001;
+	Type = Type_Light;
+	radio_freq = 2475;
+	radio_panID = 0x00AA;
+	Initial(Addr, Type, radio_freq, radio_panID);	
+	setTimer(1,55,UNIT_MS);
+	
+
+	while(1){
+		if(checkTimer(1)){
+			TxBuffer[0] = i;
+			RF_Tx(0xFFFF,TxBuffer,1);
+			i++;
+		}
+	}
 }
 
 
