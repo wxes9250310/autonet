@@ -72,6 +72,7 @@ enum{
 	Type_Controller = 0x00,			// delete? 
 	Type_Light = 0x01,
 	Type_Switch = 0x02,
+	Type_IR = 0x03,
 };
 
 uint16_t _Addr;
@@ -151,6 +152,10 @@ void TimerBeaconSetting(){
 	}
 	else if(_Type == Type_Switch){
 			Timer_Beacon(1000);
+			BeaconEnabled = 1;
+	}
+	else if(_Type == Type_IR){
+			Timer_Beacon(300);
 			BeaconEnabled = 1;
 	}
 	else{ 												// not defined type

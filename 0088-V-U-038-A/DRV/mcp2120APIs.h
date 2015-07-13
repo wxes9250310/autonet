@@ -49,6 +49,7 @@ void Mcp2120Init(void);
 *******************************************************************************/
 void Mcp2120Tx(unsigned char *p, unsigned short p_len , int COM);
 void IR_write(unsigned char *p, unsigned short p_len , int COM);
+void IR_broadcast(uint16_t addr, uint8_t type, int COM);
 
 /*******************************************************************************
 * Function Name  : MCP2120_ReadTemperature

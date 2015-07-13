@@ -44,6 +44,7 @@ enum{
 		Type_Controller = 0x00,			// delete?
 		Type_Light = 0x01,
 		Type_Switch = 0x02,
+	  Type_IR = 0x03,
 };
 
 void WeightBroadCast(uint8_t weight){
@@ -175,32 +176,68 @@ int main(void)
 	//app_control_light();
 	//app_local_grouping();
 
-	IR_testing();
+	//IR_testing();
   //light_testing();
 	//app_group_direction();
-	
-	/*
-	uint8_t TxBuffer[256],i=0;
+
 	uint8_t Type;
 	uint16_t Addr;
 	uint16_t radio_freq;
 	uint16_t radio_panID;
+
+	unsigned char IR_BufferRx1[64] = {0x0};
+	unsigned char IR_BufferRx2[64] = {0x0};
+	unsigned short IR_Buffer_Length1;
+	unsigned short IR_Buffer_Length2;
+	unsigned char rcvd_type1, rcvd_type2;
+	unsigned char rcvd_addr1, rcvd_addr2;
+	uint8_t TxBuffer[256],i=0;
+	
 	Addr = 0x0001;
 	Type = Type_Light;
+	
+	//Addr = 0x0005;
+	//Type = Type_Controller;
+	
+  //Addr = 0x00AA;
+	//Type = Type_IR;
+	
 	radio_freq = 2475;
 	radio_panID = 0x00AA;
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,55,UNIT_MS);
+	setTimer(1,105,UNIT_MS);
 	
-
 	while(1){
 		if(checkTimer(1)){
 			TxBuffer[0] = i;
 			RF_Tx(0xFFFF,TxBuffer,1);
 			i++;
+			
+		/*	
+			IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
+			IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
+			
+			if(IR_Buffer_Length1 !=0){
+					rcvd_type1 =  IR_BufferRx1[2];
+					rcvd_addr1 =  IR_BufferRx1[3];				
+					if(rcvd_type1 == 0x03)
+						blink(1);
+				}
+				
+				if(IR_Buffer_Length2 !=0){
+					rcvd_type2 =  IR_BufferRx2[2];
+					rcvd_addr2 =  IR_BufferRx2[3];
+					if(rcvd_type2 == 0x03)
+						blink(1);
+				}
+				
+				rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
+				IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
+				*/
+				
 		}
 	}
-	*/
+	
 }
 
 
