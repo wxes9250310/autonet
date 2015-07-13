@@ -183,7 +183,7 @@ uint8_t RF_RX_AUTONET(){
 
 int headerCheck_AutoNet(){
 	
-		if(pRxData[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
+		if(Data[FRAME_BYTE_HEADER + RX_OFFSET] == 0xFF){
 			return 1;
 		}
 		return 0;	

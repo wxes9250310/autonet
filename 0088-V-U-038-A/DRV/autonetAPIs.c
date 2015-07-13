@@ -120,6 +120,8 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	//Us2400Init(Freq, PanID, SrcAddr, TPower);
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
+	VARIABLE_Configuration();
+	
 	Mpu6050Init(0xD0);
 	Ak8975Init(0x18);
 	//Mcp2120Init();       	/* MCP2120 Initialize */
@@ -133,6 +135,12 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	blink(1);
 	//blink(2);
 	TimerBeaconSetting();
+}
+
+void VARIABLE_Configuration(){
+  for(i = 0;i<NumOfDeviceInTable;i++){
+		table.device[i].address = 0xFFFF;
+	}
 }
 
 void TimerBeaconSetting(){
@@ -152,7 +160,19 @@ void TimerBeaconSetting(){
 }
 
 void beacon(void){
-
+	if(BeaconEnabled == 1){	
+		// Receive others' beacon frames
+		if(RF_RX_AUTONET()){				// check AutoNet header
+			packet_receive();					// receive sensors' data from others
+		}
+		// Beacon 
+		if(BeaconTimerFlag == 1){
+			update_sensor_table();
+			broadcastSend();
+			BeaconTimerFlag = 0;
+		}
+	}
+	else;
 }
 
 void broadcastSend(void)
@@ -187,7 +207,7 @@ void packet_receive(void)
 	// for now, new members will fill in the position values 0xFF
 	// considering sort out the table
 	if(index == 0xFF){														// no such address in the table
-		newIndex = ScanTableByAddress(0xFF);
+		newIndex = ScanTableByAddress(0xFFFF);
 		if(newIndex != 0xFF){
 			setTable(newIndex,addr,type);
 		}
@@ -197,7 +217,7 @@ void packet_receive(void)
 	}
 }
 
-uint8_t ScanTableByAddress(uint8_t scan_value){
+uint16_t ScanTableByAddress(uint16_t scan_value){
 	for(i=0;i<NumOfDeviceInTable;i++){
 		if(scan_value == table.device[i].address){
 			return i;
@@ -607,9 +627,7 @@ void getPayload(uint8_t* data_out, uint8_t* data_in, uint8_t Data_Length){
 }
 
 void getPayloadLength(uint8_t* data_out, uint8_t* data_in){
-
-		memset(data_out,0x00,sizeof(data_out));
-  	data_out[0] = data_in[0];
+  	*data_out = data_in[0];
 }
 
 

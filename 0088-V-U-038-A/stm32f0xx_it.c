@@ -107,11 +107,13 @@ void setTimer(uint8_t index, unsigned int period, uint8_t unit){
 		timer_period[index] = period;
 		timer_ticks[index] = period;
 		Timer_Connect_Flag[index] = 0;
+		timer_flag[index] = 0;
 	}
 	else{
 		timer_period[index] = period;
 		timer_ticks[index] = period;
 		Timer_Connect_Flag[index] = 1;
+		timer_flag[index] = 0;
 	}
 }
 
@@ -184,8 +186,14 @@ void SysTick_Handler(void)
 			}
 		}
   }
-	
-	/*if(Timer_Connect_Flag_Beacon==1){
+	if(Timer_Connect_Flag_Beacon==1){
+		if(--timer_ticks_Beacon == 0){
+			timer_ticks_Beacon = timer_period_Beacon;
+			BeaconTimerFlag = 1;
+		}
+	}
+	/*
+	if(Timer_Connect_Flag_Beacon==1){
 		if(timer_ticks_Beacon != 0)
 			--timer_ticks_Beacon;
 		if(timer_ticks_Beacon == 0 && RFTxOccupied == 0 && BeaconEnabled && I2COccupied == 0){
@@ -194,11 +202,13 @@ void SysTick_Handler(void)
 			timer_ticks_Beacon = timer_period_Beacon;
 		}
 	}
+	
 	if(RFRxOccupied == 0){	
 		if(RF_RX_AUTONET()){
 			packet_receive();
 		}
-	}*/
+	}
+	*/
 }
 
 /******************************************************************************/

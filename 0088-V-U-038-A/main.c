@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "main.h"
 #include "stm32f0xx_it.h"
 #include "us2400APIs.h"
@@ -24,10 +25,10 @@
 
 
 /* Private function ----------------------------------------------------------*/
-void app_light_direction(void);
+/*void app_light_direction(void);
 void app_control_light(void);
 void light_testing(void);
-void IR_testing(void);
+void IR_testing(void);*/
 
 // application - Light direction
 enum{
@@ -44,6 +45,109 @@ enum{
 		Type_Switch = 0x02,
 };
 
+void WeightBroadCast(uint8_t weight){
+	uint8_t TxData[256];
+	TxData[0] = weight;
+	RF_Tx(0xFFFF,TxData,1);
+}
+
+void StateOne(uint8_t* weight){
+	uint8_t RxData[256],RxLength,Rssi,RxPayload[256];
+	if(RF_Rx(RxData,&RxLength,&Rssi)){
+		getPayloadLength(&RxLength,RxData);
+		getPayload(RxPayload,RxData,RxLength);
+		if(*weight == RxPayload[0]){
+			*weight = rand()%10;
+			setTimer(2,2000,UNIT_MS);
+		}
+	}
+}
+
+void StateTwo(uint8_t* weight,uint8_t* State){
+	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2];
+	uint16_t GroupAddr[10],Addr;
+	int direction,i;
+	get_direction(&direction);
+	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	if(RF_Rx(RxData,&RxLength,&Rssi)){
+		getPayloadLength(&RxLength,RxData);
+		getPayload(RxPayload,RxData,RxLength);
+		getSrcAddr(temp,RxData);
+		Addr = temp[0] | temp[1] << 8;
+		for(i=0;i<numOfGroup;i++){
+			if(*weight < RxPayload[0] && Addr == GroupAddr[i]){
+				*weight = RxPayload[0];
+			}
+			if(*weight == RxPayload[0] && Addr == GroupAddr[i]){
+				setTimer(3,2000,UNIT_MS);
+				*State = 3;
+			}
+		}
+	}
+}
+
+int StateThree(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
+	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2];
+	uint16_t GroupAddr[10],Addr;
+	int direction,i;
+	get_direction(&direction);
+	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	if(numOfGroup == 0){
+		*State = 0;
+		return 1;
+	}
+	if(RF_Rx(RxData,&RxLength,&Rssi)){
+		getPayloadLength(&RxLength,RxData);
+		getPayload(RxPayload,RxData,RxLength);
+		getSrcAddr(temp,RxData);
+		Addr = temp[0] | temp[1] << 8;
+		for(i=0;i<numOfGroup;i++){
+			if(*weight == RxPayload[0] && Addr == GroupAddr[i])
+				setTimer(3,1500,UNIT_MS);
+			if(*weight < RxPayload[0] && Addr == GroupAddr[i]){
+				setTimer(3,0,UNIT_MS);
+				setTimer(4,2000,UNIT_MS);
+				*MaxWeight = RxPayload[0];
+				*State = 4;
+				return 1;
+			}
+		}
+	}
+	return 1;
+}
+
+int StateFour(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
+	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2],ListenStartFlag=0;
+	uint16_t GroupAddr[10],Addr;
+	int direction,i;
+	get_direction(&direction);
+	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	if(RF_Rx(RxData,&RxLength,&Rssi) && ListenStartFlag ==1){
+		getPayloadLength(&RxLength,RxData);
+		getPayload(RxPayload,RxData,RxLength);
+		getSrcAddr(temp,RxData);
+		Addr = temp[0] | temp[1] << 8;
+		for(i=0;i<numOfGroup;i++){
+			if(*MaxWeight == RxPayload[0] && Addr == GroupAddr[i]){
+				*weight = *MaxWeight;
+				*State = 3;
+				setTimer(5,0,UNIT_MS);
+				return 1;
+			}
+		}
+	}
+	if(checkTimer(5)){
+		*State = 3;
+		return 1;
+	}
+	if(checkTimer(4)){
+		setTimer(4,0,UNIT_MS);
+		ListenStartFlag = 1;
+		setTimer(5,1000,UNIT_MS);
+	}
+	return 1;
+}
+
 int main(void)
 {
 	//ControlLight();
@@ -58,18 +162,46 @@ int main(void)
 	uint16_t Addr;
 	uint16_t radio_freq;
 	uint16_t radio_panID;
-	uint16_t GroupAddr[10];
-	uint8_t n;
-	int direction;
-	Addr = 0x0002;
+	uint8_t State=0;
+	uint8_t MyWeight = 0xFF;
+	uint8_t MaxWeight = 0;
+	Addr = 0x0001;
 	Type = Type_Light;
 	radio_freq = 2475;
 	radio_panID = 0x00AA;
+
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	
+	setTimer(1,500,UNIT_MS);
 	while(1){
-		get_direction(&direction);
-		n = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x20);
+		beacon();
+		if(checkTimer(1))
+			WeightBroadCast(MyWeight);
+		switch(State){
+			case 0:
+				MyWeight = rand()%10;
+			  State = 1;
+			  setTimer(2,2000,UNIT_MS);
+				break;
+			case 1:
+				StateOne(&MyWeight);
+			  if(checkTimer(2)){
+					State = 2;
+					setTimer(2,0,UNIT_MS);
+				}
+				break;
+			case 2:
+				StateTwo(&MyWeight,&State);
+				break;
+			case 3:
+				StateThree(&MyWeight,&State,&MaxWeight);
+				if(checkTimer(3)){
+					State = 0;
+				}
+				break;
+			case 4:
+				StateFour(&MyWeight,&State,&MaxWeight);
+				break;
+		}
 	}
 }
 
@@ -79,7 +211,7 @@ int main(void)
 * Author            : Ed Kung
 *******************************************************************************/
 
-void light_testing(){
+/*void light_testing(){
 	
 	uint8_t Type;
 	uint16_t Addr;
@@ -107,6 +239,7 @@ void light_testing(){
 		Delay(500);
 	}
 }
+*/
 /*
 void app_light_direction(){
 	
@@ -311,7 +444,7 @@ void app_control_light(){
 *                   : 2. IR beacon
 * Author            : Ed Kung
 *******************************************************************************/
-void IR_testing(){
+/*void IR_testing(){
 
 	uint16_t Addr;
 	uint8_t Type;
@@ -391,3 +524,4 @@ void IR_testing(){
 		}
 	}
 }
+*/
