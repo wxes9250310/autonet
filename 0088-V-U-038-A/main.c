@@ -193,11 +193,11 @@ int main(void)
 	unsigned char rcvd_addr1, rcvd_addr2;
 	uint8_t TxBuffer[256],i=0;
 	
-	Addr = 0x0001;
-	Type = Type_Light;
+	//Addr = 0x0001;
+	//Type = Type_Light;
 	
-	//Addr = 0x0005;
-	//Type = Type_Controller;
+	Addr = 0x0005;
+	Type = Type_Controller;
 	
   //Addr = 0x00AA;
 	//Type = Type_IR;
@@ -209,31 +209,31 @@ int main(void)
 	
 	while(1){
 		if(checkTimer(1)){
-			TxBuffer[0] = i;
-			RF_Tx(0xFFFF,TxBuffer,1);
-			i++;
+			//TxBuffer[0] = i;
+			//RF_Tx(0xFFFF,TxBuffer,1);
+			//i++;
 			
-		/*	
+			
 			IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
-			IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
+			//IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
 			
 			if(IR_Buffer_Length1 !=0){
-					rcvd_type1 =  IR_BufferRx1[2];
-					rcvd_addr1 =  IR_BufferRx1[3];				
-					if(rcvd_type1 == 0x03)
+					rcvd_type1 =  IR_BufferRx1[3];
+					rcvd_addr1 =  IR_BufferRx1[4];				
+					if(rcvd_type1 == 0x01)
 						blink(1);
 				}
 				
 				if(IR_Buffer_Length2 !=0){
-					rcvd_type2 =  IR_BufferRx2[2];
-					rcvd_addr2 =  IR_BufferRx2[3];
-					if(rcvd_type2 == 0x03)
+					rcvd_type2 =  IR_BufferRx2[3];
+					rcvd_addr2 =  IR_BufferRx2[4];
+					if(rcvd_type2 == 0x01)
 						blink(1);
 				}
 				
 				rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
 				IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
-				*/
+				
 				
 		}
 	}

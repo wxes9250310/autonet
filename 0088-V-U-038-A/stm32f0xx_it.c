@@ -204,7 +204,7 @@ void SysTick_Handler(void)
 			//update_sensor_table();
 			broadcastSend();
 			timer_ticks_Beacon = timer_period_Beacon;
-			//IR_broadcast(_Addr, _Type, 1);
+			IR_broadcast(_Addr, _Type, 1);
 			//IR_broadcast(_Addr, _Type, 2);
 		}
 	}
