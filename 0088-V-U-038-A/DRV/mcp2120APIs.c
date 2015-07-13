@@ -43,7 +43,7 @@ static unsigned char Mcp2120ComplementCalc(unsigned char *p, unsigned char num);
 /* Exported functions --------------------------------------------------------*/
 /*******************************************************************************
 * Function Name  : MCP2120_Init
-* Description    : Initializes peripherals used by the Temperature Sensor driver.
+* Description    : Initializes peripherals used by the IR Sensor driver.
 * Input          : None
 * Output         : None
 * Return         : None
@@ -76,10 +76,10 @@ void Mcp2120Init(void)
 */
 
 /*******************************************************************************
-* Function Name  : MCP2120_ReadTemperature
-* Description    : Read Temperature from the Temperature Sensor driver.
+* Function Name  : MCP2120_write Infrared 
+* Description    :
 * Input          : None
-* Output         : - Temperature: Temperature from Temperature Senson.
+* Output         : 
 * Return         : None
 *******************************************************************************/
 void Mcp2120Tx(unsigned char *p, unsigned short p_len, int COM)
@@ -100,11 +100,30 @@ void Mcp2120Tx(unsigned char *p, unsigned short p_len, int COM)
 	}
 }
 
+void IR_write(unsigned char *p, unsigned short p_len, int COM)
+{
+	CommandTxBuffer[COMMUNICATION_DATALEN_OFFSET] = p_len;
+	memcpy(&CommandTxBuffer[COMMUNICATION_DATA_OFFSET], p, p_len);
+	CommandTxBuffer[p_len + 3] = Mcp2120ComplementCalc(CommandTxBuffer, p_len + 3);
+	CommandTxBuffer[p_len + 4] = 0x0D;
+  CommandTxBuffer[p_len + 5] = 0x0A;
+	if(COM == 1)
+	{
+		while(COM1_Tx(CommandTxBuffer, p_len + 6) == ERROR);
+	}
+	if(COM == 2)
+	{
+		while(COM2_Tx(CommandTxBuffer, p_len + 6) == ERROR);
+		count ++;
+	}
+}
+
+
 /*******************************************************************************
-* Function Name  : MCP2120_ReadTemperature
-* Description    : Read Temperature from the Temperature Sensor driver.
+* Function Name  : MCP2120_Read Infrared 
+* Description    :
 * Input          : None
-* Output         : - Temperature: Temperature from Temperature Senson.
+* Output         : 
 * Return         : None
 *******************************************************************************/
 void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
@@ -132,6 +151,33 @@ void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 		}
 	}
 }
+
+void IR_read(unsigned char *p, unsigned short* Length, int COM)
+{
+  unsigned char Checksum = 0;
+
+	if(COM == 1){
+		if (CommandRxBufferLen != 0x00) {  // FRONT Rx
+			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
+				memcpy(p, CommandRxBuffer, CommandRxBufferLen);
+				*Length =  CommandRxBufferLen;
+				//TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
+			}
+			CommandRxBufferLen = 0x00;
+		}
+	}
+	else if(COM == 2){
+		if (CommandRxBufferLen2 != 0x00) { // REAR Rx
+			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
+				memcpy(p, CommandRxBuffer2, CommandRxBufferLen2);
+				*Length =  CommandRxBufferLen2;
+				//TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
+			}
+			CommandRxBufferLen2 = 0x00;
+		}
+	}
+}
+
 
 /*******************************************************************************
 * Function Name  : SmokedetReadSmokeValue

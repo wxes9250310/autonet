@@ -175,9 +175,11 @@ int main(void)
 	//app_control_light();
 	//app_local_grouping();
 
-	//IR_testing();
+	IR_testing();
   //light_testing();
 	//app_group_direction();
+	
+	/*
 	uint8_t TxBuffer[256],i=0;
 	uint8_t Type;
 	uint16_t Addr;
@@ -198,6 +200,7 @@ int main(void)
 			i++;
 		}
 	}
+	*/
 }
 
 
@@ -495,11 +498,10 @@ void app_control_light(){
 *                   : 2. IR beacon
 * Author            : Ed Kung
 *******************************************************************************/
-/*void IR_testing(){
+void IR_testing(){
 
 	uint16_t Addr;
 	uint8_t Type;
-	uint8_t state;
 	uint8_t detect;
 	uint16_t radio_freq;
 	uint16_t radio_panID;
@@ -527,52 +529,41 @@ void app_control_light(){
 	while(1){ 	
 		if(checkTimer(1)){
 			if(Type == 0x01){		// observer
-				Mcp2120Proc(IR_BufferRx1, &IR_Buffer_Length1, 1);
+				IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
 				Delay(10);
-				Mcp2120Proc(IR_BufferRx2, &IR_Buffer_Length2, 2);
+				IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
 
-				if(IR_Buffer_Length1 !=0 || IR_Buffer_Length2 !=0)
-				{
-					blink(1);
-
-					// TODO: not retrieve succesfully
+				if(IR_Buffer_Length1 !=0){
 					rcvd_type1 =  IR_BufferRx1[2];
-					rcvd_addr1 =  IR_BufferRx1[3];
+					rcvd_addr1 =  IR_BufferRx1[3];				
+					if(rcvd_type1 == 0x02)
+						blink(1);
+				}
+				
+				if(IR_Buffer_Length2 !=0){
 					rcvd_type2 =  IR_BufferRx2[2];
 					rcvd_addr2 =  IR_BufferRx2[3];
-
-					if(rcvd_type1 == 0x02 && rcvd_addr1 == 0x55){
+					if(rcvd_type2 == 0x02)
 						blink(1);
-					}
-					if(rcvd_type2 == 0x02 && rcvd_addr2 == 0x55){
-						blink(1);
-					}
 				}
-
-				Delay(10);
-				state=1;
+				
+				rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
+				IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
 			}
 		}
 		if(checkTimer(2)){
 			if(Type == 0x02){
 				
-				//IR_BufferTx[0] = (unsigned char *) Type;
-				//IR_BufferTx[1] = (unsigned char *) Addr;
-
-				IR_BufferTx[0] = (unsigned char) Addr;
+  			IR_BufferTx[0] = (unsigned char) Addr;
 				IR_BufferTx[1] = (unsigned char) Type;
 
 				blink(1);
-				Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 1);
+				IR_write(IR_BufferTx, 2 , 1);
 				Delay(10);
-				Mcp2120Tx((unsigned char *)IR_BufferTx, 2 , 2);
+				IR_write(IR_BufferTx, 2 , 2);
 				Delay(10);
-				state=2;
 			}
-
-			IR_Buffer_Length1 =0;
-			IR_Buffer_Length2 =0;
 		}
 	}
 }
-*/
+
