@@ -25,10 +25,11 @@
 
 
 /* Private function ----------------------------------------------------------*/
-/*void app_light_direction(void);
+void app_light_direction(void);
 void app_control_light(void);
 void light_testing(void);
-void IR_testing(void);*/
+void IR_testing(void);
+void app_group_direction(void);
 
 // application - Light direction
 enum{
@@ -57,7 +58,7 @@ void StateOne(uint8_t* weight){
 		getPayloadLength(&RxLength,RxData);
 		getPayload(RxPayload,RxData,RxLength);
 		if(*weight == RxPayload[0]){
-			*weight = rand()%10;
+			*weight = rand()%3;
 			setTimer(2,2000,UNIT_MS);
 		}
 	}
@@ -148,6 +149,25 @@ int StateFour(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
 	return 1;
 }
 
+void ChangeLight(uint8_t MyWeight){
+	switch(MyWeight){
+		case 0:
+			setGPIO(1 ,1);
+			setGPIO(2 ,0);
+			break;
+		case 1:
+			setGPIO(1 ,0);
+			setGPIO(2 ,1);
+			break;
+		case 2:
+			setGPIO(1 ,1);
+			setGPIO(2 ,1);
+			break;
+	}
+}
+
+
+
 int main(void)
 {
 	//ControlLight();
@@ -157,7 +177,17 @@ int main(void)
 
 	//IR_testing();
   //light_testing();
-	
+	//app_group_direction();
+}
+
+
+/*******************************************************************************
+* Application Name  : Direction Local Grouping
+* Description    		: Application
+* Author            : Cheng Han
+*******************************************************************************/
+
+void app_group_direction(){
 	uint8_t Type;
 	uint16_t Addr;
 	uint16_t radio_freq;
@@ -174,11 +204,12 @@ int main(void)
 	setTimer(1,500,UNIT_MS);
 	while(1){
 		beacon();
+		ChangeLight(MyWeight);
 		if(checkTimer(1))
 			WeightBroadCast(MyWeight);
 		switch(State){
 			case 0:
-				MyWeight = rand()%10;
+				MyWeight = rand()%3;
 			  State = 1;
 			  setTimer(2,2000,UNIT_MS);
 				break;
