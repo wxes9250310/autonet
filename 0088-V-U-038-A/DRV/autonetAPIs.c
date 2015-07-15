@@ -80,6 +80,7 @@ uint8_t _Type;
 
 extern uint8_t Data[]; 
 extern uint8_t DataLen;
+extern uint8_t RSSI_BC;
 
 extern TimObjTypeDef_s TimObj;
 extern int BeaconTimerFlag;
@@ -203,10 +204,12 @@ void packet_receive(void)
 	uint8_t index=0xFF;
 	uint8_t newIndex=0xFF;
 	uint8_t type;
+	uint8_t rssi;
 	uint16_t addr;
 	
 	type = pRxData[FRAME_BYTE_TYPE + MAC_HEADER_LENGTH];
 	addr = pRxData[FRAME_BYTE_SRCADDR + MAC_HEADER_LENGTH];
+	rssi = RSSI_BC;
 	index = ScanTableByAddress(addr);
 	
 	// for now, new members will fill in the position values 0xFF
@@ -214,11 +217,11 @@ void packet_receive(void)
 	if(index == 0xFF){														// no such address in the table
 		newIndex = ScanTableByAddress(0xFFFF);
 		if(newIndex != 0xFF){
-			setTable(newIndex,addr,type);
+			setTable(newIndex,addr,type,rssi);
 		}
 	}
 	else{
-		setTable(index,addr,type);
+		setTable(index,addr,type,rssi);
 	}
 }
 
@@ -231,9 +234,10 @@ uint16_t ScanTableByAddress(uint16_t scan_value){
 	return 0xFF;
 }
 
-void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
+void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi){
 	table.device[n].type = device_type;
 	table.device[n].address = device_addr;
+	table.device[n].Rssi = rssi;
   for(i=0; i<ATTRIBUTE_NUM; i++)
 		table.device[n].attribute[i] = pRxData[2*i+5+MAC_HEADER_LENGTH] | (pRxData[2*i+4+MAC_HEADER_LENGTH]<<8);
 }
@@ -311,20 +315,6 @@ uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t differen
 		}
 	}
 	return NumofDevice;
-}
-
-void lighting(uint8_t State){
-	switch (State){
-		case 0:
-				GPIOB->BRR = GPIO_Pin_13;
-				break;
-		case 1:
-				GPIOB->BSRR = GPIO_Pin_13;
-				break;
-		default:
-				GPIOB->BRR = GPIO_Pin_13;
-				break;
-	}
 }
 
 void Autonet_search_type(char *a){

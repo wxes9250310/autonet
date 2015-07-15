@@ -38,6 +38,7 @@ uint8_t RFTxBuffer[TXBUFFERSIZE] = {0};
 uint8_t RFLqi = 0;
 uint8_t RFRssi = 0;
 uint8_t rssi = 0;
+uint8_t RSSI_BC = 0;
 uint8_t RFTxState = 0;
 uint8_t RFRxState = 0;
 uint8_t RFSleepState = 0;
@@ -78,8 +79,10 @@ void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen)
 }
 
 uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){
+	
 	int _isReceived =0;
 	int _checkFlag=0;
+	
 	RFRxOccupied = 1;
 	// ============== Check RX FIFO Full/Overflow ================= //
 	if (Us2400ReadShortReg(0x30) == 0x90){
@@ -101,7 +104,7 @@ uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){
 	}
 	// ============== Packet Receive ================= //
 	if (RFRxState == 1 || Us2400ReadShortReg(0x30) == 0x80){
-		Us2400Rx(Data, &DataLen_temp, &RFLqi, &rssi);
+		Us2400Rx(Data, &DataLen_temp, &RFLqi, &RFRssi);
 		if (DataLen_temp != 0){
 			DataLen = DataLen_temp;
 			DataLen_temp = 0;			
@@ -122,6 +125,7 @@ uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){
 }
 
 uint8_t RF_RX_AUTONET(){
+	
 	int _isReceived =0;
 	int _checkFlag=0;
 	RFRxOccupied = 1;
@@ -133,6 +137,7 @@ uint8_t RF_RX_AUTONET(){
 			DataLen_temp = 0;
 			
 			memcpy(pRxData, Data, DataLen);
+			RSSI_BC = RFRssi;
 			
 			_checkFlag = headerCheck_AutoNet();
 			if(_checkFlag) {					// For AutoNet
@@ -143,12 +148,13 @@ uint8_t RF_RX_AUTONET(){
 	}
 	// ============== Packet Receive ================= //
 	if (RFRxState == 1 || Us2400ReadShortReg(0x30) == 0x80){
-		Us2400Rx(Data, &DataLen_temp, &RFLqi, &rssi);
+		Us2400Rx(Data, &DataLen_temp, &RFLqi, &RFRssi);
 		if (DataLen_temp != 0){
 			DataLen = DataLen_temp;
 			DataLen_temp = 0;			
 			
 			memcpy(pRxData, Data, DataLen);
+			RSSI_BC = RFRssi;
 			
 			_checkFlag = headerCheck_AutoNet();	
 			if(_checkFlag) {					// For AutoNet

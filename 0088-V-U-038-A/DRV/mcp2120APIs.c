@@ -25,9 +25,13 @@ extern char RearID;
 #define COMMUNICATION_DATALEN_OFFSET 0x02
 #define COMMUNICATION_DATA_OFFSET 0x03
 
+#define COMMUNICATION_START_BC 0xFF			// broadcast
+#define COMMUNICATION_HEADER_BC 0xFF    // broadcast
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 unsigned char CommandTxBuffer[64] = {COMMUNICATION_START, COMMUNICATION_HEADER};
+unsigned char CommandTxBuffer_BC[64] = {COMMUNICATION_START_BC, COMMUNICATION_HEADER_BC};
 unsigned char CommandRxBuffer[64] = {0x0};
 unsigned char CommandRxBufferLen = 0x00;
 unsigned char CommandRxBuffer2[64] = {0x0};
@@ -128,19 +132,19 @@ void IR_broadcast(uint16_t addr, uint8_t type, int COM)
 	unsigned short length = 2;
 	p[0] = (unsigned char) type;
 	p[1] = (unsigned char) addr;
-	CommandTxBuffer[COMMUNICATION_DATALEN_OFFSET] = length;
-	memcpy(&CommandTxBuffer[COMMUNICATION_DATA_OFFSET], p, length);
-	CommandTxBuffer[length + 3] = Mcp2120ComplementCalc(CommandTxBuffer, length + 3);
-	CommandTxBuffer[length + 4] = 0x0D;
-  CommandTxBuffer[length + 5] = 0x0A;
+	CommandTxBuffer_BC[COMMUNICATION_DATALEN_OFFSET] = length;
+	memcpy(&CommandTxBuffer_BC[COMMUNICATION_DATA_OFFSET], p, length);
+	CommandTxBuffer_BC[length + 3] = Mcp2120ComplementCalc(CommandTxBuffer_BC, length + 3);
+	CommandTxBuffer_BC[length + 4] = 0x0D;
+  CommandTxBuffer_BC[length + 5] = 0x0A;
 	
 	if(COM == 1)
 	{
-		while(COM1_Tx(CommandTxBuffer, length + 6) == ERROR);
+		while(COM1_Tx(CommandTxBuffer_BC, length + 6) == ERROR);
 	}
 	if(COM == 2)
 	{
-		while(COM2_Tx(CommandTxBuffer, length + 6) == ERROR);
+		while(COM2_Tx(CommandTxBuffer_BC, length + 6) == ERROR);
 	}
 }
 
@@ -156,12 +160,12 @@ void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 {
   unsigned char Checksum = 0;
   IRRxState = 1;
+	
 	if(COM == 1){
 		if (CommandRxBufferLen != 0x00) {  
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
 				memcpy(p, CommandRxBuffer, CommandRxBufferLen);
 				*Length =  CommandRxBufferLen;
-				//TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
 			}
 			CommandRxBufferLen = 0x00;
 		}
@@ -171,7 +175,6 @@ void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
 				memcpy(p, CommandRxBuffer2, CommandRxBufferLen2);
 				*Length =  CommandRxBufferLen2;
-				//TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
 			}
 			CommandRxBufferLen2 = 0x00;
 		}
@@ -183,12 +186,12 @@ void IR_read(unsigned char *p, unsigned short* Length, int COM)
 {
   unsigned char Checksum = 0;
   IRRxState = 1;
+	
 	if(COM == 1){
 		if (CommandRxBufferLen != 0x00) {  
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
 				memcpy(p, CommandRxBuffer, CommandRxBufferLen);
 				*Length =  CommandRxBufferLen;
-				//TimObj.Tim[TIM_IRTO_R].Ticks = 1000;
 			}
 			CommandRxBufferLen = 0x00;
 		}
@@ -198,7 +201,6 @@ void IR_read(unsigned char *p, unsigned short* Length, int COM)
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
 				memcpy(p, CommandRxBuffer2, CommandRxBufferLen2);
 				*Length =  CommandRxBufferLen2;
-				//TimObj.Tim[TIM_IRTO_F].Ticks = 1000;
 			}
 			CommandRxBufferLen2 = 0x00;
 		}
@@ -206,6 +208,27 @@ void IR_read(unsigned char *p, unsigned short* Length, int COM)
 	IRRxState = 0;
 }
 
+void IR_broadcast_read(uint16_t addr, uint8_t type, int COM)
+{
+  unsigned char Checksum = 0;	
+	
+	if(COM == 1){
+		if (CommandRxBufferLen != 0x00) {  
+			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
+				// TODO:
+			}
+			CommandRxBufferLen = 0x00;
+		}
+	}
+	else if(COM == 2){
+		if (CommandRxBufferLen2 != 0x00) { 
+			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
+				// TODO: 
+			}
+			CommandRxBufferLen2 = 0x00;
+		}
+	}
+}
 
 /*******************************************************************************
 * Function Name  : SmokedetReadSmokeValue

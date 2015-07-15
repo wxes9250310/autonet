@@ -28,8 +28,9 @@
 void app_light_direction(void);
 void app_control_light(void);
 void light_testing(void);
-void IR_testing(void);
 void app_group_direction(void);
+void IR_testing(void);
+void IR_testing2(void);
 
 // application - Light direction
 enum{
@@ -177,9 +178,13 @@ int main(void)
 	//app_local_grouping();
 
 	//IR_testing();
-  //light_testing();
 	//app_group_direction();
 
+	IR_testing2();
+	
+}
+
+void IR_testing2(){
 	uint8_t Type;
 	uint16_t Addr;
 	uint16_t radio_freq;
@@ -193,7 +198,7 @@ int main(void)
 	unsigned char rcvd_addr1, rcvd_addr2;
 	uint8_t TxBuffer[256],i=0;
 	
-	//Addr = 0x0001;
+	//Addr = 0x0002;
 	//Type = Type_Light;
 	
 	Addr = 0x0005;
@@ -207,39 +212,40 @@ int main(void)
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	setTimer(1,105,UNIT_MS);
 	
+	setGPIO(1,1);
+	
 	while(1){
-		if(checkTimer(1)){
-			//TxBuffer[0] = i;
-			//RF_Tx(0xFFFF,TxBuffer,1);
-			//i++;
+			if(checkTimer(1)){
+				//TxBuffer[0] = i;
+				//RF_Tx(0xFFFF,TxBuffer,1);
+				i++;
 			
 			
-			IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
-			//IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
-			
-			if(IR_Buffer_Length1 !=0){
-					rcvd_type1 =  IR_BufferRx1[3];
-					rcvd_addr1 =  IR_BufferRx1[4];				
-					if(rcvd_type1 == 0x01)
-						blink(1);
-				}
+				IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
+				//IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
 				
-				if(IR_Buffer_Length2 !=0){
-					rcvd_type2 =  IR_BufferRx2[3];
-					rcvd_addr2 =  IR_BufferRx2[4];
-					if(rcvd_type2 == 0x01)
-						blink(1);
-				}
-				
-				rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
-				IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
+				if(IR_Buffer_Length1 !=0){
+						rcvd_type1 =  IR_BufferRx1[3];
+						rcvd_addr1 =  IR_BufferRx1[4];				
+						if(rcvd_type1 == 0x01)
+							blink(1);
+					}
+					
+					if(IR_Buffer_Length2 !=0){
+						rcvd_type2 =  IR_BufferRx2[3];
+						rcvd_addr2 =  IR_BufferRx2[4];
+						if(rcvd_type2 == 0x01)
+							blink(1);
+					}
+					
+					rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
+					IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
 				
 				
 		}
 	}
 	
 }
-
 
 /*******************************************************************************
 * Application Name  : Direction Local Grouping
@@ -248,6 +254,7 @@ int main(void)
 *******************************************************************************/
 
 void app_group_direction(){
+	
 	uint8_t Type;
 	uint16_t Addr;
 	uint16_t radio_freq;
@@ -262,6 +269,7 @@ void app_group_direction(){
 
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	setTimer(1,500,UNIT_MS);
+	
 	while(1){
 		beacon();
 		ChangeLight(MyWeight);
@@ -296,41 +304,6 @@ void app_group_direction(){
 	}
 }
 
-/*******************************************************************************
-* Application Name  : Light testing
-* Description    		: test whether PB14 functionally
-* Author            : Ed Kung
-*******************************************************************************/
-
-/*void light_testing(){
-	
-	uint8_t Type;
-	uint16_t Addr;
-	uint16_t radio_freq;
-	uint16_t radio_panID;
-	
-	Addr = 0x0001;
-	Type = Type_Controller;
-	radio_freq = 2475;
-	radio_panID = 0x00AA;
-	Initial(Addr, Type, radio_freq, radio_panID);	
-	
-	while(1){
-		
-		setGPIO(1, 1);
-		Delay(500);
-
-		setGPIO(1, 0);
-		Delay(500);
-
-		setGPIO(5, 1);
-		Delay(500);
-
-		setGPIO(5, 0);
-		Delay(500);
-	}
-}
-*/
 /*
 void app_light_direction(){
 	
@@ -403,7 +376,6 @@ void app_light_direction(){
 *                   : their lights automatically
 * Author            : Ed Kung
 *******************************************************************************/
-/*
 void app_control_light(){ 
 		
 	uint8_t Type;
@@ -444,22 +416,20 @@ void app_control_light(){
 
 	while(1){ 	
 		if(Type == Type_Light){											// Light
-				beacon();  															// broadcast beacon information	  
 				Delay(10);
 				// check whether the device should open the light or not
 				if(checkTimer(1)){											// check every 1000 ms							
 					times++;
 					if(times==4){												  // every 2000 ms reset the light
 						times=0;
-						GPIO_OFF(1);
+						setGPIO(1, 0);
 					}
 					if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){	// returns 1 if it has received something
 						if(RxData[MAC_HEADER_LENGTH + 0] == Message_Light){		// lighting message
 							// check the address of the devices whether exists or not
 							for(i=1; i<= (Rx_DataLen-MAC_HEADER_LENGTH); i++){											
 								if(RxData[MAC_HEADER_LENGTH + i]==Addr){
-									// bug
-									GPIO_ON(1);
+									setGPIO(1, 1);
 								}
 							}	
 						}
@@ -528,7 +498,7 @@ void app_control_light(){
 		}
 	}
 }
-*/
+
 /*******************************************************************************
 * Application Name  : IR testing 
 * Description    		: 1. transmitter and receiver
