@@ -233,8 +233,6 @@ int main(void)
 				
 				rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
 				IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
-				
-				
 		}
 	}
 	
