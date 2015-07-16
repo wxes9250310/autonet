@@ -49,7 +49,8 @@ void Mcp2120Init(void);
 *******************************************************************************/
 void Mcp2120Tx(unsigned char *p, unsigned short p_len , int COM);
 void IR_write(unsigned char *p, unsigned short p_len , int COM);
-void IR_broadcast(uint16_t addr, uint8_t type, int COM);
+void IR_broadcast(uint16_t, uint8_t, int COM);
+int IRheaderCheck_AutoNet(unsigned char* p);
 
 /*******************************************************************************
 * Function Name  : MCP2120_ReadTemperature
@@ -59,7 +60,8 @@ void IR_broadcast(uint16_t addr, uint8_t type, int COM);
 * Return         : None
 *******************************************************************************/
 void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM);
-void IR_read(unsigned char *p, unsigned short* Length, int COM);
+uint8_t IR_read(unsigned char *p, unsigned short* Length, int COM);
+uint8_t IR_broadcast_read(int COM);
 
 #ifdef __cplusplus
 }

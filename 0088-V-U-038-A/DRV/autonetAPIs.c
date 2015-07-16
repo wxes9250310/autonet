@@ -51,6 +51,7 @@ uint8_t pRxData[128];
 uint8_t CommanderID = 0xFF;
 
 Table table;
+Table IR_table;
 Device myAttribute;
 uint8_t  Group[NumOfDeviceInTable];
 
@@ -225,9 +226,43 @@ void packet_receive(void)
 	}
 }
 
+void IR_receive(void)
+{
+	uint8_t index=0xFF;
+	uint8_t newIndex=0xFF;
+	uint8_t type;
+	uint8_t rssi;
+	uint16_t addr;
+	/*
+	type = pRxData[FRAME_BYTE_TYPE + MAC_HEADER_LENGTH];
+	addr = pRxData[FRAME_BYTE_SRCADDR + MAC_HEADER_LENGTH];
+	rssi = RSSI_BC;
+	index = ScanTableByAddress(addr);
+	*/
+	
+	if(index == 0xFF){														// no such address in the table
+		newIndex = ScanIRTableByAddress(0xFFFF);
+		if(newIndex != 0xFF){
+			setIRTable(newIndex,addr,type,rssi);
+		}
+	}
+	else{
+		setIRTable(index,addr,type,rssi);
+	}
+}
+
 uint16_t ScanTableByAddress(uint16_t scan_value){
 	for(i=0;i<NumOfDeviceInTable;i++){
 		if(scan_value == table.device[i].address){
+			return i;
+		}
+	}
+	return 0xFF;
+}
+
+uint16_t ScanIRTableByAddress(uint16_t scan_Addr){
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(scan_Addr == IR_table.device[i].address){
 			return i;
 		}
 	}
@@ -240,6 +275,14 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi){
 	table.device[n].Rssi = rssi;
   for(i=0; i<ATTRIBUTE_NUM; i++)
 		table.device[n].attribute[i] = pRxData[2*i+5+MAC_HEADER_LENGTH] | (pRxData[2*i+4+MAC_HEADER_LENGTH]<<8);
+}
+
+void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi){
+	IR_table.device[n].type = device_type;
+	IR_table.device[n].address = device_addr;
+	IR_table.device[n].Rssi = rssi;
+//  for(i=0; i<ATTRIBUTE_NUM; i++)
+//		IR_table.device[n].attribute[i] = pRxData[2*i+5+MAC_HEADER_LENGTH] | (pRxData[2*i+4+MAC_HEADER_LENGTH]<<8);
 }
 
 void blink(uint8_t n){
@@ -383,26 +426,26 @@ unsigned char pos2;
 //int Minute = 0;
 
 uint8_t get_direction(int *heading_deg){
-	  I2COccupied = 1;
-    Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
-		Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
-		
-		if(AK8975MagX>max_x) max_x = AK8975MagX;
-		if(AK8975MagX<min_x) min_x = AK8975MagX;
-		if(AK8975MagY>max_y) max_y = AK8975MagY;
-		if(AK8975MagY<min_y) min_y = AK8975MagY;
-		if(AK8975MagZ>max_z) max_z = AK8975MagZ;
-		if(AK8975MagZ<min_z) min_z = AK8975MagZ;
-
-		Mag_Error_Handle(&AK8975MagX, &AK8975MagY, &AK8975MagZ, &max_x, &min_x, &max_y, &min_y, &max_z, &min_z);
-		flat_heading = Mag_flatsurface(&AK8975MagX, &AK8975MagY);  // flat surface degree (0~360)
-		flat_headingL = flat_heading; 			// Lower 8 bit of flat_heading
-		flat_headingH = flat_heading >> 8; 	// Higher 8 bit of flat_heading
-//		tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
+	I2COccupied = 1;
+	Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
+	Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
 	
-	  *heading_deg = flat_heading;
-	  I2COccupied = 0;
-		return 1;
+	if(AK8975MagX>max_x) max_x = AK8975MagX;
+	if(AK8975MagX<min_x) min_x = AK8975MagX;
+	if(AK8975MagY>max_y) max_y = AK8975MagY;
+	if(AK8975MagY<min_y) min_y = AK8975MagY;
+	if(AK8975MagZ>max_z) max_z = AK8975MagZ;
+	if(AK8975MagZ<min_z) min_z = AK8975MagZ;
+
+	Mag_Error_Handle(&AK8975MagX, &AK8975MagY, &AK8975MagZ, &max_x, &min_x, &max_y, &min_y, &max_z, &min_z);
+	flat_heading = Mag_flatsurface(&AK8975MagX, &AK8975MagY);  // flat surface degree (0~360)
+	flat_headingL = flat_heading; 			// Lower 8 bit of flat_heading
+	flat_headingH = flat_heading >> 8; 	// Higher 8 bit of flat_heading
+//		tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
+
+	*heading_deg = flat_heading;
+	I2COccupied = 0;
+	return 1;
 }
 
 uint8_t get_brightness(unsigned short* brightness){

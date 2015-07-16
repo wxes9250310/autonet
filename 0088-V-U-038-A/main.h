@@ -20,6 +20,31 @@
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
+enum{
+		Message_Control,
+		Message_Type,
+};
+
+enum{
+		Type_Controller = 0x00,	
+		Type_Light = 0x01,
+		Type_Switch = 0x02,
+	  Type_IR = 0x03,
+};	 
+	 
+void app_light_direction(void);
+void app_control_light(void);
+void light_testing(void);
+void app_group_direction(void);
+void IR_testing(void);
+void IR_testing2(void);
+void StateOne(uint8_t*);
+void StateTwo(uint8_t*,uint8_t*);	 
+int StateThree(uint8_t*,uint8_t*,uint8_t*);
+int StateFour(uint8_t*,uint8_t*,uint8_t*);
+void ChangeLight(uint8_t);
+void WeightBroadCast(uint8_t);
+	 
 #ifdef __cplusplus
 }
 #endif

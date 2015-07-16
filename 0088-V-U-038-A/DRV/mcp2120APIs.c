@@ -36,6 +36,10 @@ unsigned char CommandRxBuffer[64] = {0x0};
 unsigned char CommandRxBufferLen = 0x00;
 unsigned char CommandRxBuffer2[64] = {0x0};
 unsigned char CommandRxBufferLen2 = 0x00;
+unsigned char CommandRxBuffer_BC[64] = {0x0};
+unsigned char CommandRxBufferLen_BC = 0x00;
+unsigned char CommandRxBuffer2_BC[64] = {0x0};
+unsigned char CommandRxBufferLen2_BC = 0x00;
 
 uint8_t IRTxState = 0;
 uint8_t IRRxState = 0;
@@ -182,9 +186,11 @@ void Mcp2120Proc(unsigned char *p, unsigned short* Length, int COM)
 	IRRxState = 0;
 }
 
-void IR_read(unsigned char *p, unsigned short* Length, int COM)
+uint8_t IR_read(unsigned char *p, unsigned short* Length, int COM)
 {
   unsigned char Checksum = 0;
+	uint8_t BeaconCheckFlag;
+	uint8_t receivedFlag = 0;
   IRRxState = 1;
 	
 	if(COM == 1){
@@ -192,6 +198,11 @@ void IR_read(unsigned char *p, unsigned short* Length, int COM)
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
 				memcpy(p, CommandRxBuffer, CommandRxBufferLen);
 				*Length =  CommandRxBufferLen;
+				
+				BeaconCheckFlag = IRheaderCheck_AutoNet(p);
+				if(!BeaconCheckFlag){
+					receivedFlag = 1;
+				}
 			}
 			CommandRxBufferLen = 0x00;
 		}
@@ -201,21 +212,36 @@ void IR_read(unsigned char *p, unsigned short* Length, int COM)
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
 				memcpy(p, CommandRxBuffer2, CommandRxBufferLen2);
 				*Length =  CommandRxBufferLen2;
+				
+			  BeaconCheckFlag = IRheaderCheck_AutoNet(p);
+				if(!BeaconCheckFlag){
+					receivedFlag = 1;
+				}
 			}
 			CommandRxBufferLen2 = 0x00;
 		}
 	}
 	IRRxState = 0;
+	return receivedFlag;
 }
 
-void IR_broadcast_read(uint16_t addr, uint8_t type, int COM)
+uint8_t IR_broadcast_read(int COM)
 {
-  unsigned char Checksum = 0;	
+  unsigned char Checksum = 0;
+	uint8_t BeaconCheckFlag;
+	uint8_t receivedFlag = 0;
+  IRRxState = 1;
 	
 	if(COM == 1){
 		if (CommandRxBufferLen != 0x00) {  
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {
-				// TODO:
+				memcpy(CommandRxBuffer_BC, CommandRxBuffer, CommandRxBufferLen);
+				CommandRxBufferLen_BC =  CommandRxBufferLen;
+				
+				BeaconCheckFlag = IRheaderCheck_AutoNet(CommandRxBuffer_BC);
+				if(BeaconCheckFlag){
+					receivedFlag = 1;
+				}
 			}
 			CommandRxBufferLen = 0x00;
 		}
@@ -223,11 +249,26 @@ void IR_broadcast_read(uint16_t addr, uint8_t type, int COM)
 	else if(COM == 2){
 		if (CommandRxBufferLen2 != 0x00) { 
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer2, CommandRxBufferLen2 - 1)) == CommandRxBuffer2[CommandRxBufferLen2 - 1]) {
-				// TODO: 
+				memcpy(CommandRxBuffer2_BC, CommandRxBuffer2, CommandRxBufferLen2);
+				CommandRxBufferLen2_BC =  CommandRxBufferLen2;
+				
+			  BeaconCheckFlag = IRheaderCheck_AutoNet(CommandRxBuffer2_BC);
+				if(BeaconCheckFlag){
+					receivedFlag = 1;
+				}
 			}
 			CommandRxBufferLen2 = 0x00;
 		}
 	}
+	IRRxState = 0;
+	return receivedFlag;
+}
+
+int IRheaderCheck_AutoNet(unsigned char* p){
+	if(p[0] == COMMUNICATION_START_BC && p[1] == COMMUNICATION_HEADER_BC)
+		return 1;
+	else
+		return 0;
 }
 
 /*******************************************************************************

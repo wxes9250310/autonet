@@ -85,6 +85,7 @@ uint8_t get_velocity(int* speed);
 void get_LOS_address(char *f_id, char *r_id);
 void update_sensor_table(void);
 void packet_receive(void);
+void IR_receive(void);
 void broadcastSend(void);
 void broadcast(void);
 void lightingSend(void);
@@ -94,7 +95,9 @@ uint8_t Group_Diff(uint16_t* addr_array, uint8_t attribute, uint16_t center, uin
 
 /* table */
 uint16_t ScanTableByAddress(uint16_t);
+uint16_t ScanIRTableByAddress(uint16_t);
 void setTable(uint8_t,uint16_t,uint8_t,uint8_t);
+void setIRTable(uint8_t,uint16_t,uint8_t,uint8_t);
 
 /* get messages from received frames */
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in);

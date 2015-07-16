@@ -5,7 +5,6 @@
 #include "us2400APIs.h"
 #include "st.h"
 #include "TxRx.h" 
-
 #include "autonetAPIs.h"
 #include "mpu6050APIs.h"
 #include "ak8975APIs.h"
@@ -15,38 +14,69 @@
 #include "bh1750fviAPIs.h"
 #include "mag3110APIs.h"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
 #define MAC_HEADER_LENGTH 12
 #define Message_BroadcastType 0xFF
 #define Message_Light 0x03
 
-/* Private variable ----------------------------------------------------------*/
+int main(void)
+{
+	uint8_t Type;
+	uint16_t Addr;
+	uint16_t radio_freq;
+	uint16_t radio_panID;
+	uint8_t State=0;
+	uint8_t MyWeight = 0xFF;
+	uint8_t MaxWeight = 0;
+	Addr = 0x0001;
+	Type = Type_Light;
+	radio_freq = 2475;
+	radio_panID = 0x00AA;
 
+	Initial(Addr, Type, radio_freq, radio_panID);	
+	setTimer(1,500,UNIT_MS);
+	
+	while(1){
+		beacon();
+		ChangeLight(MyWeight);
+		if(checkTimer(1))
+			WeightBroadCast(MyWeight);
+		switch(State){
+			case 0:
+				MyWeight = rand()%3;
+			  State = 1;
+			  setTimer(2,2000,UNIT_MS);
+				break;
+			case 1:
+				StateOne(&MyWeight);
+			  if(checkTimer(2)){
+					State = 2;
+					setTimer(2,0,UNIT_MS);
+				}
+				break;
+			case 2:
+				StateTwo(&MyWeight,&State);
+				break;
+			case 3:
+				StateThree(&MyWeight,&State,&MaxWeight);
+				if(checkTimer(3)){
+					State = 0;
+				}
+				break;
+			case 4:
+				StateFour(&MyWeight,&State,&MaxWeight);
+				break;
+		}
+	}
+	
+	//ControlLight();
+	//app_light_direction();
+	//app_control_light();
+	//app_local_grouping();
 
-/* Private function ----------------------------------------------------------*/
-void app_light_direction(void);
-void app_control_light(void);
-void light_testing(void);
-void app_group_direction(void);
-void IR_testing(void);
-void IR_testing2(void);
-
-// application - Light direction
-enum{
-		Message_Control,
-		Message_Type,
-//		Message_BroadcastType = 0xFF,
-//		Message_Light = 0x03,
-};
-
-// application - Control light
-enum{
-		Type_Controller = 0x00,			// delete?
-		Type_Light = 0x01,
-		Type_Switch = 0x02,
-	  Type_IR = 0x03,
-};
+	//IR_testing();
+	//app_group_direction();
+	//IR_testing2();
+}
 
 void WeightBroadCast(uint8_t weight){
 	uint8_t TxData[256];
@@ -168,22 +198,6 @@ void ChangeLight(uint8_t MyWeight){
 	}
 }
 
-
-
-int main(void)
-{
-	//ControlLight();
-	//app_light_direction();
-	//app_control_light();
-	//app_local_grouping();
-
-	//IR_testing();
-	//app_group_direction();
-
-	IR_testing2();
-	
-}
-
 void IR_testing2(){
 	uint8_t Type;
 	uint16_t Addr;
@@ -219,7 +233,6 @@ void IR_testing2(){
 				//TxBuffer[0] = i;
 				//RF_Tx(0xFFFF,TxBuffer,1);
 				i++;
-			
 			
 				IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
 				//IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
