@@ -215,10 +215,14 @@ void IR_testing2(){
 	uint16_t rcvd_addr;
 	uint16_t ID_IR[10];
 	uint16_t ID_RSSI[10];
+	uint16_t target;
 	uint8_t num_IR = 0;
 	uint8_t num_RSSI = 0;
 	uint8_t k = 0;
 	uint8_t existingFlag = 0;
+	uint8_t renewFlag = 0;
+	uint8_t T_NUM_IR = 0;
+	uint8_t T_NUM_RSSI = 0;
 	
 	typedef struct{
 		uint16_t addr;
@@ -258,50 +262,82 @@ void IR_testing2(){
 				// return list based on IR information
 				num_IR = getDeviceByIR(ID_IR);
 				if(num_IR != 0){
-					for(i=0; i<NumOfDeviceInTable; i++){
-						for(k=1; k<=num_IR; k++){
-							existingFlag = 0;
-							if(Table_IR.device[i].addr == ID_IR[k-1]){
-								Table_IR.device[i].count =0;
+					existingFlag = 0;
+					for(k=1; k<=num_IR; k++){
+						target = ID_IR[k-1];
+						for(i=0; i<NumOfDeviceInTable; i++){
+							if(target == Table_IR.device[i].addr){		// exist in the table
+								Table_IR.device[i].count =0;						// reset the count
 								existingFlag = 1;
 								break;
 							}
 						}
+						// add a new member
 						if(existingFlag == 0){
-							Table_IR.device[i].count ++;
+							T_NUM_IR ++;
+							Table_IR.device[T_NUM_IR].addr = target;
+							Table_IR.device[T_NUM_IR].count = 0;
 						}
 				  }
 				}
 				
+				// delete a member
 				for(i=0; i<NumOfDeviceInTable; i++){
-					if(Table_IR.device[i].count == 5){
-						Table_IR.device[i].addr = 0xFFFF;
-						Table_IR.device[i].count = 0x00;
+					renewFlag  = 0;
+					if(Table_IR.device[i].count == 5){		// renew the list of neighbors
+						renewFlag = 1;
+						T_NUM_IR --;
+					}
+					if(renewFlag == 1){		
+						if(i+1 <= T_NUM_IR){
+							Table_IR.device[i].addr = Table_IR.device[i+1].addr;
+							Table_IR.device[i].count = Table_IR.device[i+1].count;
+						}
+						else{
+							Table_IR.device[i].addr = 0xFFFF;
+							Table_IR.device[i].count = 0x00;
+						}
 					}
 				}
 				
 				// return list based on RSSI
 				num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
 				if(num_RSSI != 0){
-					for(i=0; i<NumOfDeviceInTable; i++){
-						for(k=1; k<=num_RSSI; k++){
-							existingFlag = 0;
-							if(Table_RSSI.device[i].addr == ID_RSSI[k-1]){
-								Table_RSSI.device[i].count =0;
+					existingFlag = 0;
+					for(k=1; k<=num_RSSI; k++){
+						target = ID_RSSI[k-1];
+						for(i=0; i<NumOfDeviceInTable; i++){
+							if(target == Table_RSSI.device[i].addr){		// exist in the table
+								Table_RSSI.device[i].count =0;						// reset the count
 								existingFlag = 1;
 								break;
 							}
 						}
+						// add a new member
 						if(existingFlag == 0){
-							Table_RSSI.device[i].count ++;
+							T_NUM_RSSI ++;
+							Table_RSSI.device[T_NUM_RSSI].addr = target;
+							Table_RSSI.device[T_NUM_RSSI].count = 0;
 						}
 				  }
 				}
 				
+				// delete a member
 				for(i=0; i<NumOfDeviceInTable; i++){
-					if(Table_RSSI.device[i].count == 5){
-						Table_RSSI.device[i].addr = 0xFFFF;
-						Table_RSSI.device[i].count = 0x00;
+					renewFlag  = 0;
+					if(Table_RSSI.device[i].count == 5){		// renew the list of neighbors
+						renewFlag = 1;
+						T_NUM_RSSI --;
+					}
+					if(renewFlag == 1){		
+						if(i+1 <= T_NUM_RSSI){
+							Table_RSSI.device[i].addr = Table_RSSI.device[i+1].addr;
+							Table_RSSI.device[i].count = Table_RSSI.device[i+1].count;
+						}
+						else{
+							Table_RSSI.device[i].addr = 0xFFFF;
+							Table_RSSI.device[i].count = 0x00;
+						}
 					}
 				}
 				
@@ -315,6 +351,8 @@ void IR_testing2(){
 					Delay(10);
 					setGPIO(2,0);
 				}
+				
+				// TODO: compare two lists
 				
 			
 				/*
@@ -341,7 +379,6 @@ void IR_testing2(){
 				
 		}
 	}
-	
 }
 
 /*******************************************************************************
