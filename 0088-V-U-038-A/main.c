@@ -20,6 +20,7 @@
 
 int main(void)
 {
+	/*
 	uint8_t Type;
 	uint16_t Addr;
 	uint16_t radio_freq;
@@ -67,7 +68,7 @@ int main(void)
 				break;
 		}
 	}
-	
+	*/
 	//ControlLight();
 	//app_light_direction();
 	//app_control_light();
@@ -75,7 +76,7 @@ int main(void)
 
 	//IR_testing();
 	//app_group_direction();
-	//IR_testing2();
+	IR_testing2();
 }
 
 void WeightBroadCast(uint8_t weight){
@@ -211,29 +212,112 @@ void IR_testing2(){
 	unsigned char rcvd_type1, rcvd_type2;
 	unsigned char rcvd_addr1, rcvd_addr2;
 	uint8_t TxBuffer[256],i=0;
+	uint16_t rcvd_addr;
+	uint16_t ID_IR[10];
+	uint16_t ID_RSSI[10];
+	uint8_t num_IR = 0;
+	uint8_t num_RSSI = 0;
+	uint8_t k = 0;
+	uint8_t existingFlag = 0;
 	
-	//Addr = 0x0002;
-	//Type = Type_Light;
+	typedef struct{
+		uint16_t addr;
+		uint8_t count;
+	}DD;
+
+	typedef struct{
+  DD device[NumOfDeviceInTable];
+  }TT;
 	
-	Addr = 0x0005;
-	Type = Type_Controller;
+	TT Table_IR;
+	TT Table_RSSI;
+	
+	Addr = 0x000A;
+	Type = Type_Light;
+	
+	//Addr = 0x0005;
+	//Type = Type_Controller;
 	
   //Addr = 0x00AA;
 	//Type = Type_IR;
-	
+
 	radio_freq = 2475;
 	radio_panID = 0x00AA;
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,105,UNIT_MS);
+	setTimer(1,1000,UNIT_MS);
 	
-	setGPIO(1,1);
+	for(i=0;i<10;i++){
+		ID_IR[i] = 0x0000;
+		ID_RSSI[i] = 0x0000;
+		Table_IR.device[i].addr = 0xFFFF;
+		Table_RSSI.device[i].addr = 0xFFFF;
+	}
 	
 	while(1){
 			if(checkTimer(1)){
-				//TxBuffer[0] = i;
-				//RF_Tx(0xFFFF,TxBuffer,1);
-				i++;
+				// return list based on IR information
+				num_IR = getDeviceByIR(ID_IR);
+				if(num_IR != 0){
+					for(i=0; i<NumOfDeviceInTable; i++){
+						for(k=1; k<=num_IR; k++){
+							existingFlag = 0;
+							if(Table_IR.device[i].addr == ID_IR[k-1]){
+								Table_IR.device[i].count =0;
+								existingFlag = 1;
+								break;
+							}
+						}
+						if(existingFlag == 0){
+							Table_IR.device[i].count ++;
+						}
+				  }
+				}
+				
+				for(i=0; i<NumOfDeviceInTable; i++){
+					if(Table_IR.device[i].count == 5){
+						Table_IR.device[i].addr = 0xFFFF;
+						Table_IR.device[i].count = 0x00;
+					}
+				}
+				
+				// return list based on RSSI
+				num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
+				if(num_RSSI != 0){
+					for(i=0; i<NumOfDeviceInTable; i++){
+						for(k=1; k<=num_RSSI; k++){
+							existingFlag = 0;
+							if(Table_RSSI.device[i].addr == ID_RSSI[k-1]){
+								Table_RSSI.device[i].count =0;
+								existingFlag = 1;
+								break;
+							}
+						}
+						if(existingFlag == 0){
+							Table_RSSI.device[i].count ++;
+						}
+				  }
+				}
+				
+				for(i=0; i<NumOfDeviceInTable; i++){
+					if(Table_RSSI.device[i].count == 5){
+						Table_RSSI.device[i].addr = 0xFFFF;
+						Table_RSSI.device[i].count = 0x00;
+					}
+				}
+				
+				if(num_IR > 0){
+					setGPIO(1,1);
+					Delay(10);
+					setGPIO(1,0);
+				}
+				else if(num_RSSI > 0){
+					setGPIO(2,1);
+					Delay(10);
+					setGPIO(2,0);
+				}
+				
 			
+				/*
 				IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
 				//IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
 				
@@ -253,7 +337,7 @@ void IR_testing2(){
 					
 					rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
 					IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
-				
+				*/
 				
 		}
 	}

@@ -62,6 +62,11 @@ int CheckTime;
 int ConfirmGroupTime = 10;
 uint8_t I2COccupied = 0;
 
+extern unsigned char CommandRxBuffer_BC[];
+extern unsigned char CommandRxBufferLen_BC;
+extern unsigned char CommandRxBuffer2_BC[];
+extern unsigned char CommandRxBufferLen2_BC;
+
 enum{
 	Message_Control,
 	Message_Type,
@@ -143,6 +148,7 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 void VARIABLE_Configuration(){
   for(i = 0;i<NumOfDeviceInTable;i++){
 		table.device[i].address = 0xFFFF;
+		IR_table.device[i].address = 0xFFFF;
 	}
 }
 
@@ -226,29 +232,69 @@ void packet_receive(void)
 	}
 }
 
-void IR_receive(void)
-{
-	uint8_t index=0xFF;
-	uint8_t newIndex=0xFF;
-	uint8_t type;
-	uint8_t rssi;
-	uint16_t addr;
-	/*
-	type = pRxData[FRAME_BYTE_TYPE + MAC_HEADER_LENGTH];
-	addr = pRxData[FRAME_BYTE_SRCADDR + MAC_HEADER_LENGTH];
-	rssi = RSSI_BC;
-	index = ScanTableByAddress(addr);
-	*/
+uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max){
 	
-	if(index == 0xFF){														// no such address in the table
-		newIndex = ScanIRTableByAddress(0xFFFF);
-		if(newIndex != 0xFF){
-			setIRTable(newIndex,addr,type,rssi);
+	int NumofDevice = 0;
+	for(i=0;i<NumOfDeviceInTable;i++)
+		ID[i] = 0xFFFF;
+	
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(IR_table.device[i].Rssi >= min && IR_table.device[i].Rssi <= max){
+			ID[NumofDevice] = IR_table.device[i].address;
+			NumofDevice++;
 		}
 	}
-	else{
-		setIRTable(index,addr,type,rssi);
+	return NumofDevice;
+}
+
+uint8_t getDeviceByIR(uint16_t* ID){
+	
+	int NumofDevice = 0;
+	for(i=0;i<NumOfDeviceInTable;i++)
+		ID[i] = 0xFFFF;
+	
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(IR_table.device[i].address != 0xFFFF){
+			ID[NumofDevice] = IR_table.device[i].address;
+			NumofDevice++;
+		}
 	}
+	return NumofDevice;
+}
+
+void IR_receive(int COM)
+{
+	uint8_t index = 0xFF;
+	uint8_t newIndex = 0xFF;
+	uint8_t type = 0xFF;
+	uint8_t rssi = 0x00;
+	uint16_t addr = 0x00FF;
+	
+	if(COM == 1){
+		if(CommandRxBuffer_BC[2] ==  2){
+			type = CommandRxBuffer_BC[3];
+			addr = CommandRxBuffer_BC[4];
+		}
+	}
+	else if(COM == 2){
+		if(CommandRxBuffer2_BC[2] ==  2){
+			type = CommandRxBuffer2_BC[3];
+			addr = CommandRxBuffer2_BC[4];
+		}
+	}
+
+	if(addr != 0xFF && type != 0xFF){
+		index = ScanTableByAddress(addr);
+		if(index == 0xFF){														// no such address in the table
+			newIndex = ScanIRTableByAddress(0xFFFF);
+			if(newIndex != 0xFF){
+				setIRTable(newIndex,addr,type,rssi);
+			}
+		}
+		else{
+			setIRTable(index,addr,type,rssi);
+		}
+  }
 }
 
 uint16_t ScanTableByAddress(uint16_t scan_value){
@@ -281,12 +327,10 @@ void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi
 	IR_table.device[n].type = device_type;
 	IR_table.device[n].address = device_addr;
 	IR_table.device[n].Rssi = rssi;
-//  for(i=0; i<ATTRIBUTE_NUM; i++)
-//		IR_table.device[n].attribute[i] = pRxData[2*i+5+MAC_HEADER_LENGTH] | (pRxData[2*i+4+MAC_HEADER_LENGTH]<<8);
 }
 
 void blink(uint8_t n){
-	if(n==1 || n==2){
+	if(n >= 1 && n <= 5){
 		GPIO_ON(n);
 		Delay(100);
 		GPIO_OFF(n);
