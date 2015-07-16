@@ -215,14 +215,17 @@ void IR_testing2(){
 	uint16_t rcvd_addr;
 	uint16_t ID_IR[10];
 	uint16_t ID_RSSI[10];
+	uint16_t ID_Both[10];
+	uint8_t T_NUM_IR = 0;
+	uint8_t T_NUM_RSSI = 0;
+	uint8_t T_NUM_BOTH = 0;
 	uint16_t target;
 	uint8_t num_IR = 0;
 	uint8_t num_RSSI = 0;
 	uint8_t k = 0;
 	uint8_t existingFlag = 0;
 	uint8_t renewFlag = 0;
-	uint8_t T_NUM_IR = 0;
-	uint8_t T_NUM_RSSI = 0;
+	uint16_t Goal;
 	
 	typedef struct{
 		uint16_t addr;
@@ -253,13 +256,15 @@ void IR_testing2(){
 	for(i=0;i<10;i++){
 		ID_IR[i] = 0x0000;
 		ID_RSSI[i] = 0x0000;
+		ID_Both[i] = 0x0000;
 		Table_IR.device[i].addr = 0xFFFF;
 		Table_RSSI.device[i].addr = 0xFFFF;
-	}
+	}			
 	
 	while(1){
 			if(checkTimer(1)){
 				// return list based on IR information
+				/*
 				num_IR = getDeviceByIR(ID_IR);
 				if(num_IR != 0){
 					existingFlag = 0;
@@ -350,6 +355,28 @@ void IR_testing2(){
 					setGPIO(2,1);
 					Delay(10);
 					setGPIO(2,0);
+				}
+				*/
+				num_IR = getDeviceByIR(ID_IR);
+				num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
+				
+				// cross compare 
+				// to find one light
+				T_NUM_BOTH =0;
+		
+				if(num_IR > 0 && num_RSSI > 0){
+					for(k=0; k<NumOfDeviceInTable; k++){
+						if(ID_RSSI[k]!=0xFF){
+							for(i=0; i<NumOfDeviceInTable; i++){
+								if(ID_IR[i]!=0xFF){
+									if(ID_RSSI[k] == ID_IR[i]){
+										ID_Both[T_NUM_BOTH] = ID_RSSI[k];
+										T_NUM_BOTH ++;
+									}
+								}
+							}
+						}
+				  }
 				}
 				
 				// TODO: compare two lists
