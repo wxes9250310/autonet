@@ -227,6 +227,12 @@ void IR_testing2(){
 	uint8_t renewFlag = 0;
 	uint16_t Goal;
 	
+	uint8_t msg[256];
+	uint8_t rcvd_msg[256];
+	uint8_t rcvd_length;
+	uint8_t rcvd_rssi;
+	uint8_t sendFlag;
+	
 	typedef struct{
 		uint16_t addr;
 		uint8_t count;
@@ -239,11 +245,11 @@ void IR_testing2(){
 	TT Table_IR;
 	TT Table_RSSI;
 	
-	Addr = 0x0005;
-	Type = Type_Light;
-	
 	//Addr = 0x0005;
-	//Type = Type_Controller;
+	//Type = Type_Light;
+	
+	Addr = 0x0005;
+	Type = Type_Controller;
 	
   //Addr = 0x00AA;
 	//Type = Type_IR;
@@ -252,6 +258,7 @@ void IR_testing2(){
 	radio_panID = 0x00AA;
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	setTimer(1,1000,UNIT_MS);
+	setTimer(2,2000,UNIT_MS);
 	
 	for(i=0;i<10;i++){
 		ID_IR[i] = 0x0000;
@@ -357,28 +364,58 @@ void IR_testing2(){
 					setGPIO(2,0);
 				}
 				*/
-				num_IR = getDeviceByIR(ID_IR);
-				num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
-				
-				// cross compare 
-				// to find one light
-				T_NUM_BOTH =0;
-		
-				if(num_IR > 0 && num_RSSI > 0){
-					for(k=0; k<NumOfDeviceInTable; k++){
-						if(ID_RSSI[k]!=0xFF){
-							for(i=0; i<NumOfDeviceInTable; i++){
-								if(ID_IR[i]!=0xFF){
-									if(ID_RSSI[k] == ID_IR[i]){
-										ID_Both[T_NUM_BOTH] = ID_RSSI[k];
-										T_NUM_BOTH ++;
+				if(Type == Type_Controller){
+					num_IR = getDeviceByIR(ID_IR);
+					num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
+					
+					// cross compare 
+					// to find one light
+					T_NUM_BOTH =0;
+			
+					if(num_IR > 0 && num_RSSI > 0){
+						for(k=0; k<NumOfDeviceInTable; k++){
+							if(ID_RSSI[k]!=0xFF){
+								for(i=0; i<NumOfDeviceInTable; i++){
+									if(ID_IR[i]!=0xFF){
+										if(ID_RSSI[k] == ID_IR[i]){
+											ID_Both[T_NUM_BOTH] = ID_RSSI[k];
+											T_NUM_BOTH ++;
+										}
 									}
 								}
 							}
 						}
-				  }
+					}
+					if(T_NUM_BOTH>0){
+						setGPIO(1,1);
+						setGPIO(2,1);
+						Delay(50);
+						setGPIO(1,0);
+						setGPIO(2,0);
+						
+						msg[0] = 0xFF;
+						msg[1] = 0xFF;
+						for(i=0; i<T_NUM_BOTH;i++){
+							msg[2 + i] = ID_Both[i];
+						}
+						RF_Tx(0xFFFF, msg, 10);
+					}		
 				}
 				
+				if(Type == Type_Light){
+					if(RF_Rx(rcvd_msg,&rcvd_length,&rcvd_rssi)){
+						if(rcvd_msg[MAC_HEADER_LENGTH+0] == 0xFF &&
+							rcvd_msg[MAC_HEADER_LENGTH+1] == 0xFF){
+							for(i=2; i<= (rcvd_length - MAC_HEADER_LENGTH); i++){											
+								if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
+									setGPIO(1, 1);
+								}
+							}
+						}							
+					}
+				}
+				
+				/*
 				if(num_IR > 0){
 					setGPIO(1,1);
 					Delay(50);
@@ -390,14 +427,9 @@ void IR_testing2(){
 					Delay(50);
 					setGPIO(2,0);
 				}
+				*/
 				
-				if(T_NUM_BOTH>0){
-					setGPIO(1,1);
-					setGPIO(2,1);
-					Delay(50);
-					setGPIO(1,0);
-					setGPIO(2,0);
-				}		
+				
 			
 				/*
 				IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
@@ -419,8 +451,13 @@ void IR_testing2(){
 					
 					rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
 					IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
-				*/
-				
+				*/	
+		}	
+			
+		if(checkTimer(2)){
+			if(Type == Type_Light){
+				setGPIO(1, 0);
+			}
 		}
 	}
 }

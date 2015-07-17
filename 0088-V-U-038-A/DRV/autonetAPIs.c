@@ -51,9 +51,10 @@ uint8_t pRxData[128];
 uint8_t CommanderID = 0xFF;
 
 Table table;
-Table IR_table;
+IRTable IR_table;
 Device myAttribute;
 uint8_t  Group[NumOfDeviceInTable];
+uint8_t numOfIR=0;
 
 int BeaconEnabled = 0;
 int num;
@@ -148,7 +149,7 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 void VARIABLE_Configuration(){
   for(i = 0;i<NumOfDeviceInTable;i++){
 		table.device[i].address = 0xFFFF;
-		IR_table.device[i].address = 0xFFFF;
+		IR_table.IRdevice[i].address = 0xFFFF;
 	}
 }
 
@@ -166,9 +167,9 @@ void TimerBeaconSetting(){
 			Timer_Beacon(2000);
 			BeaconEnabled = 1;
 	}
-	else{ 												// not defined type
-			//Timer_Beacon(0);				// no beacon? 
-			BeaconEnabled = 0;
+	else{ 											
+			Timer_Beacon(2000);				
+			BeaconEnabled = 1;
 	}
 }
 
@@ -254,8 +255,8 @@ uint8_t getDeviceByIR(uint16_t* ID){
 		ID[i] = 0xFFFF;
 	
 	for(i=0;i<NumOfDeviceInTable;i++){
-		if(IR_table.device[i].address != 0xFFFF){
-			ID[NumofDevice] = IR_table.device[i].address;
+		if(IR_table.IRdevice[i].address != 0xFFFF){
+			ID[NumofDevice] = IR_table.IRdevice[i].address;
 			NumofDevice++;
 		}
 	}
@@ -283,16 +284,19 @@ void IR_receive(int COM)
 		}
 	}
 
+	UpdateIRTable();
+	
 	if(addr != 0xFF && type != 0xFF){
 		index = ScanIRTableByAddress(addr);
 		if(index == 0xFF){														// no such address in the table
 			newIndex = ScanIRTableByAddress(0xFFFF);
 			if(newIndex != 0xFF){
-				setIRTable(newIndex,addr,type,rssi);
+				setIRTable(newIndex,addr,type);
+				numOfIR ++;
 			}
 		}
 		else{
-			setIRTable(index,addr,type,rssi);
+			ResetCountIRTable(index);
 		}
   }
 }
@@ -308,7 +312,7 @@ uint16_t ScanTableByAddress(uint16_t scan_value){
 
 uint16_t ScanIRTableByAddress(uint16_t scan_Addr){
 	for(i=0;i<NumOfDeviceInTable;i++){
-		if(scan_Addr == IR_table.device[i].address){
+		if(scan_Addr == IR_table.IRdevice[i].address){
 			return i;
 		}
 	}
@@ -323,10 +327,39 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi){
 		table.device[n].attribute[i] = pRxData[2*i+5+MAC_HEADER_LENGTH] | (pRxData[2*i+4+MAC_HEADER_LENGTH]<<8);
 }
 
-void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi){
-	IR_table.device[n].type = device_type;
-	IR_table.device[n].address = device_addr;
-	IR_table.device[n].Rssi = rssi;
+void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
+	IR_table.IRdevice[n].type = device_type;
+	IR_table.IRdevice[n].address = device_addr;
+	IR_table.IRdevice[n].count = 0;
+}
+
+void UpdateIRTable(){
+	uint8_t renewFlag;
+	
+	for(i=0;i<NumOfDeviceInTable;i++){
+		renewFlag  = 0;
+		IR_table.IRdevice[i].count ++;
+		if(IR_table.IRdevice[i].count == 5){
+			renewFlag = 1;
+			numOfIR --;
+		}
+		if(renewFlag == 1){		
+			if(i+1 <= numOfIR){
+				IR_table.IRdevice[i].type = IR_table.IRdevice[i+1].type;
+				IR_table.IRdevice[i].address = IR_table.IRdevice[i+1].address;
+				IR_table.IRdevice[i].count = IR_table.IRdevice[i+1].count;
+			}
+			else{
+				IR_table.IRdevice[i].type = 0x0000;
+				IR_table.IRdevice[i].address = 0xFFFF;
+				IR_table.IRdevice[i].count = 0x00;
+			}
+		}
+	}
+}
+
+void ResetCountIRTable(uint8_t n){
+	IR_table.IRdevice[n].count = 0;
 }
 
 void blink(uint8_t n){

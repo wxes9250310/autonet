@@ -219,9 +219,9 @@ void SysTick_Handler(void)
 		if(IR_broadcast_read(1)){
 			IR_receive(1);
 		}
-		else if(IR_broadcast_read(2)){
-			IR_receive(2);
-		}
+//		else if(IR_broadcast_read(2)){
+//			IR_receive(2);
+//		}
 	}
 }
 

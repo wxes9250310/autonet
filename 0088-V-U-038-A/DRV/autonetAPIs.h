@@ -49,6 +49,16 @@ typedef struct{
 typedef struct{
   Device device[NumOfDeviceInTable];
 }Table;
+
+typedef struct{
+	uint16_t type;
+	uint16_t address;
+	uint8_t count;
+}IRDevice;
+
+typedef struct{
+  IRDevice IRdevice[NumOfDeviceInTable];
+}IRTable;
 	 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -97,9 +107,11 @@ uint8_t Group_Diff(uint16_t* addr_array, uint8_t attribute, uint16_t center, uin
 uint16_t ScanTableByAddress(uint16_t);
 uint16_t ScanIRTableByAddress(uint16_t);
 void setTable(uint8_t,uint16_t,uint8_t,uint8_t);
-void setIRTable(uint8_t,uint16_t,uint8_t,uint8_t);
+void setIRTable(uint8_t,uint16_t,uint8_t);
 uint8_t getDeviceByIR(uint16_t* ID);
 uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max);
+void ResetCountIRTable(uint8_t n);
+void UpdateIRTable(void);
 
 /* get messages from received frames */
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in);
