@@ -239,7 +239,7 @@ void IR_testing2(){
 	TT Table_IR;
 	TT Table_RSSI;
 	
-	Addr = 0x000A;
+	Addr = 0x0005;
 	Type = Type_Light;
 	
 	//Addr = 0x0005;
@@ -379,8 +379,25 @@ void IR_testing2(){
 				  }
 				}
 				
-				// TODO: compare two lists
+				if(num_IR > 0){
+					setGPIO(1,1);
+					Delay(50);
+					setGPIO(1,0);
+				}
 				
+				if(num_RSSI > 0){
+					setGPIO(2,1);
+					Delay(50);
+					setGPIO(2,0);
+				}
+				
+				if(T_NUM_BOTH>0){
+					setGPIO(1,1);
+					setGPIO(2,1);
+					Delay(50);
+					setGPIO(1,0);
+					setGPIO(2,0);
+				}		
 			
 				/*
 				IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);

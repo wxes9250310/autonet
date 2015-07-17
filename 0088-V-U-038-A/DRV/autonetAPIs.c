@@ -239,8 +239,8 @@ uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max){
 		ID[i] = 0xFFFF;
 	
 	for(i=0;i<NumOfDeviceInTable;i++){
-		if(IR_table.device[i].Rssi >= min && IR_table.device[i].Rssi <= max){
-			ID[NumofDevice] = IR_table.device[i].address;
+		if(table.device[i].Rssi >= min && table.device[i].Rssi <= max){
+			ID[NumofDevice] = table.device[i].address;
 			NumofDevice++;
 		}
 	}
@@ -284,7 +284,7 @@ void IR_receive(int COM)
 	}
 
 	if(addr != 0xFF && type != 0xFF){
-		index = ScanTableByAddress(addr);
+		index = ScanIRTableByAddress(addr);
 		if(index == 0xFF){														// no such address in the table
 			newIndex = ScanIRTableByAddress(0xFFFF);
 			if(newIndex != 0xFF){
