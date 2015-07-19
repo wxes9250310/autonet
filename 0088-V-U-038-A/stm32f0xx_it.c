@@ -214,15 +214,13 @@ void SysTick_Handler(void)
 			packet_receive();
 		}
 	}
-	
+
 	if(IRRxState == 0){
 		if(IR_broadcast_read(1)){
 			IR_receive(1);
 		}
-//		else if(IR_broadcast_read(2)){
-//			IR_receive(2);
-//		}
 	}
+	
 }
 
 /******************************************************************************/

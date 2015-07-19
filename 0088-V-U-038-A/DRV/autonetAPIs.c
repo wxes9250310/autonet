@@ -156,7 +156,7 @@ void VARIABLE_Configuration(){
 void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
-			Timer_Beacon(1500);
+			Timer_Beacon(1520);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
@@ -168,7 +168,7 @@ void TimerBeaconSetting(){
 			BeaconEnabled = 1;
 	}
 	else{ 											
-			Timer_Beacon(2000);				
+			Timer_Beacon(2020);				
 			BeaconEnabled = 1;
 	}
 }
