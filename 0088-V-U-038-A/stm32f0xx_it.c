@@ -211,6 +211,8 @@ void SysTick_Handler(void)
 {
 	unsigned char i = 0;
 	uint8_t state = 0;
+	uint8_t AllowToDo =0;
+	uint8_t CanRun = 1;
 
   for (i = 0; i < TIM_n; i++) {
     if ((TimObj.Tim[i].Ticks != 0) && (--TimObj.Tim[i].Ticks == 0)) {
@@ -226,53 +228,16 @@ void SysTick_Handler(void)
 			}
 		}
   }
-	if(Timer_Connect_Flag_IR_Beacon==1){
-		if(timer_ticks_IR_Beacon != 0)
-			--timer_ticks_IR_Beacon;
-		if(timer_ticks_IR_Beacon == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0){
-			timer_ticks_IR_Beacon = timer_period_IR_Beacon;
-			IR_broadcast(_Addr, _Type, 1);
-			IRupdate();
-			state =1;
-		}
-	}
-	if(Timer_Connect_Flag_IR_Beacon_read == 1){
-		if(timer_ticks_IR_Beacon_read != 0)
-			--timer_ticks_IR_Beacon_read;
-		if(timer_ticks_IR_Beacon_read == 0 && state == 1){
-			timer_ticks_Beacon = 0;
-		}
-		else if(timer_ticks_IR_Beacon_read == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0){
-			timer_ticks_IR_Beacon_read = timer_period_IR_Beacon_read;
-			if(IRRxState == 0){
-				if(IR_broadcast_read(1)){
-					IR_receive(1);
-				}
-			}
-			state =2;
-		}
-	}
-	if(Timer_Connect_Flag_Beacon==1){
-		if(timer_ticks_Beacon != 0)
-			--timer_ticks_Beacon;
-		if(timer_ticks_Beacon == 0 && (state == 1 || state == 2)){
-			timer_ticks_Beacon = 0;
-		}
-		else if(timer_ticks_Beacon == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0){
-			broadcastSend();
-			timer_ticks_Beacon = timer_period_Beacon;
-			//IR_broadcast(_Addr, _Type, 1);
-			//IRupdate();
-			state = 3;
-		}
-	}
-	if(Timer_Connect_Flag_Beacon==1){
+	
+	if(RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0)
+		AllowToDo=1;
+	
+	/* Beacon Read */
+	if(Timer_Connect_Flag_Beacon_read==1){
 		if(timer_ticks_Beacon_read != 0)
 			--timer_ticks_Beacon_read;
-		if(timer_ticks_Beacon_read == 0 && (state == 1 || state == 2 || state == 3)){
-			timer_ticks_Beacon_read = 0;
-		}
-		else if(timer_ticks_Beacon_read == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0){
+		if(timer_ticks_Beacon_read == 0 && AllowToDo == 1){
+			timer_ticks_Beacon_read = timer_period_Beacon_read;
 			if(RFRxOccupied == 0){	
 				if(RF_RX_AUTONET()){
 					packet_receive();
@@ -280,6 +245,44 @@ void SysTick_Handler(void)
 			}
 		}
 	}
+	/* IR Beacon Read */
+	if(Timer_Connect_Flag_IR_Beacon_read == 1){
+		if(timer_ticks_IR_Beacon_read != 0)
+			--timer_ticks_IR_Beacon_read;
+
+		if(timer_ticks_IR_Beacon_read == 0 && AllowToDo ==1){
+			timer_ticks_IR_Beacon_read = timer_period_IR_Beacon_read;
+			if(IRRxState == 0){
+				if(IR_broadcast_read(1)){
+					IR_receive(1);
+				}
+			}
+		}
+	}
+
+	
+	/* Beacon */
+	if(Timer_Connect_Flag_Beacon==1){
+		if(timer_ticks_Beacon != 0)
+			--timer_ticks_Beacon;
+		if(timer_ticks_Beacon == 0 && AllowToDo ==1){
+			timer_ticks_Beacon = timer_period_Beacon;
+			broadcastSend();
+		}
+	}
+	
+	/* IR Beacon */
+	if(Timer_Connect_Flag_IR_Beacon==1){
+		if(timer_ticks_IR_Beacon != 0)
+			--timer_ticks_IR_Beacon;
+		if(timer_ticks_IR_Beacon == 0 && AllowToDo ==1){
+			timer_ticks_IR_Beacon = timer_period_IR_Beacon;
+			IR_broadcast(_Addr, _Type, 1);
+			IRupdate();
+		}
+	}
+
+
 	/*
 	if(RFRxOccupied == 0){	
 		if(RF_RX_AUTONET()){

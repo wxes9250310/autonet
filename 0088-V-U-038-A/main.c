@@ -261,7 +261,6 @@ void IR_testing2(){
 	radio_panID = 0x00AB;
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	setTimer(1,305,UNIT_MS);
-	setTimer(2,1020,UNIT_MS);
 	
 	for(i=0;i<10;i++){
 		ID_IR[i] = 0xFF;
@@ -277,6 +276,13 @@ void IR_testing2(){
 	while(1){
 			if(checkTimer(1)){
 				if(Type == Type_Controller){
+					/*
+					msg[0] = 0x01;
+					msg[1] = 0x01;
+					msg[2] = 0x01;
+					RF_Tx(0xFFFF, msg, 10);
+					*/
+					
 					num_IR = getDeviceByIR(ID_IR);
 					num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
 					
@@ -317,28 +323,36 @@ void IR_testing2(){
 									LightUpFlag = 1;
 									LightToggleFlag = 1;
 									LightUpCount = 0;
+									setGPIO(2,1);
+									setTimer(2, 1500, UNIT_MS);
+									break;
 								}
 							}
 						}							
 					}
-				}
-				
+				}		
+				/*
 				if(LightUpFlag == 1 && LightToggleFlag ==1){
 					setGPIO(2,1);
-					Delay(5);
+					Delay(10);
 					LightToggleFlag = 0;
 				}
+				*/
+				if(checkTimer(2)){
+					setGPIO(2,0);
+				}
+				/*
 				if(LightUpFlag == 1 && LightUpCount >= 0x03){
 					LightUpFlag =0;
 					LightToggleFlag = 1;
 				}
 				if(LightUpFlag == 0 && LightToggleFlag ==1){
 					setGPIO(2,0);
-					Delay(5);
+					Delay(10);
 					LightToggleFlag = 0;
 				}
 				LightUpCount ++;
-				
+				*/
 				// return list based on IR information
 				/*
 				num_IR = getDeviceByIR(ID_IR);
@@ -472,7 +486,7 @@ void IR_testing2(){
 					IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
 				*/	
 		}	
-		/*	
+		/*
 		if(checkTimer(2)){
 			if(Type == Type_Light){
 				setGPIO(2, 0);
