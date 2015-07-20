@@ -232,40 +232,23 @@ void IR_testing2(){
 	uint8_t rcvd_length;
 	uint8_t rcvd_rssi;
 	uint8_t sendFlag;
-	
-	typedef struct{
-		uint16_t addr;
-		uint8_t count;
-	}DD;
 
-	typedef struct{
-  DD device[NumOfDeviceInTable];
-  }TT;
-	
-	TT Table_IR;
-	TT Table_RSSI;
-
-	//Addr = 0x00BB;
-	//Type = Type_Light;
-	
 	Addr = 0x00AA;
 	Type = Type_Controller;
 	
-  //Addr = 0x00AA;
-	//Type = Type_IR;
+	//Addr = 0x00BB;
+	//Type = Type_Light;
 
 	radio_freq = 2475;
 	radio_panID = 0x00AB;
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	//setTimer(1,330,UNIT_MS);
-	setTimer(1,530,UNIT_MS);
+	//setTimer(1,330,UNIT_MS);	// LIGHT
+	setTimer(1,530,UNIT_MS);		// CONTROLLER
 	
 	for(i=0;i<10;i++){
 		ID_IR[i] = 0xFF;
 		ID_RSSI[i] = 0xFF;
 		ID_Both[i] = 0xFF;
-		Table_IR.device[i].addr = 0xFFFF;
-		Table_RSSI.device[i].addr = 0xFFFF;
 	}			
 	
 	if(Type == Type_Controller)
@@ -322,138 +305,6 @@ void IR_testing2(){
 				if(checkTimer(2)){
 					setGPIO(2,0);
 				}
-				// return list based on IR information
-				/*
-				num_IR = getDeviceByIR(ID_IR);
-				if(num_IR != 0){
-					existingFlag = 0;
-					for(k=1; k<=num_IR; k++){
-						target = ID_IR[k-1];
-						for(i=0; i<NumOfDeviceInTable; i++){
-							if(target == Table_IR.device[i].addr){		// exist in the table
-								Table_IR.device[i].count =0;						// reset the count
-								existingFlag = 1;
-								break;
-							}
-						}
-						// add a new member
-						if(existingFlag == 0){
-							T_NUM_IR ++;
-							Table_IR.device[T_NUM_IR].addr = target;
-							Table_IR.device[T_NUM_IR].count = 0;
-						}
-				  }
-				}
-				
-				// delete a member
-				for(i=0; i<NumOfDeviceInTable; i++){
-					renewFlag  = 0;
-					if(Table_IR.device[i].count == 5){		// renew the list of neighbors
-						renewFlag = 1;
-						T_NUM_IR --;
-					}
-					if(renewFlag == 1){		
-						if(i+1 <= T_NUM_IR){
-							Table_IR.device[i].addr = Table_IR.device[i+1].addr;
-							Table_IR.device[i].count = Table_IR.device[i+1].count;
-						}
-						else{
-							Table_IR.device[i].addr = 0xFFFF;
-							Table_IR.device[i].count = 0x00;
-						}
-					}
-				}
-				
-				// return list based on RSSI
-				num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
-				if(num_RSSI != 0){
-					existingFlag = 0;
-					for(k=1; k<=num_RSSI; k++){
-						target = ID_RSSI[k-1];
-						for(i=0; i<NumOfDeviceInTable; i++){
-							if(target == Table_RSSI.device[i].addr){		// exist in the table
-								Table_RSSI.device[i].count =0;						// reset the count
-								existingFlag = 1;
-								break;
-							}
-						}
-						// add a new member
-						if(existingFlag == 0){
-							T_NUM_RSSI ++;
-							Table_RSSI.device[T_NUM_RSSI].addr = target;
-							Table_RSSI.device[T_NUM_RSSI].count = 0;
-						}
-				  }
-				}
-				
-				// delete a member
-				for(i=0; i<NumOfDeviceInTable; i++){
-					renewFlag  = 0;
-					if(Table_RSSI.device[i].count == 5){		// renew the list of neighbors
-						renewFlag = 1;
-						T_NUM_RSSI --;
-					}
-					if(renewFlag == 1){		
-						if(i+1 <= T_NUM_RSSI){
-							Table_RSSI.device[i].addr = Table_RSSI.device[i+1].addr;
-							Table_RSSI.device[i].count = Table_RSSI.device[i+1].count;
-						}
-						else{
-							Table_RSSI.device[i].addr = 0xFFFF;
-							Table_RSSI.device[i].count = 0x00;
-						}
-					}
-				}
-				
-				if(num_IR > 0){
-					setGPIO(1,1);
-					Delay(10);
-					setGPIO(1,0);
-				}
-				else if(num_RSSI > 0){
-					setGPIO(2,1);
-					Delay(10);
-					setGPIO(2,0);
-				}
-				*/
-				
-				/*
-				if(num_IR > 0){
-					setGPIO(1,1);
-					Delay(50);
-					setGPIO(1,0);
-				}
-				
-				if(num_RSSI > 0){
-					setGPIO(2,1);
-					Delay(50);
-					setGPIO(2,0);
-				}
-				*/
-				
-				
-			
-				/*
-				IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
-				//IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
-				
-				if(IR_Buffer_Length1 !=0){
-						rcvd_type1 =  IR_BufferRx1[3];
-						rcvd_addr1 =  IR_BufferRx1[4];				
-						if(rcvd_type1 == 0x01)
-							blink(1);
-					}
-					
-					if(IR_Buffer_Length2 !=0){
-						rcvd_type2 =  IR_BufferRx2[3];
-						rcvd_addr2 =  IR_BufferRx2[4];
-						if(rcvd_type2 == 0x01)
-							blink(1);
-					}
-					
-					rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
-					IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
-				*/	
 		}	
 	}
 }
