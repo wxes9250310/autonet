@@ -78,15 +78,26 @@ extern uint8_t BeaconEnabled;
 extern uint8_t RFSleepState;
 void (*function)(void);
 
+/* Timer for beacon */
 int Timer_Connect_Flag_Beacon;
 unsigned int timer_ticks_Beacon;
 unsigned int timer_period_Beacon;
 int BeaconTimerFlag;
-
+/* Timer for beacon read*/
+int Timer_Connect_Flag_Beacon_read;
+unsigned int timer_ticks_Beacon_read;
+unsigned int timer_period_Beacon_read;
+int BeaconTimerFlag_read;
+/* Timer for IR beacon */
 int Timer_Connect_Flag_IR_Beacon;
 unsigned int timer_ticks_IR_Beacon;
 unsigned int timer_period_IR_Beacon;
 int IR_BeaconTimerFlag;
+/* Timer for IR beacon Reading */
+int Timer_Connect_Flag_IR_Beacon_read;
+unsigned int timer_ticks_IR_Beacon_read;
+unsigned int timer_period_IR_Beacon_read;
+int IR_BeaconTimerFlag_read;
 
 int Timer_Connect_Flag[NUM_TIME_FLAG];
 unsigned int timer_ticks[NUM_TIME_FLAG];
@@ -112,10 +123,22 @@ void Timer_Beacon(unsigned int time){
 	Timer_Connect_Flag_Beacon = 1;
 }
 
+void Timer_Beacon_Read(unsigned int time){
+	timer_period_Beacon_read = time;
+	timer_ticks_Beacon_read = time;
+	Timer_Connect_Flag_Beacon_read = 1;
+}
+
 void Timer_IR_Beacon(unsigned int time){
 	timer_period_IR_Beacon = time;
 	timer_ticks_IR_Beacon = time;
 	Timer_Connect_Flag_IR_Beacon = 1;
+}
+
+void Timer_IR_Beacon_Read(unsigned int time){
+	timer_period_IR_Beacon_read = time;
+	timer_ticks_IR_Beacon_read = time;
+	Timer_Connect_Flag_IR_Beacon_read = 1;
 }
 
 void setTimer(uint8_t index, unsigned int period, uint8_t unit){
@@ -187,7 +210,7 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
 	unsigned char i = 0;
-	uint8_t prioritized = 0;
+	uint8_t state = 0;
 
   for (i = 0; i < TIM_n; i++) {
     if ((TimObj.Tim[i].Ticks != 0) && (--TimObj.Tim[i].Ticks == 0)) {
@@ -202,13 +225,7 @@ void SysTick_Handler(void)
 				timer_flag[i] = 1;
 			}
 		}
-  }/*
-	if(Timer_Connect_Flag_Beacon==1){
-		if(--timer_ticks_Beacon == 0){
-			timer_ticks_Beacon = timer_period_Beacon;
-			BeaconTimerFlag = 1;
-		}
-	}*/
+  }
 	if(Timer_Connect_Flag_IR_Beacon==1){
 		if(timer_ticks_IR_Beacon != 0)
 			--timer_ticks_IR_Beacon;
@@ -216,15 +233,29 @@ void SysTick_Handler(void)
 			timer_ticks_IR_Beacon = timer_period_IR_Beacon;
 			IR_broadcast(_Addr, _Type, 1);
 			IRupdate();
-			prioritized =1;
+			state =1;
 		}
 	}
-	
+	if(Timer_Connect_Flag_IR_Beacon_read == 1){
+		if(timer_ticks_IR_Beacon_read != 0)
+			--timer_ticks_IR_Beacon_read;
+		if(timer_ticks_IR_Beacon_read == 0 && state == 1){
+			timer_ticks_Beacon = 0;
+		}
+		else if(timer_ticks_IR_Beacon_read == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0){
+			timer_ticks_IR_Beacon_read = timer_period_IR_Beacon_read;
+			if(IRRxState == 0){
+				if(IR_broadcast_read(1)){
+					IR_receive(1);
+				}
+			}
+			state =2;
+		}
+	}
 	if(Timer_Connect_Flag_Beacon==1){
 		if(timer_ticks_Beacon != 0)
 			--timer_ticks_Beacon;
-		
-		if (timer_ticks_Beacon == 0 && prioritized == 1){
+		if(timer_ticks_Beacon == 0 && (state == 1 || state == 2)){
 			timer_ticks_Beacon = 0;
 		}
 		else if(timer_ticks_Beacon == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0){
@@ -232,9 +263,24 @@ void SysTick_Handler(void)
 			timer_ticks_Beacon = timer_period_Beacon;
 			//IR_broadcast(_Addr, _Type, 1);
 			//IRupdate();
+			state = 3;
 		}
 	}
-	
+	if(Timer_Connect_Flag_Beacon==1){
+		if(timer_ticks_Beacon_read != 0)
+			--timer_ticks_Beacon_read;
+		if(timer_ticks_Beacon_read == 0 && (state == 1 || state == 2 || state == 3)){
+			timer_ticks_Beacon_read = 0;
+		}
+		else if(timer_ticks_Beacon_read == 0 && RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0){
+			if(RFRxOccupied == 0){	
+				if(RF_RX_AUTONET()){
+					packet_receive();
+				}
+			}
+		}
+	}
+	/*
 	if(RFRxOccupied == 0){	
 		if(RF_RX_AUTONET()){
 			packet_receive();
@@ -246,7 +292,7 @@ void SysTick_Handler(void)
 			IR_receive(1);
 		}
 	}
-	
+	*/
 }
 
 /******************************************************************************/

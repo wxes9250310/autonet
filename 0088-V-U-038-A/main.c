@@ -251,7 +251,7 @@ void IR_testing2(){
 	Addr = 0x00BB;
 	Type = Type_Light;
 	
-	//Addr = 0x000A;
+	//Addr = 0x00AA;
 	//Type = Type_Controller;
 	
   //Addr = 0x00AA;
@@ -328,7 +328,7 @@ void IR_testing2(){
 					Delay(5);
 					LightToggleFlag = 0;
 				}
-				if(LightUpFlag == 1 && LightUpCount >= 0x05){
+				if(LightUpFlag == 1 && LightUpCount >= 0x03){
 					LightUpFlag =0;
 					LightToggleFlag = 1;
 				}
