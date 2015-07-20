@@ -232,9 +232,6 @@ void IR_testing2(){
 	uint8_t rcvd_length;
 	uint8_t rcvd_rssi;
 	uint8_t sendFlag;
-	uint8_t LightUpFlag;
-	uint8_t LightToggleFlag;
-	uint8_t LightUpCount=0;
 	
 	typedef struct{
 		uint16_t addr;
@@ -248,11 +245,11 @@ void IR_testing2(){
 	TT Table_IR;
 	TT Table_RSSI;
 
-	Addr = 0x00BB;
-	Type = Type_Light;
+	//Addr = 0x00BB;
+	//Type = Type_Light;
 	
-	//Addr = 0x00AA;
-	//Type = Type_Controller;
+	Addr = 0x00AA;
+	Type = Type_Controller;
 	
   //Addr = 0x00AA;
 	//Type = Type_IR;
@@ -260,7 +257,8 @@ void IR_testing2(){
 	radio_freq = 2475;
 	radio_panID = 0x00AB;
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,305,UNIT_MS);
+	//setTimer(1,330,UNIT_MS);
+	setTimer(1,530,UNIT_MS);
 	
 	for(i=0;i<10;i++){
 		ID_IR[i] = 0xFF;
@@ -276,15 +274,8 @@ void IR_testing2(){
 	while(1){
 			if(checkTimer(1)){
 				if(Type == Type_Controller){
-					/*
-					msg[0] = 0x01;
-					msg[1] = 0x01;
-					msg[2] = 0x01;
-					RF_Tx(0xFFFF, msg, 10);
-					*/
-					
 					num_IR = getDeviceByIR(ID_IR);
-					num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
+					num_RSSI = getDeviceByRSSI(ID_RSSI, 240, 255);
 					
 					// cross compare to find one light
 					T_NUM_BOTH =0;
@@ -320,9 +311,6 @@ void IR_testing2(){
 							rcvd_msg[MAC_HEADER_LENGTH + 2] == Type_Light ){
 							for(i=3; i<=(rcvd_length - MAC_HEADER_LENGTH); i++){	
 								if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
-									LightUpFlag = 1;
-									LightToggleFlag = 1;
-									LightUpCount = 0;
 									setGPIO(2,1);
 									setTimer(2, 1500, UNIT_MS);
 									break;
@@ -331,28 +319,9 @@ void IR_testing2(){
 						}							
 					}
 				}		
-				/*
-				if(LightUpFlag == 1 && LightToggleFlag ==1){
-					setGPIO(2,1);
-					Delay(10);
-					LightToggleFlag = 0;
-				}
-				*/
 				if(checkTimer(2)){
 					setGPIO(2,0);
 				}
-				/*
-				if(LightUpFlag == 1 && LightUpCount >= 0x03){
-					LightUpFlag =0;
-					LightToggleFlag = 1;
-				}
-				if(LightUpFlag == 0 && LightToggleFlag ==1){
-					setGPIO(2,0);
-					Delay(10);
-					LightToggleFlag = 0;
-				}
-				LightUpCount ++;
-				*/
 				// return list based on IR information
 				/*
 				num_IR = getDeviceByIR(ID_IR);
@@ -486,13 +455,6 @@ void IR_testing2(){
 					IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
 				*/	
 		}	
-		/*
-		if(checkTimer(2)){
-			if(Type == Type_Light){
-				setGPIO(2, 0);
-			}
-		}
-		*/
 	}
 }
 

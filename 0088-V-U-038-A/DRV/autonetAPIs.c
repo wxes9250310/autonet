@@ -156,10 +156,10 @@ void VARIABLE_Configuration(){
 void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
-			Timer_Beacon_Read(80);
-			Timer_IR_Beacon_Read(130);
-			Timer_Beacon(170);
-			Timer_IR_Beacon(165);
+			//Timer_Beacon_Read(146);
+			//Timer_IR_Beacon_Read(178);
+			Timer_Beacon(150);
+			Timer_IR_Beacon(120);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
@@ -171,10 +171,10 @@ void TimerBeaconSetting(){
 			BeaconEnabled = 1;
 	}
 	else{ 											
-			Timer_Beacon_Read(300);
-			Timer_IR_Beacon_Read(430);
-			Timer_Beacon(700);
-			Timer_IR_Beacon(990);
+			Timer_Beacon_Read(100);
+			Timer_IR_Beacon_Read(140);
+			Timer_Beacon(230);
+			Timer_IR_Beacon(280);
 			BeaconEnabled = 1;
 	}
 }
@@ -347,7 +347,7 @@ void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
 
 void UpdateIRTable(){
 	uint8_t renewFlag;
-	uint8_t resetThreshold = 0x03;
+	uint8_t resetThreshold = 0x02;
 	
 	for(i=0; i<NumOfDeviceInTable; i++){
 		renewFlag  = 0;
