@@ -26,8 +26,7 @@ typedef enum
 	TIM_100MS,
 	TIM_200MS,
 	TIM_1000MS,
-	TIM_IRTO_F,
-	TIM_IRTO_R,
+	TIM_IR,
 	TIM_n
 } TmrTypeDef_e;
 
@@ -47,8 +46,7 @@ typedef struct {
 #define TIMOUT_FLAG_100MS	  		0x08
 #define TIMOUT_FLAG_200MS   		0x10
 #define TIMOUT_FLAG_1000MS  		0x20
-#define TIMOUT_FLAG_IRTO_FRONT	0x40
-#define TIMOUT_FLAG_IRTO_REAR		0x80
+#define TIMOUT_FLAG_IR					0x40
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

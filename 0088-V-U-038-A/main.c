@@ -247,8 +247,8 @@ void IR_testing2(){
 	
 	TT Table_IR;
 	TT Table_RSSI;
-	
-	Addr = 0x0005;
+
+	Addr = 0x00AA;
 	Type = Type_Light;
 	
 	//Addr = 0x000A;
@@ -258,7 +258,7 @@ void IR_testing2(){
 	//Type = Type_IR;
 
 	radio_freq = 2475;
-	radio_panID = 0x00AA;
+	radio_panID = 0x00AB;
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	setTimer(1,205,UNIT_MS);
 	setTimer(2,1020,UNIT_MS);
@@ -276,6 +276,69 @@ void IR_testing2(){
 	
 	while(1){
 			if(checkTimer(1)){
+				if(Type == Type_Controller){
+					num_IR = getDeviceByIR(ID_IR);
+					num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
+					
+					// cross compare to find one light
+					T_NUM_BOTH =0;
+					if(num_IR > 0 && num_RSSI > 0){
+						for(k=0; k<NumOfDeviceInTable; k++){
+							if(ID_RSSI[k]!=0xFFFF){
+								for(i=0; i<NumOfDeviceInTable; i++){
+									if(ID_IR[i]!=0xFFFF){
+										if(ID_RSSI[k] == ID_IR[i] && ID_RSSI[k] != 0xFFFF){
+											ID_Both[T_NUM_BOTH] = ID_RSSI[k];
+											T_NUM_BOTH ++;
+										}
+									}
+								}
+							}
+						}
+					}
+					if(T_NUM_BOTH>0){
+						msg[0] = 0x01;
+						msg[1] = T_NUM_BOTH;
+						msg[2] = Type_Light;
+						for(i=0; i<T_NUM_BOTH;i++){
+							msg[3 + i] = ID_Both[i];
+						}
+						RF_Tx(0xFFFF, msg, 10);
+					}		
+				}
+				
+				if(Type == Type_Light){
+					if(RF_Rx(rcvd_msg,&rcvd_length,&rcvd_rssi)){
+						if(rcvd_msg[MAC_HEADER_LENGTH + 0] == 0x01 && 
+							rcvd_msg[MAC_HEADER_LENGTH + 1] > 0x00 && 
+							rcvd_msg[MAC_HEADER_LENGTH + 2] == Type_Light ){
+							for(i=3; i<=(rcvd_length - MAC_HEADER_LENGTH); i++){	
+								if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
+									LightUpFlag = 1;
+									LightToggleFlag = 1;
+									LightUpCount = 0;
+								}
+							}
+						}							
+					}
+				}
+				
+				if(LightUpFlag == 1 && LightUpCount >= 0x09){
+					LightUpFlag = 0;
+					LightToggleFlag = 1;
+				}
+				
+				if(LightUpFlag == 1 && LightToggleFlag ==1){
+					setGPIO(2,1);
+					LightToggleFlag = 0;
+				}
+				if(LightUpFlag == 0 && LightToggleFlag ==1){
+					setGPIO(2,0);
+					LightToggleFlag = 0;
+				}
+				
+				LightUpCount ++;
+				
 				// return list based on IR information
 				/*
 				num_IR = getDeviceByIR(ID_IR);
@@ -370,68 +433,6 @@ void IR_testing2(){
 					setGPIO(2,0);
 				}
 				*/
-				if(Type == Type_Controller){
-					num_IR = getDeviceByIR(ID_IR);
-					num_RSSI = getDeviceByRSSI(ID_RSSI, 150, 255);
-					
-					// cross compare to find one light
-					T_NUM_BOTH =0;
-					if(num_IR > 0 && num_RSSI > 0){
-						for(k=0; k<NumOfDeviceInTable; k++){
-							if(ID_RSSI[k]!=0xFF){
-								for(i=0; i<NumOfDeviceInTable; i++){
-									if(ID_IR[i]!=0xFF){
-										if(ID_RSSI[k] == ID_IR[i]){
-											ID_Both[T_NUM_BOTH] = ID_RSSI[k];
-											T_NUM_BOTH ++;
-										}
-									}
-								}
-							}
-						}
-					}
-					if(T_NUM_BOTH>0){
-						/*
-						setGPIO(1,1);
-						setGPIO(2,1);
-						Delay(50);
-						setGPIO(1,0);
-						setGPIO(2,0);
-						*/
-						msg[0] = 0x01;
-						msg[1] = T_NUM_BOTH;
-						for(i=0; i<T_NUM_BOTH;i++){
-							msg[2 + i] = ID_Both[i];
-						}
-						RF_Tx(0xFFFF, msg, 10);
-					}		
-				}
-				
-				if(Type == Type_Light){
-					if(RF_Rx(rcvd_msg,&rcvd_length,&rcvd_rssi)){
-						if(rcvd_msg[MAC_HEADER_LENGTH+0] == 0x01 && 
-							rcvd_msg[MAC_HEADER_LENGTH+1] > 0x00 ){
-							for(i=2; i<=(rcvd_length - MAC_HEADER_LENGTH); i++){											
-								if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
-									setGPIO(2,1);
-									LightUpFlag = 1;
-									LightToggleFlag = 1;
-									LightUpCount = 0;
-								}
-							}
-						}							
-					}
-				}
-
-				if(LightUpCount >= 0x0F)
-					LightUpFlag = 0;
-				
-				if(LightUpFlag == 0 && LightToggleFlag ==1){
-					setGPIO(2,0);
-					LightToggleFlag = 0;
-				}
-				
-				LightUpCount ++;
 				
 				/*
 				if(num_IR > 0){

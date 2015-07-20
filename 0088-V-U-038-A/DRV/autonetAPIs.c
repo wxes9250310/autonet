@@ -168,7 +168,7 @@ void TimerBeaconSetting(){
 			BeaconEnabled = 1;
 	}
 	else{ 											
-			Timer_Beacon(2020);				
+			Timer_Beacon(1020);				
 			BeaconEnabled = 1;
 	}
 }
@@ -263,6 +263,15 @@ uint8_t getDeviceByIR(uint16_t* ID){
 	return NumofDevice;
 }
 
+void IRupdate(){
+	if ((TimObj.TimeoutFlag & TIMOUT_FLAG_IR) == TIMOUT_FLAG_IR){
+				TimObj.TimeoutFlag ^= TIMOUT_FLAG_IR;
+		    CommandRxBufferLen_BC = 0;
+				CommandRxBufferLen2_BC = 0;
+				UpdateIRTable();		
+	}
+}	
+
 void IR_receive(int COM)
 {
 	uint8_t index = 0xFF;
@@ -272,20 +281,17 @@ void IR_receive(int COM)
 	uint16_t addr = 0x00FF;
 	
 	if(COM == 1){
-		if(CommandRxBuffer_BC[2] ==  2){
+		if(CommandRxBuffer_BC[2] ==  2 && CommandRxBufferLen_BC != 0){
 			type = CommandRxBuffer_BC[3];
 			addr = CommandRxBuffer_BC[4];
 		}
 	}
 	else if(COM == 2){
-		if(CommandRxBuffer2_BC[2] ==  2){
+		if(CommandRxBuffer2_BC[2] ==  2 && CommandRxBufferLen2_BC != 0){
 			type = CommandRxBuffer2_BC[3];
 			addr = CommandRxBuffer2_BC[4];
 		}
-	}
-
-	UpdateIRTable();
-	
+	}	
 	if(addr != 0xFF && type != 0xFF){
 		index = ScanIRTableByAddress(addr);
 		if(index == 0xFF){														// no such address in the table
@@ -335,22 +341,30 @@ void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
 
 void UpdateIRTable(){
 	uint8_t renewFlag;
+	uint8_t resetThreshold = 0x03;
 	
-	for(i=0;i<NumOfDeviceInTable;i++){
+	for(i=0; i<NumOfDeviceInTable; i++){
 		renewFlag  = 0;
 		IR_table.IRdevice[i].count ++;
-		if(IR_table.IRdevice[i].count == 5){
+		
+		if(IR_table.IRdevice[i].address != 0xFFFF 
+				&& IR_table.IRdevice[i].address != 0x00 
+				&&IR_table.IRdevice[i].count == resetThreshold){
 			renewFlag = 1;
 			numOfIR --;
+				}
+		if(IR_table.IRdevice[i].count == resetThreshold){
+			IR_table.IRdevice[i].count = 0;
 		}
+		
 		if(renewFlag == 1){		
-			if(i+1 <= numOfIR){
+			if(i+1 <= NumOfDeviceInTable){
 				IR_table.IRdevice[i].type = IR_table.IRdevice[i+1].type;
 				IR_table.IRdevice[i].address = IR_table.IRdevice[i+1].address;
 				IR_table.IRdevice[i].count = IR_table.IRdevice[i+1].count;
 			}
 			else{
-				IR_table.IRdevice[i].type = 0x0000;
+				IR_table.IRdevice[i].type = 0x00;
 				IR_table.IRdevice[i].address = 0xFFFF;
 				IR_table.IRdevice[i].count = 0x00;
 			}

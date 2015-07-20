@@ -112,6 +112,7 @@ uint8_t getDeviceByIR(uint16_t* ID);
 uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max);
 void ResetCountIRTable(uint8_t n);
 void UpdateIRTable(void);
+void IRupdate(void);
 
 /* get messages from received frames */
 void getSrcAddr(uint8_t* data_out, uint8_t* data_in);

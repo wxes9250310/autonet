@@ -232,6 +232,9 @@ uint8_t IR_broadcast_read(int COM)
 	uint8_t receivedFlag = 0;
   IRRxState = 1;
 	
+	CommandRxBufferLen_BC  =0;
+	CommandRxBufferLen2_BC =0;
+	
 	if(COM == 1){
 		if (CommandRxBufferLen != 0x00) {  
 			if ((Checksum = Mcp2120ComplementCalc(CommandRxBuffer, CommandRxBufferLen - 1)) == CommandRxBuffer[CommandRxBufferLen - 1]) {

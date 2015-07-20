@@ -22,8 +22,7 @@ TimObjTypeDef_s TimObj =
 		{100, 100}, //TIM_100MS
 		{400, 400},	//BROADCAST
 		{500, 500},	//GROUP PROCESS
-		{0,0},//IR_FRONT
-		{0,0} //IR_REAR
+		{1000,1000},//IR
 	},
   0
 };
