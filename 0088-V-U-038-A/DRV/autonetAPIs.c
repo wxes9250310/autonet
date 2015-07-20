@@ -157,6 +157,7 @@ void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
 			Timer_Beacon(1520);
+			Timer_IR_Beacon(1720);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){

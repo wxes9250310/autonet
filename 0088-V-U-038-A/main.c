@@ -324,7 +324,7 @@ void IR_testing2(){
 				}
 				
 				if(LightUpFlag == 1 && LightToggleFlag ==1){
-					setGPIO(1,1);
+					setGPIO(2,1);
 					Delay(5);
 					LightToggleFlag = 0;
 				}
@@ -333,7 +333,7 @@ void IR_testing2(){
 					LightToggleFlag = 1;
 				}
 				if(LightUpFlag == 0 && LightToggleFlag ==1){
-					setGPIO(1,0);
+					setGPIO(2,0);
 					Delay(5);
 					LightToggleFlag = 0;
 				}
