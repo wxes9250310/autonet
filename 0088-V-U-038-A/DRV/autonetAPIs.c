@@ -156,7 +156,8 @@ void VARIABLE_Configuration(){
 void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
-			Timer_Beacon(1520);
+			Timer_Beacon(500);
+		  Timer_IRBeacon(605);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
@@ -168,7 +169,8 @@ void TimerBeaconSetting(){
 			BeaconEnabled = 1;
 	}
 	else{ 											
-			Timer_Beacon(1020);				
+			Timer_Beacon(1300);		
+      Timer_IRBeacon(500);		
 			BeaconEnabled = 1;
 	}
 }
@@ -264,11 +266,13 @@ uint8_t getDeviceByIR(uint16_t* ID){
 }
 
 void IRupdate(){
-	if ((TimObj.TimeoutFlag & TIMOUT_FLAG_IR) == TIMOUT_FLAG_IR){
-				TimObj.TimeoutFlag ^= TIMOUT_FLAG_IR;
-		    CommandRxBufferLen_BC = 0;
-				CommandRxBufferLen2_BC = 0;
-				UpdateIRTable();		
+	if(_Type != Type_Controller){
+		if ((TimObj.TimeoutFlag & TIMOUT_FLAG_IR) == TIMOUT_FLAG_IR){
+					TimObj.TimeoutFlag ^= TIMOUT_FLAG_IR;
+					CommandRxBufferLen_BC = 0;
+					CommandRxBufferLen2_BC = 0;
+					UpdateIRTable();		
+		}
 	}
 }	
 

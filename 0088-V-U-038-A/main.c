@@ -248,10 +248,10 @@ void IR_testing2(){
 	TT Table_IR;
 	TT Table_RSSI;
 
-	Addr = 0x00BB;
+	Addr = 0x00CC;
 	Type = Type_Light;
 	
-	//Addr = 0x000A;
+	//Addr = 0x00AA;
 	//Type = Type_Controller;
 	
   //Addr = 0x00AA;
@@ -260,7 +260,7 @@ void IR_testing2(){
 	radio_freq = 2475;
 	radio_panID = 0x00AB;
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,305,UNIT_MS);
+	setTimer(1,705,UNIT_MS);
 	setTimer(2,1020,UNIT_MS);
 	
 	for(i=0;i<10;i++){
