@@ -248,7 +248,7 @@ void IR_testing2(){
 	TT Table_IR;
 	TT Table_RSSI;
 
-	Addr = 0x00AA;
+	Addr = 0x00BB;
 	Type = Type_Light;
 	
 	//Addr = 0x000A;
@@ -260,7 +260,7 @@ void IR_testing2(){
 	radio_freq = 2475;
 	radio_panID = 0x00AB;
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,205,UNIT_MS);
+	setTimer(1,305,UNIT_MS);
 	setTimer(2,1020,UNIT_MS);
 	
 	for(i=0;i<10;i++){
@@ -323,20 +323,20 @@ void IR_testing2(){
 					}
 				}
 				
-				if(LightUpFlag == 1 && LightUpCount >= 0x09){
-					LightUpFlag = 0;
+				if(LightUpFlag == 1 && LightToggleFlag ==1){
+					setGPIO(1,1);
+					Delay(5);
+					LightToggleFlag = 0;
+				}
+				if(LightUpFlag == 1 && LightUpCount >= 0x05){
+					LightUpFlag =0;
 					LightToggleFlag = 1;
 				}
-				
-				if(LightUpFlag == 1 && LightToggleFlag ==1){
-					setGPIO(2,1);
-					LightToggleFlag = 0;
-				}
 				if(LightUpFlag == 0 && LightToggleFlag ==1){
-					setGPIO(2,0);
+					setGPIO(1,0);
+					Delay(5);
 					LightToggleFlag = 0;
 				}
-				
 				LightUpCount ++;
 				
 				// return list based on IR information
