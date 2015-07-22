@@ -156,10 +156,9 @@ void VARIABLE_Configuration(){
 void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
-			//Timer_Beacon_Read(146);
-			//Timer_IR_Beacon_Read(178);
 			Timer_Beacon(150);
 			Timer_IR_Beacon(120);
+			//Timer_IR_Beacon(40);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
@@ -172,9 +171,14 @@ void TimerBeaconSetting(){
 	}
 	else{ 											
 			Timer_Beacon_Read(100);
-			Timer_IR_Beacon_Read(140);
-			Timer_Beacon(230);
-			Timer_IR_Beacon(280);
+			//Timer_IR_Beacon_Read(140);
+			Timer_IR_Beacon_Read(27);
+		  //Timer_Beacon_Read(100);
+			Timer_Beacon(123);
+			Timer_IR_Beacon(80);
+			//Timer_IR_Beacon(280);
+			//Timer_Beacon(170);
+			
 			BeaconEnabled = 1;
 	}
 }

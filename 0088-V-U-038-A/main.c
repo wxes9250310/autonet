@@ -233,17 +233,17 @@ void IR_testing2(){
 	uint8_t rcvd_rssi;
 	uint8_t sendFlag;
 
-	Addr = 0x00AA;
+	Addr = 0x00EE;
 	Type = Type_Controller;
 	
-	//Addr = 0x00BB;
+	//Addr = 0x00BC;
 	//Type = Type_Light;
 
 	radio_freq = 2475;
-	radio_panID = 0x00AB;
+	radio_panID = 0x00CC;
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	//setTimer(1,330,UNIT_MS);	// LIGHT
-	setTimer(1,530,UNIT_MS);		// CONTROLLER
+	setTimer(1,500,UNIT_MS);		// CONTROLLER
 	
 	for(i=0;i<10;i++){
 		ID_IR[i] = 0xFF;
@@ -258,7 +258,8 @@ void IR_testing2(){
 			if(checkTimer(1)){
 				if(Type == Type_Controller){
 					num_IR = getDeviceByIR(ID_IR);
-					num_RSSI = getDeviceByRSSI(ID_RSSI, 240, 255);
+					//num_RSSI = getDeviceByRSSI(ID_RSSI, 220, 255);
+					num_RSSI = getDeviceByRSSI(ID_RSSI, 245, 255);
 					
 					// cross compare to find one light
 					T_NUM_BOTH =0;
@@ -295,7 +296,7 @@ void IR_testing2(){
 							for(i=3; i<=(rcvd_length - MAC_HEADER_LENGTH); i++){	
 								if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
 									setGPIO(2,1);
-									setTimer(2, 1500, UNIT_MS);
+									setTimer(2, 1750, UNIT_MS);
 									break;
 								}
 							}
