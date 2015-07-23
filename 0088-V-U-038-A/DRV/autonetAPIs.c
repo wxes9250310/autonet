@@ -133,8 +133,8 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	//Mpu6050Init(0xD0);
 	//Ak8975Init(0x18);
 	//Mcp2120Init();       	/* MCP2120 Initialize */
-	Bh1750fviInit(0x46);
-	//Tmp75Init(0x90);
+	//Bh1750fviInit(0x46);
+	Tmp75Init(0x90);
 	//Mag3110Init(0x1C);
 	
 	_Addr = srcAddr;
@@ -411,9 +411,6 @@ void GPIO_ON(uint8_t n){
 		case 4:
 			GPIOB->BSRR = GPIO_Pin_6;
 			break;
-		case 5:
-			GPIOB->BSRR = GPIO_Pin_7;
-			break;
 		default:
 			break;
 	}
@@ -432,9 +429,6 @@ void GPIO_OFF(uint8_t n){
 			break;
 		case 4:
 			GPIOB->BRR = GPIO_Pin_6;
-			break;
-		case 5:
-			GPIOB->BRR = GPIO_Pin_7;
 			break;
 		default:
 			break;
@@ -545,23 +539,23 @@ uint8_t get_direction(int *heading_deg){
 }
 
 uint8_t get_brightness(unsigned short* brightness){
+	*brightness = 0;
 	
-	brightness = 0;
 	Bh1750fviReadLx(0x46, brightness);
-	
-	// TODO: to test the minimum value of the device
-	if(*brightness !=0)
+	if(*brightness !=0) 
 		return 1;
-	else return 0;
+	else 
+		return 0;
 }
 
 uint8_t get_temperature(float* temp){
-	Tmp75ReadTemperature(0x90, temp);
+	*temp = 0;
 	
-	// TODO: to test the minimum value of the device
-	if(*temp !=0)
+	Tmp75ReadTemperature(0x90, temp);
+	if(*temp !=0) 
 		return 1;
-	else return 0;
+	else 
+		return 0;
 }
 
 uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, uint8_t* Long_min, uint8_t* Long_sec, uint8_t* Lat_dir, uint8_t* Long_dir){
@@ -805,7 +799,7 @@ static void GPIO_Configuration(void)
   GPIO_InitTypeDef GPIO_InitStructure;
 
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_15;
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_15;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;

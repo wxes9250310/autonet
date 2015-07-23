@@ -454,7 +454,8 @@ void testing(){
 	uint8_t rcvd_length;
 	uint8_t rcvd_rssi;
 	
-	unsigned short* brightness;
+	unsigned short* brighness;
+	float* tmp;
 
 	//Addr = 0x00EE;
 	//Type = Type_Controller;
@@ -476,7 +477,7 @@ void testing(){
 	
 	while(1){
 		if(checkTimer(1)){
-			if(get_brightness(brightness)){
+			if(get_temperature(tmp)){
 					setGPIO(1,1);
 					Delay(10);
 					setGPIO(1,0);
