@@ -114,8 +114,8 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	ST_Configuration();
 
 	/* COM configuration */
-	COM1_Configuration();						//for IR sensors
-	COM2_Configuration();						//for IR sensors
+	COM1_Configuration();						//for IR sensor 1
+	COM2_Configuration();						//for IR sensor 2
 	//COM_Configuration();
 
 	/* SPI configuration */
@@ -124,31 +124,35 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	/* I2C configuration */
 	I2C_Configuration();
 
+	/* Sensors' configuration */
+	SENSOR_CONFIGURATION();
+	
 	/* Us2400 Initialization*/
-	//Us2400Init(Freq, PanID, SrcAddr, TPower);
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
 	VARIABLE_Configuration();
-	
-	//Mpu6050Init(0xD0);
-	//Ak8975Init(0x18);
-	//Mcp2120Init();       	/* MCP2120 Initialize */
-	//Bh1750fviInit(0x46);
-	Tmp75Init(0x90);
-	//Mag3110Init(0x1C);
+
 	
 	_Addr = srcAddr;
 	_Type = type;
 	
 	blink(1);
-	//blink(2);
 	TimerBeaconSetting();
+}
+
+void SENSOR_CONFIGURATION(){
+	Mcp2120Init();
+	Bh1750fviInit(0x46);
+	Tmp75Init(0x90);
+	//Mpu6050Init(0xD0);
+	//Ak8975Init(0x18);
+	//Mag3110Init(0x1C);
 }
 
 void VARIABLE_Configuration(){
   for(i = 0;i<NumOfDeviceInTable;i++){
 		table.device[i].address = 0xFFFF;
-		IR_table.IRdevice[i].address = 0xFFFF;
+		IR_table.IRdevice_1[i].address = 0xFFFF;
 	}
 }
 
@@ -259,8 +263,8 @@ uint8_t getDeviceByIR(uint16_t* ID){
 		ID[i] = 0xFFFF;
 	
 	for(i=0;i<NumOfDeviceInTable;i++){
-		if(IR_table.IRdevice[i].address != 0xFFFF){
-			ID[NumofDevice] = IR_table.IRdevice[i].address;
+		if(IR_table.IRdevice_1[i].address != 0xFFFF){
+			ID[NumofDevice] = IR_table.IRdevice_1[i].address;
 			NumofDevice++;
 		}
 	}
@@ -322,7 +326,7 @@ uint16_t ScanTableByAddress(uint16_t scan_value){
 
 uint16_t ScanIRTableByAddress(uint16_t scan_Addr){
 	for(i=0;i<NumOfDeviceInTable;i++){
-		if(scan_Addr == IR_table.IRdevice[i].address){
+		if(scan_Addr == IR_table.IRdevice_1[i].address){
 			return i;
 		}
 	}
@@ -338,9 +342,9 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi){
 }
 
 void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
-	IR_table.IRdevice[n].type = device_type;
-	IR_table.IRdevice[n].address = device_addr;
-	IR_table.IRdevice[n].count = 0;
+	IR_table.IRdevice_1[n].type = device_type;
+	IR_table.IRdevice_1[n].address = device_addr;
+	IR_table.IRdevice_1[n].count = 0;
 }
 
 void UpdateIRTable(){
@@ -349,35 +353,35 @@ void UpdateIRTable(){
 	
 	for(i=0; i<NumOfDeviceInTable; i++){
 		renewFlag  = 0;
-		IR_table.IRdevice[i].count ++;
+		IR_table.IRdevice_1[i].count ++;
 		
-		if(IR_table.IRdevice[i].address != 0xFFFF 
-				&& IR_table.IRdevice[i].address != 0x00 
-				&&IR_table.IRdevice[i].count == resetThreshold){
+		if(IR_table.IRdevice_1[i].address != 0xFFFF 
+				&& IR_table.IRdevice_1[i].address != 0x00 
+				&&IR_table.IRdevice_1[i].count == resetThreshold){
 			renewFlag = 1;
 			numOfIR --;
 				}
-		if(IR_table.IRdevice[i].count == resetThreshold){
-			IR_table.IRdevice[i].count = 0;
+		if(IR_table.IRdevice_1[i].count == resetThreshold){
+			IR_table.IRdevice_1[i].count = 0;
 		}
 		
 		if(renewFlag == 1){		
 			if(i+1 <= NumOfDeviceInTable){
-				IR_table.IRdevice[i].type = IR_table.IRdevice[i+1].type;
-				IR_table.IRdevice[i].address = IR_table.IRdevice[i+1].address;
-				IR_table.IRdevice[i].count = IR_table.IRdevice[i+1].count;
+				IR_table.IRdevice_1[i].type = IR_table.IRdevice_1[i+1].type;
+				IR_table.IRdevice_1[i].address = IR_table.IRdevice_1[i+1].address;
+				IR_table.IRdevice_1[i].count = IR_table.IRdevice_1[i+1].count;
 			}
 			else{
-				IR_table.IRdevice[i].type = 0x00;
-				IR_table.IRdevice[i].address = 0xFFFF;
-				IR_table.IRdevice[i].count = 0x00;
+				IR_table.IRdevice_1[i].type = 0x00;
+				IR_table.IRdevice_1[i].address = 0xFFFF;
+				IR_table.IRdevice_1[i].count = 0x00;
 			}
 		}
 	}
 }
 
 void ResetCountIRTable(uint8_t n){
-	IR_table.IRdevice[n].count = 0;
+	IR_table.IRdevice_1[n].count = 0;
 }
 
 void blink(uint8_t n){
@@ -540,7 +544,6 @@ uint8_t get_direction(int *heading_deg){
 
 uint8_t get_brightness(unsigned short* brightness){
 	*brightness = 0;
-	
 	Bh1750fviReadLx(0x46, brightness);
 	if(*brightness !=0) 
 		return 1;
@@ -550,7 +553,6 @@ uint8_t get_brightness(unsigned short* brightness){
 
 uint8_t get_temperature(float* temp){
 	*temp = 0;
-	
 	Tmp75ReadTemperature(0x90, temp);
 	if(*temp !=0) 
 		return 1;
@@ -648,8 +650,8 @@ uint8_t get_LOS_device(uint16_t* ID){
 		ID[i] = 0xFFFF;
 	
 	for(i=0;i<NumOfDeviceInTable;i++){
-		if(IR_table.IRdevice[i].address != 0xFFFF){
-			ID[NumofDevice] = IR_table.IRdevice[i].address;
+		if(IR_table.IRdevice_1[i].address != 0xFFFF){
+			ID[NumofDevice] = IR_table.IRdevice_1[i].address;
 			NumofDevice++;
 		}
 	}

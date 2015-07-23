@@ -58,32 +58,9 @@ static unsigned char Mcp2120ComplementCalc(unsigned char *p, unsigned char num);
 * Output         : None
 * Return         : None
 *******************************************************************************/
-
-// unused initialization
-/*
 void Mcp2120Init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStructure;
-
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_15;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-  GPIO_Init(GPIOB, &GPIO_InitStructure);
-
-  GPIOB->BSRR = GPIO_Pin_15;  //MODE
-  GPIOB->BSRR = GPIO_Pin_7;   //ENABLE
-  GPIOB->BRR = GPIO_Pin_6;    //RESET
-
-  Delay(50);
-
-  GPIOB->BSRR = GPIO_Pin_6;
-  GPIOB->BSRR = GPIO_Pin_7;
-  GPIOB->BSRR = GPIO_Pin_15;
 }
-*/
 
 /*******************************************************************************
 * Function Name  : MCP2120_write Infrared 
