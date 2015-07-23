@@ -477,7 +477,7 @@ void testing(){
 	
 	while(1){
 		if(checkTimer(1)){
-			if(get_temperature(tmp)){
+			if(get_motion_status()){
 					setGPIO(1,1);
 					Delay(10);
 					setGPIO(1,0);

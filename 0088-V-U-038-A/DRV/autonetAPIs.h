@@ -93,6 +93,10 @@ uint8_t get_temperature(float* temp);
 uint8_t get_velocity(int* speed);
 //void get_gps(void);
 uint8_t get_LOS_device(uint16_t* ID);
+uint8_t get_motion_status(void);
+uint8_t Pir_StatusCheck(void);
+
+
 void update_sensor_table(void);
 void packet_receive(void);
 void IR_receive(int);
