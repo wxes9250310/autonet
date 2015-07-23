@@ -199,7 +199,6 @@ void ChangeLight(uint8_t MyWeight){
 			break;
 	}
 }
-
 /*******************************************************************************
 * Application Name  : Direction Local Grouping
 * Description    		: Application
