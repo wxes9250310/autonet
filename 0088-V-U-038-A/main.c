@@ -76,7 +76,8 @@ int main(void)
 
 	//IR_testing();
 	//app_group_direction();
-	app_remote_control();
+	//app_remote_control();
+	testing();
 }
 
 void WeightBroadCast(uint8_t weight){
@@ -453,6 +454,8 @@ void testing(){
 	uint8_t rcvd_msg[256];
 	uint8_t rcvd_length;
 	uint8_t rcvd_rssi;
+	
+	unsigned short* brightness;
 
 	//Addr = 0x00EE;
 	//Type = Type_Controller;
@@ -469,19 +472,21 @@ void testing(){
 		setGPIO(1,1);
 	}
 	else if(Type == Type_Light) {
-		setTimer(1,330,UNIT_MS);	// LIGHT
+		setTimer(1,500,UNIT_MS);	// LIGHT
 	}
 	
 	while(1){
-			if(checkTimer(1)){
-				if(Type == Type_Controller){
-					
+		if(checkTimer(1)){
+			if(get_brightness(brightness)){
+					setGPIO(1,1);
+					Delay(10);
+					setGPIO(1,0);
 				}
-				
-				if(Type == Type_Light){
-					
-				}		
-
+				else{
+					setGPIO(2,1);
+					Delay(10);
+					setGPIO(2,0);				
+				}
 		}	
 	}
 }

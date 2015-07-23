@@ -44,6 +44,7 @@ int StateFour(uint8_t*,uint8_t*,uint8_t*);
 void ChangeLight(uint8_t);
 void WeightBroadCast(uint8_t);
 void app_remote_control(void);
+void testing(void);
 	 
 #ifdef __cplusplus
 }
