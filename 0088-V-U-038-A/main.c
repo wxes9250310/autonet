@@ -76,7 +76,7 @@ int main(void)
 
 	//IR_testing();
 	//app_group_direction();
-	IR_testing2();
+	app_remote_control();
 }
 
 void WeightBroadCast(uint8_t weight){
@@ -196,117 +196,6 @@ void ChangeLight(uint8_t MyWeight){
 			setGPIO(1 ,1);
 			setGPIO(2 ,1);
 			break;
-	}
-}
-
-void IR_testing2(){
-	uint8_t Type;
-	uint16_t Addr;
-	uint16_t radio_freq;
-	uint16_t radio_panID;
-
-	unsigned char IR_BufferRx1[64] = {0x0};
-	unsigned char IR_BufferRx2[64] = {0x0};
-	unsigned short IR_Buffer_Length1;
-	unsigned short IR_Buffer_Length2;
-	unsigned char rcvd_type1, rcvd_type2;
-	unsigned char rcvd_addr1, rcvd_addr2;
-	uint8_t TxBuffer[256],i=0;
-	uint16_t rcvd_addr;
-	uint16_t ID_IR[10];
-	uint16_t ID_RSSI[10];
-	uint16_t ID_Both[10];
-	uint8_t T_NUM_IR = 0;
-	uint8_t T_NUM_RSSI = 0;
-	uint8_t T_NUM_BOTH = 0;
-	uint16_t target;
-	uint8_t num_IR = 0;
-	uint8_t num_RSSI = 0;
-	uint8_t k = 0;
-	uint8_t existingFlag = 0;
-	uint8_t renewFlag = 0;
-	uint16_t Goal;
-	
-	uint8_t msg[256];
-	uint8_t rcvd_msg[256];
-	uint8_t rcvd_length;
-	uint8_t rcvd_rssi;
-	uint8_t sendFlag;
-
-	Addr = 0x00EE;
-	Type = Type_Controller;
-	
-	//Addr = 0x00BC;
-	//Type = Type_Light;
-
-	radio_freq = 2475;
-	radio_panID = 0x00CC;
-	Initial(Addr, Type, radio_freq, radio_panID);	
-	//setTimer(1,330,UNIT_MS);	// LIGHT
-	setTimer(1,500,UNIT_MS);		// CONTROLLER
-	
-	for(i=0;i<10;i++){
-		ID_IR[i] = 0xFF;
-		ID_RSSI[i] = 0xFF;
-		ID_Both[i] = 0xFF;
-	}			
-	
-	if(Type == Type_Controller)
-		setGPIO(1,1);
-	
-	while(1){
-			if(checkTimer(1)){
-				if(Type == Type_Controller){
-					num_IR = getDeviceByIR(ID_IR);
-					//num_RSSI = getDeviceByRSSI(ID_RSSI, 220, 255);
-					num_RSSI = getDeviceByRSSI(ID_RSSI, 245, 255);
-					
-					// cross compare to find one light
-					T_NUM_BOTH =0;
-					if(num_IR > 0 && num_RSSI > 0){
-						for(k=0; k<NumOfDeviceInTable; k++){
-							if(ID_RSSI[k]!=0xFFFF){
-								for(i=0; i<NumOfDeviceInTable; i++){
-									if(ID_IR[i]!=0xFFFF){
-										if(ID_RSSI[k] == ID_IR[i] && ID_RSSI[k] != 0xFFFF){
-											ID_Both[T_NUM_BOTH] = ID_RSSI[k];
-											T_NUM_BOTH ++;
-										}
-									}
-								}
-							}
-						}
-					}
-					if(T_NUM_BOTH>0){
-						msg[0] = 0x01;
-						msg[1] = T_NUM_BOTH;
-						msg[2] = Type_Light;
-						for(i=0; i<T_NUM_BOTH;i++){
-							msg[3 + i] = ID_Both[i];
-						}
-						RF_Tx(0xFFFF, msg, 10);
-					}		
-				}
-				
-				if(Type == Type_Light){
-					if(RF_Rx(rcvd_msg,&rcvd_length,&rcvd_rssi)){
-						if(rcvd_msg[MAC_HEADER_LENGTH + 0] == 0x01 && 
-							rcvd_msg[MAC_HEADER_LENGTH + 1] > 0x00 && 
-							rcvd_msg[MAC_HEADER_LENGTH + 2] == Type_Light ){
-							for(i=3; i<=(rcvd_length - MAC_HEADER_LENGTH); i++){	
-								if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
-									setGPIO(2,1);
-									setTimer(2, 1750, UNIT_MS);
-									break;
-								}
-							}
-						}							
-					}
-				}		
-				if(checkTimer(2)){
-					setGPIO(2,0);
-				}
-		}	
 	}
 }
 
@@ -433,207 +322,167 @@ void app_light_direction(){
 		
 }
 */
+
 /*******************************************************************************
-* Application Name  : Automatically turns on near lights
-* Description    		: When a controller approaches lights, they will turn on  
-*                   : their lights automatically
+* Application Name  : Automatically turns on near lights in LOS
+* Description    		: When a controller approaches lights, they will turn on 
+*                   : their lights
 * Author            : Ed Kung
+* Date              : 2015.07.23
 *******************************************************************************/
-void app_control_light(){ 
-		
+void app_remote_control(){
 	uint8_t Type;
 	uint16_t Addr;
 	uint16_t radio_freq;
 	uint16_t radio_panID;
 
-	int times =0;
-	uint8_t i,k;
-	uint8_t state;
-	uint8_t detect;  
-	uint8_t RSSI;
-	uint8_t TxData[256];  
-	uint8_t RxData[256];
-	uint8_t Tx_DataLen;
-	uint8_t Rx_DataLen;
-	uint8_t Rx_Payload[256];
-	uint8_t neighborNum = 0;
-	uint8_t addFlag=0;							// record whether to renew the lighting table in the controller
-	uint8_t outFlag =0;
-	uint16_t neighbor[10];
-	uint16_t RSSI_THRESHOLD = 200;	
-	uint8_t r_DeviceAddr;						// the address of received devices 
-	uint8_t msgLightFlag;
+	uint8_t i, k;
+	uint16_t ID_LOS[10];
+	uint16_t ID_RSSI[10];
+	uint16_t ID_Both[10];
+	uint8_t T_NUM_IR = 0;
+	uint8_t T_NUM_RSSI = 0;
+	uint8_t T_NUM_BOTH = 0;
+	uint8_t num_LOS = 0;
+	uint8_t num_RSSI = 0;
+	
+	uint8_t msg[256];
+	uint8_t rcvd_msg[256];
+	uint8_t rcvd_length;
+	uint8_t rcvd_rssi;
 
-	// Initialization
-	//Addr = 0x0005;
-	//Type = Type_Light;
-	Addr = 0x00FF;
-	Type = Type_Controller;
-	radio_freq = 2450;
-	radio_panID = 0x00AA;
-	Initial(Addr, Type, radio_freq, radio_panID);
+	//Addr = 0x00EE;
+	//Type = Type_Controller;
+	
+	Addr = 0x00BC;
+	Type = Type_Light;
 
-	// set timers
-	setTimer(1, 500, UNIT_MS);
-	setTimer(2, 500, UNIT_MS);
-
-	while(1){ 	
-		if(Type == Type_Light){											// Light
-				Delay(10);
-				// check whether the device should open the light or not
-				if(checkTimer(1)){											// check every 1000 ms							
-					times++;
-					if(times==4){												  // every 2000 ms reset the light
-						times=0;
-						setGPIO(1, 0);
-					}
-					if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){	// returns 1 if it has received something
-						if(RxData[MAC_HEADER_LENGTH + 0] == Message_Light){		// lighting message
-							// check the address of the devices whether exists or not
-							for(i=1; i<= (Rx_DataLen-MAC_HEADER_LENGTH); i++){											
-								if(RxData[MAC_HEADER_LENGTH + i]==Addr){
-									setGPIO(1, 1);
-								}
-							}	
-						}
-					}
-				}
-		}
-		
-		else if(Type == Type_Controller){
-			// check whether the device should open the light or not
-			if(checkTimer(2)){										
-				if(RF_Rx(RxData,&Rx_DataLen,&RSSI)){		// check whether a received frame exists
-					if(RxData[MAC_HEADER_LENGTH + 0] == 0xFF 
-											&& RxData[MAC_HEADER_LENGTH + 2] == Type_Light){
-						r_DeviceAddr = RxData[MAC_HEADER_LENGTH + 1];
+	radio_freq = 2475;
+	radio_panID = 0x00CC;
+	Initial(Addr, Type, radio_freq, radio_panID);	
+	
+	for(i=0;i<10;i++){
+		ID_LOS[i] = 0xFF;
+		ID_RSSI[i] = 0xFF;
+		ID_Both[i] = 0xFF;
+	}			
+	
+	if(Type == Type_Controller){
+		setTimer(1,500,UNIT_MS);		// CONTROLLER
+		setGPIO(1,1);
+	}
+	else if(Type == Type_Light) {
+		setTimer(1,330,UNIT_MS);	// LIGHT
+	}
+	
+	while(1){
+			if(checkTimer(1)){
+				if(Type == Type_Controller){
+					num_LOS = get_LOS_device(ID_LOS);
+					num_RSSI = getDeviceByRSSI(ID_RSSI, 180, 255);
+					//num_RSSI = getDeviceByRSSI(ID_RSSI, 245, 255);
 					
-						if(RSSI >= RSSI_THRESHOLD){						// near enough
-							addFlag = 0;												
-							for(k=0; k<=neighborNum; k++){			// check neighbors list
-								if(neighbor[k] != r_DeviceAddr){	// the devices does not exist in the list
-									addFlag = 1;										// need to renew the list of neighbors									
+					// cross compare to find one light
+					T_NUM_BOTH =0;
+					if(num_LOS > 0 && num_RSSI > 0){
+						for(k=0; k<NumOfDeviceInTable; k++){
+							if(ID_RSSI[k]!=0xFFFF){
+								for(i=0; i<NumOfDeviceInTable; i++){
+									if(ID_LOS[i]!=0xFFFF){
+										if(ID_RSSI[k] == ID_LOS[i] && ID_RSSI[k] != 0xFFFF){
+											ID_Both[T_NUM_BOTH] = ID_RSSI[k];
+											T_NUM_BOTH ++;
+										}
+									}
 								}
-								else{															// the devices already exists in the list
-									addFlag = 0;
-									break;	
-								}
-							}
-							
-							if(addFlag ==1){										// add the device into the list
-									neighbor[neighborNum++] = r_DeviceAddr;
 							}
 						}
-						else{																	// not near enough 
-							for(k=0; k<=neighborNum; k++){			// check neighbors list
-								if(neighbor[k] == r_DeviceAddr){
-									outFlag = 1;										// renew the list of neighbors
-									neighborNum --;
-								}
-								if(outFlag ==1){									// delete it from the list and 
-									neighbor[k] = neighbor[k+1];		// shift remaining addresses left by one byte
+					}
+					if(T_NUM_BOTH>0){
+						msg[0] = 0x01;
+						msg[1] = T_NUM_BOTH;
+						msg[2] = Type_Light;
+						for(i=0; i<T_NUM_BOTH;i++){
+							msg[3 + i] = ID_Both[i];
+						}
+						RF_Tx(0xFFFF, msg, 10);
+					}		
+				}
+				
+				if(Type == Type_Light){
+					if(RF_Rx(rcvd_msg,&rcvd_length,&rcvd_rssi)){
+						if(rcvd_msg[MAC_HEADER_LENGTH + 0] == 0x01 && 
+							rcvd_msg[MAC_HEADER_LENGTH + 1] > 0x00 && 
+							rcvd_msg[MAC_HEADER_LENGTH + 2] == Type_Light ){
+							for(i=3; i<=(rcvd_length - MAC_HEADER_LENGTH); i++){	
+								if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
+									setGPIO(2,1);
+									setTimer(2, 1750, UNIT_MS);
+									break;
 								}
 							}
-							outFlag=0;													// reset the flag
-						}
+						}							
 					}
-				}
-				
-				if(neighborNum != 0)										// need to send lighting message
-					msgLightFlag = 1;
-				else 
-					msgLightFlag = 0;
-				
-				if(msgLightFlag){	 										 // need to send lighting messages
-
-					for(i =0; i<= 10; i++){
-						TxData[i] = 0;
-					}
-					// contruction of lighting message frame
-					TxData[0]= Message_Light;		
-					for(i =1; i<= neighborNum; i++){
-						TxData[i] = neighbor[i-1];
-					}
-					// broadcast the packet
-					RF_Tx(0xFFFF, TxData, 2);
-				}
+				}		
+		}	
+		if(checkTimer(2)){
+			if(Type == Type_Light){
+				setTimer(2, 0, UNIT_MS);
+				setGPIO(2,0);
 			}
 		}
 	}
 }
 
-/*******************************************************************************
-* Application Name  : IR testing 
-* Description    		: 1. transmitter and receiver
-*                   : 2. IR beacon
-* Author            : Ed Kung
-*******************************************************************************/
-void IR_testing(){
 
-	uint16_t Addr;
+/*******************************************************************************
+* Application Name  : Testing
+* Description    		: Testing the abilities of the platform
+* Author            : Ed Kung
+* Date              : 2015.07.23
+*******************************************************************************/
+void testing(){
 	uint8_t Type;
-	uint8_t detect;
+	uint16_t Addr;
 	uint16_t radio_freq;
 	uint16_t radio_panID;
-	unsigned short IR_Buffer_Length1;
-	unsigned short IR_Buffer_Length2;
 
-	unsigned char rcvd_type1, rcvd_type2;
-	unsigned char rcvd_addr1, rcvd_addr2;
-
-	unsigned char IR_BufferTx[64] = {0x0};
-	unsigned char IR_BufferRx1[64] = {0x0};
-	unsigned char IR_BufferRx2[64] = {0x0};
-	unsigned short Lux =0;
-
-	Type = 0x01;
-	Addr = 0x00AA;
-	radio_freq = 2475;
-	radio_panID = 0x00AA;
-	Initial(Addr, Type, radio_freq, radio_panID);
+	uint8_t i, k;
 	
-	//Timer_Beacon(100);	
-	setTimer(1, 200, UNIT_MS);
-	setTimer(2, 1000, UNIT_MS);
+	uint8_t msg[256];
+	uint8_t rcvd_msg[256];
+	uint8_t rcvd_length;
+	uint8_t rcvd_rssi;
 
-	while(1){ 	
-		if(checkTimer(1)){
-			if(Type == 0x01){		// observer
-				IR_read(IR_BufferRx1, &IR_Buffer_Length1, 1);
-				Delay(10);
-				IR_read(IR_BufferRx2, &IR_Buffer_Length2, 2);
+	//Addr = 0x00EE;
+	//Type = Type_Controller;
+	
+	Addr = 0x00BC;
+	Type = Type_Light;
 
-				if(IR_Buffer_Length1 !=0){
-					rcvd_type1 =  IR_BufferRx1[2];
-					rcvd_addr1 =  IR_BufferRx1[3];				
-					if(rcvd_type1 == 0x02)
-						blink(1);
+	radio_freq = 2475;
+	radio_panID = 0x00CC;
+	Initial(Addr, Type, radio_freq, radio_panID);	
+	
+	if(Type == Type_Controller){
+		setTimer(1,500,UNIT_MS);		// CONTROLLER
+		setGPIO(1,1);
+	}
+	else if(Type == Type_Light) {
+		setTimer(1,330,UNIT_MS);	// LIGHT
+	}
+	
+	while(1){
+			if(checkTimer(1)){
+				if(Type == Type_Controller){
+					
 				}
 				
-				if(IR_Buffer_Length2 !=0){
-					rcvd_type2 =  IR_BufferRx2[2];
-					rcvd_addr2 =  IR_BufferRx2[3];
-					if(rcvd_type2 == 0x02)
-						blink(1);
-				}
-				
-				rcvd_type1 = rcvd_type2 = rcvd_addr1 = rcvd_addr2 = 0x00;
-				IR_Buffer_Length1 = IR_Buffer_Length2 = 0;
-			}
-		}
-		if(checkTimer(2)){
-			if(Type == 0x02){
-				
-  			IR_BufferTx[0] = (unsigned char) Addr;
-				IR_BufferTx[1] = (unsigned char) Type;
+				if(Type == Type_Light){
+					
+				}		
 
-				blink(1);
-				IR_write(IR_BufferTx, 2 , 1);
-				Delay(10);
-				IR_write(IR_BufferTx, 2 , 2);
-				Delay(10);
-			}
-		}
+		}	
 	}
 }
 

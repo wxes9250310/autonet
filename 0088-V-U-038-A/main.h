@@ -37,13 +37,13 @@ void app_control_light(void);
 void light_testing(void);
 void app_group_direction(void);
 void IR_testing(void);
-void IR_testing2(void);
 void StateOne(uint8_t*);
 void StateTwo(uint8_t*,uint8_t*);	 
 int StateThree(uint8_t*,uint8_t*,uint8_t*);
 int StateFour(uint8_t*,uint8_t*,uint8_t*);
 void ChangeLight(uint8_t);
 void WeightBroadCast(uint8_t);
+void app_remote_control(void);
 	 
 #ifdef __cplusplus
 }

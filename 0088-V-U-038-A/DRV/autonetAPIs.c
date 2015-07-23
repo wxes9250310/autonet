@@ -76,10 +76,9 @@ enum{
 };
 
 enum{
-	Type_Controller = 0x00,			// delete? 
+	Type_Controller = 0x00,
 	Type_Light = 0x01,
 	Type_Switch = 0x02,
-	Type_IR = 0x03,
 };
 
 uint16_t _Addr;
@@ -165,20 +164,15 @@ void TimerBeaconSetting(){
 			Timer_Beacon(1000);
 			BeaconEnabled = 1;
 	}
-	else if(_Type == Type_IR){
-			Timer_Beacon(2000);
-			BeaconEnabled = 1;
-	}
 	else{ 											
-			Timer_Beacon_Read(100);
-			//Timer_IR_Beacon_Read(140);
+			Timer_Beacon_Read(97);
 			Timer_IR_Beacon_Read(27);
-		  //Timer_Beacon_Read(100);
-			Timer_Beacon(123);
+			Timer_Beacon(121);
 			Timer_IR_Beacon(80);
+			//Timer_IR_Beacon_Read(140);
+		  //Timer_Beacon_Read(100);
 			//Timer_IR_Beacon(280);
 			//Timer_Beacon(170);
-			
 			BeaconEnabled = 1;
 	}
 }
@@ -527,6 +521,7 @@ unsigned char pos2;
 //int Minute = 0;
 
 uint8_t get_direction(int *heading_deg){
+	
 	I2COccupied = 1;
 	Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
 	Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
@@ -550,6 +545,8 @@ uint8_t get_direction(int *heading_deg){
 }
 
 uint8_t get_brightness(unsigned short* brightness){
+	
+	brightness = 0;
 	Bh1750fviReadLx(0x46, brightness);
 	
 	// TODO: to test the minimum value of the device
@@ -649,22 +646,21 @@ int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz
 	return (var_compass);
 }
 
-/*
-void get_LOS_address(char *f_id, char *r_id){
+// TODO: to support different UART
+uint8_t get_LOS_device(uint16_t* ID){
 		
-	  // TODO: there might be more than one car in front of or in rear of, we need buffers
-	  // TODO: integrate following codes
-		// TODO: return 0xFF is there is no car in front or rear of it
-	  Mcp2120Tx((unsigned char *)s1, 2 , FRONT);
-		Delay(10);
-	  Mcp2120Proc();
-		Mcp2120Tx((unsigned char *)s2, 2 , REAR);
-		Delay(10);
+	int NumofDevice = 0;
+	for(i=0;i<NumOfDeviceInTable;i++)
+		ID[i] = 0xFFFF;
 	
-	  *f_id = FRONT;
-		*r_id = REAR;
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(IR_table.IRdevice[i].address != 0xFFFF){
+			ID[NumofDevice] = IR_table.IRdevice[i].address;
+			NumofDevice++;
+		}
+	}
+	return NumofDevice;
 }
-*/
 
 
 void update_sensor_table(){

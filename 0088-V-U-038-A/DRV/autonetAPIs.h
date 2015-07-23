@@ -92,7 +92,7 @@ uint8_t get_gps(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint
 uint8_t get_temperature(float* temp);
 uint8_t get_velocity(int* speed);
 //void get_gps(void);
-void get_LOS_address(char *f_id, char *r_id);
+uint8_t get_LOS_device(uint16_t* ID);
 void update_sensor_table(void);
 void packet_receive(void);
 void IR_receive(int);
@@ -108,7 +108,6 @@ uint16_t ScanTableByAddress(uint16_t);
 uint16_t ScanIRTableByAddress(uint16_t);
 void setTable(uint8_t,uint16_t,uint8_t,uint8_t);
 void setIRTable(uint8_t,uint16_t,uint8_t);
-uint8_t getDeviceByIR(uint16_t* ID);
 uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max);
 void ResetCountIRTable(uint8_t n);
 void UpdateIRTable(void);
