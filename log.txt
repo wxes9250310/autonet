@@ -1,1 +1,1 @@
-////////////////////
+Seperating beacon from timer, 2015.07.24 - Chen Han, Ed Kung
