@@ -94,6 +94,7 @@ uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max);
 
 /* Sensors' Accessing APIs */
 uint8_t Pir_StatusCheck(void);
+
 void Mag_Error_Handle (short *pX,short *pY,short *pZ, short *max_x, short *min_x, short *max_y, short *min_y, short *max_z, short *min_z);
 int Mag_flatsurface(short *pX,short *pY);
 void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length);
