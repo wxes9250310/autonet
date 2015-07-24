@@ -43,6 +43,7 @@
 #define PAN_ID  0x00AA  
 #define FRONT 1
 #define REAR 2
+#define TimeForRemoveDeviceFromTable 5000
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -90,6 +91,7 @@ extern uint8_t DataLen;
 extern uint8_t RSSI_BC;
 
 extern TimObjTypeDef_s TimObj;
+extern TimForTableDef_s TimForTable;
 extern int BeaconTimerFlag;
 extern int IR_BeaconTimerFlag;
 /* Private function prototypes -----------------------------------------------*/
@@ -180,6 +182,7 @@ void TimerBeaconSetting(){
 }
 
 void beacon(void){
+	int i;
 	if(BeaconEnabled == 1){	
 		/* Receive RF */
 		if(RF_RX_AUTONET()){				// check AutoNet header
@@ -201,8 +204,25 @@ void beacon(void){
 			IRupdate();
 			IR_BeaconTimerFlag = 0;
 		}
+		for(i = 0;i<NumOfDeviceInTable;i++){
+			if((TimForTable.TimeoutFlagForTable & (1 << i)) == (1 << i)){
+				RemoveDeviceFromTable(i);
+			}
+		}
 	}
 	else;
+}
+
+void ResetDeviceTimerInTable(int i){
+	TimForTable.TimeEnableFlagForTable = TimForTable.TimeEnableFlagForTable | (1 << i);
+	TimForTable.Ticks[i] = TimeForRemoveDeviceFromTable;
+}
+
+void RemoveDeviceFromTable(int i){
+	table.device[i].address = 0xFFFF;
+	TimForTable.TimeEnableFlagForTable = TimForTable.TimeEnableFlagForTable & ~(1 << i);
+	TimForTable.TimeoutFlagForTable = TimForTable.TimeoutFlagForTable & ~(1 << i);
+	TimForTable.Ticks[i] = 0;
 }
 
 void broadcastSend(void)
@@ -242,10 +262,12 @@ void packet_receive(void)
 		newIndex = ScanTableByAddress(0xFFFF);
 		if(newIndex != 0xFF){
 			setTable(newIndex,addr,type,rssi);
+			ResetDeviceTimerInTable(newIndex);
 		}
 	}
 	else{
 		setTable(index,addr,type,rssi);
+		ResetDeviceTimerInTable(index);
 	}
 }
 

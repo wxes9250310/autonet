@@ -16,7 +16,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx.h"
-
+#define NumOfDeviceInTable 64
 /* Exported types ------------------------------------------------------------*/
 typedef enum
 {
@@ -36,6 +36,12 @@ typedef struct {
   TimTypeDef_s Tim[TIM_n];
 	uint8_t TimeoutFlag;
 } TimObjTypeDef_s;
+
+typedef struct {
+	uint64_t TimeEnableFlagForTable;
+	uint64_t TimeoutFlagForTable;
+  uint32_t Ticks[NumOfDeviceInTable];
+} TimForTableDef_s;
 
 #define TIMOUT_FLAG_STOP     		0x01
 #define TIMOUT_FLAG_DELAY     	0x02

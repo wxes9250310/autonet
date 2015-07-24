@@ -20,55 +20,6 @@
 //
 int main(void)
 {
-	/*
-	uint8_t Type;
-	uint16_t Addr;
-	uint16_t radio_freq;
-	uint16_t radio_panID;
-	uint8_t State=0;
-	uint8_t MyWeight = 0xFF;
-	uint8_t MaxWeight = 0;
-	Addr = 0x0001;
-	Type = Type_Light;
-	radio_freq = 2475;
-	radio_panID = 0x00AA;
-
-	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,500,UNIT_MS);
-	
-	while(1){
-		beacon();
-		ChangeLight(MyWeight);
-		if(checkTimer(1))
-			WeightBroadCast(MyWeight);
-		switch(State){
-			case 0:
-				MyWeight = rand()%3;
-			  State = 1;
-			  setTimer(2,2000,UNIT_MS);
-				break;
-			case 1:
-				StateOne(&MyWeight);
-			  if(checkTimer(2)){
-					State = 2;
-					setTimer(2,0,UNIT_MS);
-				}
-				break;
-			case 2:
-				StateTwo(&MyWeight,&State);
-				break;
-			case 3:
-				StateThree(&MyWeight,&State,&MaxWeight);
-				if(checkTimer(3)){
-					State = 0;
-				}
-				break;
-			case 4:
-				StateFour(&MyWeight,&State,&MaxWeight);
-				break;
-		}
-	}
-	*/
 	//ControlLight();
 	//app_light_direction();
 	//app_control_light();
@@ -76,7 +27,7 @@ int main(void)
 
 	//IR_testing();
 	//app_group_direction();
-	app_remote_control();
+	//app_remote_control();
 	//testing();
 }
 

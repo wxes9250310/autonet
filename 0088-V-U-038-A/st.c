@@ -24,6 +24,11 @@ TimObjTypeDef_s TimObj =
   0
 };
 
+TimForTableDef_s TimForTable = 
+{
+	0,0
+};
+
 /* Exported variables --------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/

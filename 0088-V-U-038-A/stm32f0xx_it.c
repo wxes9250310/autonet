@@ -49,6 +49,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern TimObjTypeDef_s TimObj;
+extern TimForTableDef_s TimForTable;
 
 extern uint16_t _Addr;
 extern uint8_t _Type;
@@ -88,6 +89,9 @@ int Timer_Connect_Flag[NUM_TIME_FLAG];
 unsigned int timer_ticks[NUM_TIME_FLAG];
 unsigned int timer_period[NUM_TIME_FLAG];
 uint8_t timer_flag[NUM_TIME_FLAG];
+
+/* Timer for Sensor information table handle */
+
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -204,42 +208,16 @@ void SysTick_Handler(void)
 			}
 		}
   }
-	
-	//if(RFTxState == 0 && BeaconEnabled && I2COccupied == 0 && IRTxState == 0)
-	//	AllowToDo=1;
-	
-	/* Beacon Read */
-	/*
-	if(Timer_Connect_Flag_Beacon_read==1){
-		if(timer_ticks_Beacon_read != 0)
-			--timer_ticks_Beacon_read;
-		if(timer_ticks_Beacon_read == 0 && AllowToDo == 1){
-			timer_ticks_Beacon_read = timer_period_Beacon_read;
-			if(RFRxOccupied == 0){	
-				if(RF_RX_AUTONET()){
-					packet_receive();
-				}
-			}
+
+	for (i = 0; i < NumOfDeviceInTable; i++) {
+		if(TimForTable.TimeEnableFlagForTable == 1){
+			TimForTable.Ticks[i] -= TimForTable.Ticks[i]!=0;
+		}
+		if(TimForTable.Ticks[i] == 0){
+			TimForTable.TimeoutFlagForTable |= 1 << i;
 		}
 	}
-	*/
-	/* IR Beacon Read */
-	/*
-	if(Timer_Connect_Flag_IR_Beacon_read == 1){
-		if(timer_ticks_IR_Beacon_read != 0)
-			--timer_ticks_IR_Beacon_read;
-
-		if(timer_ticks_IR_Beacon_read == 0 && AllowToDo ==1){
-			timer_ticks_IR_Beacon_read = timer_period_IR_Beacon_read;
-			if(IRRxState == 0){
-				if(IR_broadcast_read(1)){
-					IR_receive(1);
-				}
-			}
-		}
-	}
-	*/
-
+	
 	
 	/* Beacon */
 	if(Timer_Connect_Flag_Beacon==1){
@@ -248,7 +226,6 @@ void SysTick_Handler(void)
 		if(timer_ticks_Beacon == 0){
 			timer_ticks_Beacon = timer_period_Beacon;
 			BeaconTimerFlag = 1;
-			//broadcastSend();
 		}
 	}
 	
@@ -259,8 +236,6 @@ void SysTick_Handler(void)
 		if(timer_ticks_IR_Beacon == 0){
 			timer_ticks_IR_Beacon = timer_period_IR_Beacon;
 			IR_BeaconTimerFlag = 1;
-			//IR_broadcast(_Addr, _Type, 1);
-			//IRupdate();
 		}
 	}
 }

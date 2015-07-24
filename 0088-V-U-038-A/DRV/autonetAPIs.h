@@ -17,10 +17,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "us2400APIs.h"
 #include "st.h"
-	 
-/* Private define ------------------------------------------------------------*/
-#define NumOfDeviceInTable 10
 
+/* Private define ------------------------------------------------------------*/
 /* Structure definition ------------------------------------------------------*/
 enum RECEVIE_DATA_TABLE
 {
@@ -114,6 +112,8 @@ uint16_t ScanIRTableByAddress(uint16_t);
 void update_sensor_table(void);
 void setTable(uint8_t,uint16_t,uint8_t,uint8_t);
 void setIRTable(uint8_t,uint16_t,uint8_t);
+void RemoveDeviceFromTable(int);
+void ResetDeviceTimerInTable(int);
 void ResetCountIRTable(uint8_t n);
 void UpdateIRTable(void);
 void IRupdate(void);
