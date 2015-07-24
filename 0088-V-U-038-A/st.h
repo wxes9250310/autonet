@@ -21,11 +21,8 @@
 typedef enum
 {
 	TIM_STOP = 0,
-	TIM_2,
 	TIM_DELAY,
 	TIM_100MS,
-	TIM_200MS,
-	TIM_1000MS,
 	TIM_IR,
 	TIM_n
 } TmrTypeDef_e;
@@ -41,12 +38,9 @@ typedef struct {
 } TimObjTypeDef_s;
 
 #define TIMOUT_FLAG_STOP     		0x01
-#define TIMOUT_FLAG_2       		0x02
-#define TIMOUT_FLAG_DELAY   		0x04
-#define TIMOUT_FLAG_100MS	  		0x08
-#define TIMOUT_FLAG_200MS   		0x10
-#define TIMOUT_FLAG_1000MS  		0x20
-#define TIMOUT_FLAG_IR					0x40
+#define TIMOUT_FLAG_DELAY     	0x02
+#define TIMOUT_FLAG_100MS	  		0x04
+#define TIMOUT_FLAG_IR					0x08
 
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
