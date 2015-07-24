@@ -90,7 +90,7 @@ extern uint8_t RSSI_BC;
 
 extern TimObjTypeDef_s TimObj;
 extern int BeaconTimerFlag;
-
+extern int IR_BeaconTimerFlag;
 /* Private function prototypes -----------------------------------------------*/
 static void GPIO_Configuration(void);
 static void EXTI_Configuration(void);
@@ -161,7 +161,6 @@ void TimerBeaconSetting(){
 	if(_Type == Type_Light){
 			Timer_Beacon(150);
 			Timer_IR_Beacon(120);
-			//Timer_IR_Beacon(40);
 			BeaconEnabled = 1;
 	}
 	else if(_Type == Type_Switch){
@@ -169,14 +168,8 @@ void TimerBeaconSetting(){
 			BeaconEnabled = 1;
 	}
 	else{ 											
-			Timer_Beacon_Read(97);
-			Timer_IR_Beacon_Read(27);
 			Timer_Beacon(121);
 			Timer_IR_Beacon(80);
-			//Timer_IR_Beacon_Read(140);
-		  //Timer_Beacon_Read(100);
-			//Timer_IR_Beacon(280);
-			//Timer_Beacon(170);
 			BeaconEnabled = 1;
 	}
 }
@@ -192,6 +185,14 @@ void beacon(void){
 			update_sensor_table();
 			broadcastSend();
 			BeaconTimerFlag = 0;
+		}
+		if(IR_broadcast_read(1)){
+			IR_receive(1);
+		}
+		if(IR_BeaconTimerFlag == 1){
+			IR_broadcast(_Addr, _Type, 1);
+			IRupdate();
+			IR_BeaconTimerFlag = 0;
 		}
 	}
 	else;
@@ -820,20 +821,19 @@ static void GPIO_Configuration(void)
   GPIO_InitTypeDef GPIO_InitStructure;
 
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOC, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_15 | GPIO_Pin_0;		// PB0 for PIR sensor
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_15;		// PB0 for PIR sensor
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_9; 	// LED 1 & 2
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;								// PB0 for PIR sensor
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOC, &GPIO_InitStructure);
-}
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+  GPIO_Init(GPIOB, &GPIO_InitStructure);
+} 
 
 /**
   * @brief  Interrupt.

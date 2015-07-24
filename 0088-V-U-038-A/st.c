@@ -17,11 +17,8 @@ TimObjTypeDef_s TimObj =
 {
 	{
     {0, 0}, // Tim STOP
-    {100, 100}, // Tim 2
     {0, 0}, // Delay
 		{100, 100}, //TIM_100MS
-		{400, 400},	//BROADCAST
-		{500, 500},	//GROUP PROCESS
 		{1000,1000},//IR
 	},
   0
