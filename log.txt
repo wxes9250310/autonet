@@ -1,1 +1,2 @@
 Seperating beacon from timer, 2015.07.24 - Chen Han, Ed Kung
+Add MPU6050 flag, 2015.07.24 - Ed Kung
