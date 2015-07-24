@@ -128,6 +128,7 @@ uint8_t RF_RX_AUTONET(){
 	
 	int _isReceived =0;
 	int _checkFlag=0;
+	
 	RFRxOccupied = 1;
 	// ============== Check RX FIFO Full/Overflow ================= //
 	if (Us2400ReadShortReg(0x30) == 0x90){

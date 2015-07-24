@@ -118,6 +118,16 @@ void Timer_IR_Beacon(unsigned int time){
 }
 
 void setTimer(uint8_t index, unsigned int period, uint8_t unit){
+	
+	switch(unit){
+		case UNIT_MS:
+			break;
+		case UNIT_SEC:
+			break;
+		case UNIT_MIN:
+			break;
+	}
+	
 	if(period == 0){
 		timer_period[index] = period;
 		timer_ticks[index] = period;

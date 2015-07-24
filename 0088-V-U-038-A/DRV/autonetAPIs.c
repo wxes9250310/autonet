@@ -692,7 +692,7 @@ uint8_t Pir_StatusCheck()
 }
 
 void update_sensor_table(){
-	get_direction(&flat_heading);
+	//get_direction(&flat_heading);
 
 	//ToDo: More sensor data
 
