@@ -67,6 +67,7 @@ extern unsigned char CommandRxBuffer_BC[];
 extern unsigned char CommandRxBufferLen_BC;
 extern unsigned char CommandRxBuffer2_BC[];
 extern unsigned char CommandRxBufferLen2_BC;
+extern uint8_t alive_flag_MPU6050;
 
 enum{
 	Message_Control,
@@ -123,30 +124,34 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 
 	/* I2C configuration */
 	I2C_Configuration();
-
-	/* Sensors' configuration */
-	SENSOR_CONFIGURATION();
 	
 	/* Us2400 Initialization*/
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
-	VARIABLE_Configuration();
-
+	/* Sensors' configuration */
+	SENSOR_CONFIGURATION();
 	
 	_Addr = srcAddr;
 	_Type = type;
 	
-	blink(1);
+	VARIABLE_Configuration();
+	
 	TimerBeaconSetting();
+	
+	blink(1);
 }
 
 void SENSOR_CONFIGURATION(){
-	Mcp2120Init();
-	Bh1750fviInit(0x46);
-	Tmp75Init(0x90);
-	//Mpu6050Init(0xD0);
-	//Ak8975Init(0x18);
-	//Mag3110Init(0x1C);
+	//Mcp2120Init();
+	//Bh1750fviInit(0x46);
+	//Tmp75Init(0x90);
+	/*
+	Mpu6050Init(0xD0);
+	if(alive_flag_MPU6050){
+		Ak8975Init(0x18);
+		Mag3110Init(0x1C);
+	}
+	*/
 }
 
 void VARIABLE_Configuration(){
@@ -176,20 +181,22 @@ void TimerBeaconSetting(){
 
 void beacon(void){
 	if(BeaconEnabled == 1){	
-		// Receive others' beacon frames
+		/* Receive RF */
 		if(RF_RX_AUTONET()){				// check AutoNet header
 			packet_receive();					// receive sensors' data from others
 		}
-		// Beacon 
+		/* Receive IR */
+		if(IR_broadcast_read(1)){
+			IR_receive(1);		
+		}
+		/* Beacon */
 		if(BeaconTimerFlag == 1){
 			update_sensor_table();
 			broadcastSend();
 			BeaconTimerFlag = 0;
 		}
-		if(IR_broadcast_read(1)){
-			IR_receive(1);
-		}
-		if(IR_BeaconTimerFlag == 1){
+		/* IRBeacon */
+		if(IR_BeaconTimerFlag == 1){	
 			IR_broadcast(_Addr, _Type, 1);
 			IRupdate();
 			IR_BeaconTimerFlag = 0;
@@ -274,10 +281,10 @@ uint8_t getDeviceByIR(uint16_t* ID){
 
 void IRupdate(){
 	if ((TimObj.TimeoutFlag & TIMOUT_FLAG_IR) == TIMOUT_FLAG_IR){
-				TimObj.TimeoutFlag ^= TIMOUT_FLAG_IR;
-		    CommandRxBufferLen_BC = 0;
-				CommandRxBufferLen2_BC = 0;
-				UpdateIRTable();		
+		TimObj.TimeoutFlag ^= TIMOUT_FLAG_IR;
+		CommandRxBufferLen_BC = 0;
+		CommandRxBufferLen2_BC = 0;
+		UpdateIRTable();		
 	}
 }	
 
@@ -521,26 +528,30 @@ unsigned char pos2;
 
 uint8_t get_direction(int *heading_deg){
 	
-	I2COccupied = 1;
-	Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
-	Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
-	
-	if(AK8975MagX>max_x) max_x = AK8975MagX;
-	if(AK8975MagX<min_x) min_x = AK8975MagX;
-	if(AK8975MagY>max_y) max_y = AK8975MagY;
-	if(AK8975MagY<min_y) min_y = AK8975MagY;
-	if(AK8975MagZ>max_z) max_z = AK8975MagZ;
-	if(AK8975MagZ<min_z) min_z = AK8975MagZ;
+	if(!alive_flag_MPU6050){
+		I2COccupied = 1;
+		Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
+		Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
+		
+		if(AK8975MagX>max_x) max_x = AK8975MagX;
+		if(AK8975MagX<min_x) min_x = AK8975MagX;
+		if(AK8975MagY>max_y) max_y = AK8975MagY;
+		if(AK8975MagY<min_y) min_y = AK8975MagY;
+		if(AK8975MagZ>max_z) max_z = AK8975MagZ;
+		if(AK8975MagZ<min_z) min_z = AK8975MagZ;
 
-	Mag_Error_Handle(&AK8975MagX, &AK8975MagY, &AK8975MagZ, &max_x, &min_x, &max_y, &min_y, &max_z, &min_z);
-	flat_heading = Mag_flatsurface(&AK8975MagX, &AK8975MagY);  // flat surface degree (0~360)
-	flat_headingL = flat_heading; 			// Lower 8 bit of flat_heading
-	flat_headingH = flat_heading >> 8; 	// Higher 8 bit of flat_heading
-//		tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
+		Mag_Error_Handle(&AK8975MagX, &AK8975MagY, &AK8975MagZ, &max_x, &min_x, &max_y, &min_y, &max_z, &min_z);
+		flat_heading = Mag_flatsurface(&AK8975MagX, &AK8975MagY);  // flat surface degree (0~360)
+		flat_headingL = flat_heading; 			// Lower 8 bit of flat_heading
+		flat_headingH = flat_heading >> 8; 	// Higher 8 bit of flat_heading
+		// tilt_heading = getcompasscourse(&AK8975MagX, &AK8975MagY, &AK8975MagZ,&MPU6050AccX, &MPU6050AccY, &MPU6050AccZ);
 
-	*heading_deg = flat_heading;
-	I2COccupied = 0;
-	return 1;
+		*heading_deg = flat_heading;
+		I2COccupied = 0;
+		return 1;
+	} 
+	else
+		return 0;
 }
 
 uint8_t get_brightness(unsigned short* brightness){

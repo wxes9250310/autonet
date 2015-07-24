@@ -76,8 +76,8 @@ int main(void)
 
 	//IR_testing();
 	//app_group_direction();
-	//app_remote_control();
-	testing();
+	app_remote_control();
+	//testing();
 }
 
 void WeightBroadCast(uint8_t weight){
@@ -358,7 +358,7 @@ void app_remote_control(){
 	Type = Type_Light;
 
 	radio_freq = 2475;
-	radio_panID = 0x00CC;
+	radio_panID = 0x00AB;
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	
 	for(i=0;i<10;i++){
@@ -372,58 +372,59 @@ void app_remote_control(){
 		setGPIO(1,1);
 	}
 	else if(Type == Type_Light) {
-		setTimer(1,330,UNIT_MS);	// LIGHT
+		setTimer(1,330,UNIT_MS);		// LIGHT
 	}
 	
 	while(1){
-			if(checkTimer(1)){
-				if(Type == Type_Controller){
-					num_LOS = get_LOS_device(ID_LOS);
-					num_RSSI = getDeviceByRSSI(ID_RSSI, 180, 255);
-					//num_RSSI = getDeviceByRSSI(ID_RSSI, 245, 255);
-					
-					// cross compare to find one light
-					T_NUM_BOTH =0;
-					if(num_LOS > 0 && num_RSSI > 0){
-						for(k=0; k<NumOfDeviceInTable; k++){
-							if(ID_RSSI[k]!=0xFFFF){
-								for(i=0; i<NumOfDeviceInTable; i++){
-									if(ID_LOS[i]!=0xFFFF){
-										if(ID_RSSI[k] == ID_LOS[i] && ID_RSSI[k] != 0xFFFF){
-											ID_Both[T_NUM_BOTH] = ID_RSSI[k];
-											T_NUM_BOTH ++;
-										}
+		beacon();
+		if(checkTimer(1)){
+			if(Type == Type_Controller){
+				num_LOS = get_LOS_device(ID_LOS);
+				num_RSSI = getDeviceByRSSI(ID_RSSI, 180, 255);
+				//num_RSSI = getDeviceByRSSI(ID_RSSI, 245, 255);
+				
+				// cross compare to find one light
+				T_NUM_BOTH =0;
+				if(num_LOS > 0 && num_RSSI > 0){
+					for(k=0; k<NumOfDeviceInTable; k++){
+						if(ID_RSSI[k]!=0xFFFF){
+							for(i=0; i<NumOfDeviceInTable; i++){
+								if(ID_LOS[i]!=0xFFFF){
+									if(ID_RSSI[k] == ID_LOS[i] && ID_RSSI[k] != 0xFFFF){
+										ID_Both[T_NUM_BOTH] = ID_RSSI[k];
+										T_NUM_BOTH ++;
 									}
 								}
 							}
 						}
 					}
-					if(T_NUM_BOTH>0){
-						msg[0] = 0x01;
-						msg[1] = T_NUM_BOTH;
-						msg[2] = Type_Light;
-						for(i=0; i<T_NUM_BOTH;i++){
-							msg[3 + i] = ID_Both[i];
-						}
-						RF_Tx(0xFFFF, msg, 10);
-					}		
 				}
-				
-				if(Type == Type_Light){
-					if(RF_Rx(rcvd_msg,&rcvd_length,&rcvd_rssi)){
-						if(rcvd_msg[MAC_HEADER_LENGTH + 0] == 0x01 && 
-							rcvd_msg[MAC_HEADER_LENGTH + 1] > 0x00 && 
-							rcvd_msg[MAC_HEADER_LENGTH + 2] == Type_Light ){
-							for(i=3; i<=(rcvd_length - MAC_HEADER_LENGTH); i++){	
-								if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
-									setGPIO(2,1);
-									setTimer(2, 1750, UNIT_MS);
-									break;
-								}
-							}
-						}							
+				if(T_NUM_BOTH>0){
+					msg[0] = 0x01;
+					msg[1] = T_NUM_BOTH;
+					msg[2] = Type_Light;
+					for(i=0; i<T_NUM_BOTH;i++){
+						msg[3 + i] = ID_Both[i];
 					}
+					RF_Tx(0xFFFF, msg, 10);
 				}		
+			}
+			
+			if(Type == Type_Light){
+				if(RF_Rx(rcvd_msg,&rcvd_length,&rcvd_rssi)){
+					if(rcvd_msg[MAC_HEADER_LENGTH + 0] == 0x01 && 
+						rcvd_msg[MAC_HEADER_LENGTH + 1] > 0x00 && 
+						rcvd_msg[MAC_HEADER_LENGTH + 2] == Type_Light ){
+						for(i=3; i<=(rcvd_length - MAC_HEADER_LENGTH); i++){	
+							if(rcvd_msg[MAC_HEADER_LENGTH + i]==Addr){
+								setGPIO(2,1);
+								setTimer(2, 1750, UNIT_MS);
+								break;
+							}
+						}
+					}							
+				}
+			}		
 		}	
 		if(checkTimer(2)){
 			if(Type == Type_Light){
@@ -472,7 +473,7 @@ void testing(){
 		setGPIO(1,1);
 	}
 	else if(Type == Type_Light) {
-		setTimer(1,500,UNIT_MS);	// LIGHT
+		setTimer(1,750,UNIT_MS);	// LIGHT
 	}
 	
 	while(1){

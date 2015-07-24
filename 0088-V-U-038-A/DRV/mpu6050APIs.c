@@ -29,24 +29,39 @@
   * @param  None
   * @retval None
   */
-extern short MPU6050AccX, MPU6050AccY, MPU6050AccZ;
-//extern float ax[],ay[],az[];
-extern float Speed_x,Speed_y,Speed_z;
-extern TimObjTypeDef_s TimObj;
-short ax_offset = 0,ay_offset = 0,az_offset = 0;
-int initial = 1;
+uint8_t alive_flag_MPU6050 = 0;
+
 float true_x,true_y,true_z;
+short ax_offset = 0;
+short ay_offset = 0;
+short az_offset = 0;
+short mean_ax;
+short mean_ay;
+short mean_az;
+
+int initial = 1;
 int state = 0;
-extern int drive;
 int buffersize=100;     //Amount of readings used to average, make it higher to get more precision but sketch will be slower  (default:1000)
 int acel_deadzone=10;     //Acelerometer error allowed, make it lower to get more precision, but sketch may not converge  (default:8)
-short mean_ax,mean_ay,mean_az;
+
+extern TimObjTypeDef_s TimObj;
+extern short MPU6050AccX, MPU6050AccY, MPU6050AccZ;
+extern float Speed_x,Speed_y,Speed_z;
+extern int drive;
+//extern float ax[],ay[],az[];
+
 
 void Mpu6050Init(unsigned char DevID)
 {
   unsigned char buf = 0;
 
   I2C_Read(DevID, WHO_AM_I, 1, &buf);
+	
+	// check alive
+	if(buf == 0x68){
+		alive_flag_MPU6050 = 1;
+	}
+	
 	buf = 0x00;
 	I2C_Write(DevID, PWR_MGMT_1, 1, &buf);
 	buf = 0x07;
