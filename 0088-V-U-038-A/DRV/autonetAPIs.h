@@ -26,6 +26,8 @@ enum RECEVIE_DATA_TABLE
 {
 		ATTRIBUTE_HEADING,
 		ATTRIBUTE_SPEED,
+		ATTRIBUTE_TMP,
+		ATTRIBUTE_BRIGHTNESS,
 		ATTRIBUTE_GPS_LAT_DEG,
 		ATTRIBUTE_GPS_LAT_MIN,
 		ATTRIBUTE_GPS_LAT_SEC,	
@@ -34,8 +36,6 @@ enum RECEVIE_DATA_TABLE
 		ATTRIBUTE_GPS_LONG_MIN,
 		ATTRIBUTE_GPS_LONG_SEC,	
 		ATTRIBUTE_GPS_LONG_DIR,
-		ATTRIBUTE_LOS_FRONT,
-		ATTRIBUTE_LOS_REAR,
     ATTRIBUTE_NUM
 };
 
@@ -73,7 +73,7 @@ void SENSOR_CONFIGURATION(void);
 void VARIABLE_Configuration(void);
 void TimerBeaconSetting(void);
 void Autonet_search_type(char *a);
-void beacon(void);
+void update_group_info(void);
 
 /* Lights Control */
 void setGPIO(uint8_t pin_idx, uint8_t state);
@@ -106,7 +106,7 @@ void broadcast(void);
 void lightingSend(void);
 void commandSend(void);
 void Group_Configuration(void);
-uint8_t Group_Diff(uint16_t* addr_array, uint8_t attribute, uint16_t center, uint16_t difference);
+uint8_t Group_Diff(uint16_t*, uint16_t*, uint8_t, uint16_t, uint16_t);
 
 /* Inner Table Processing */
 uint16_t ScanTableByAddress(uint16_t);

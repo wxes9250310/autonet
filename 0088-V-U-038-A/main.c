@@ -37,7 +37,7 @@ int main(void)
 	setTimer(1,500,UNIT_MS);
 	
 	while(1){
-		beacon();
+		update_group_info();
 		ChangeLight(MyWeight);
 		if(checkTimer(1))
 			WeightBroadCast(MyWeight);
@@ -76,8 +76,8 @@ int main(void)
 
 	//IR_testing();
 	//app_group_direction();
-	app_remote_control();
-	//testing();
+	//app_remote_control();
+	testing();
 }
 
 void WeightBroadCast(uint8_t weight){
@@ -100,10 +100,10 @@ void StateOne(uint8_t* weight){
 
 void StateTwo(uint8_t* weight,uint8_t* State){
 	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2];
-	uint16_t GroupAddr[10],Addr;
+	uint16_t GroupAddr[10], Value[10], Addr;
 	int direction,i;
 	get_direction(&direction);
-	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	numOfGroup = Group_Diff(GroupAddr, Value, ATTRIBUTE_HEADING, direction, 0x30);
 	if(RF_Rx(RxData,&RxLength,&Rssi)){
 		getPayloadLength(&RxLength,RxData);
 		getPayload(RxPayload,RxData,RxLength);
@@ -123,10 +123,10 @@ void StateTwo(uint8_t* weight,uint8_t* State){
 
 int StateThree(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
 	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2];
-	uint16_t GroupAddr[10],Addr;
+	uint16_t GroupAddr[10],Value[10],Addr;
 	int direction,i;
 	get_direction(&direction);
-	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	numOfGroup = Group_Diff(GroupAddr,Value,ATTRIBUTE_HEADING,direction,0x30);
 	if(numOfGroup == 0){
 		*State = 0;
 		return 1;
@@ -153,10 +153,10 @@ int StateThree(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
 
 int StateFour(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
 	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2],ListenStartFlag=0;
-	uint16_t GroupAddr[10],Addr;
+	uint16_t GroupAddr[10],Value[10],Addr;
 	int direction,i;
 	get_direction(&direction);
-	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	numOfGroup = Group_Diff(GroupAddr,Value,ATTRIBUTE_HEADING,direction,0x30);
 	if(RF_Rx(RxData,&RxLength,&Rssi) && ListenStartFlag ==1){
 		getPayloadLength(&RxLength,RxData);
 		getPayload(RxPayload,RxData,RxLength);
@@ -223,7 +223,7 @@ void app_group_direction(){
 	setTimer(1,500,UNIT_MS);
 	
 	while(1){
-		beacon();
+		update_group_info();
 		ChangeLight(MyWeight);
 		if(checkTimer(1))
 			WeightBroadCast(MyWeight);
@@ -289,7 +289,7 @@ void app_light_direction(){
 	setTimer(1, 500, UNIT_MS);
 
 	while(1){
-		beacon();  // broadcast beacon information
+		update_group_info();  // broadcast beacon information
 		if(Type == Type_Controller){
 			if(checkTimer(1) && get_direction(&heading)){
 				Match_Devices_Num = Group_Diff(addr_array,Direction,heading,heading_diff);
@@ -376,7 +376,7 @@ void app_remote_control(){
 	}
 	
 	while(1){
-		beacon();
+		update_group_info();
 		if(checkTimer(1)){
 			if(Type == Type_Controller){
 				num_LOS = get_LOS_device(ID_LOS);

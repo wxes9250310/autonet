@@ -70,13 +70,6 @@ extern unsigned char CommandRxBufferLen2_BC;
 extern uint8_t alive_flag_MPU6050;
 
 enum{
-	Message_Control,
-	Message_Type,
-//	Message_BroadcastType,
-//	Message_Light,
-};
-
-enum{
 	Type_Controller = 0x00,
 	Type_Light = 0x01,
 	Type_Switch = 0x02,
@@ -88,10 +81,10 @@ uint8_t _Type;
 extern uint8_t Data[]; 
 extern uint8_t DataLen;
 extern uint8_t RSSI_BC;
-
-extern TimObjTypeDef_s TimObj;
 extern int BeaconTimerFlag;
 extern int IR_BeaconTimerFlag;
+extern TimObjTypeDef_s TimObj;
+
 /* Private function prototypes -----------------------------------------------*/
 static void GPIO_Configuration(void);
 static void EXTI_Configuration(void);
@@ -179,7 +172,8 @@ void TimerBeaconSetting(){
 	}
 }
 
-void beacon(void){
+void update_group_info(void){
+//void beacon(void){
 	if(BeaconEnabled == 1){	
 		/* Receive RF */
 		if(RF_RX_AUTONET()){				// check AutoNet header
@@ -447,14 +441,17 @@ void GPIO_OFF(uint8_t n){
 	}
 }
 
-uint8_t Group_Diff(uint16_t* ID,uint8_t type, uint16_t center, uint16_t difference){
+uint8_t Group_Diff(uint16_t* ID, uint16_t* Value, uint8_t type, uint16_t center, uint16_t difference){
 	int NumofDevice = 0;
-	for(i=0;i<NumOfDeviceInTable;i++)
+	for(i=0;i<NumOfDeviceInTable;i++){
 		ID[i] = 0xFFFF;
+		Value[i] = 0x0000;
+	}
 	
 	for(i=0;i<NumOfDeviceInTable;i++){
 		if(difference != 0xFF && abs(table.device[i].attribute[type]-center) < difference){
 			ID[NumofDevice] = table.device[i].address;
+			Value[NumofDevice] = table.device[i].attribute[type];
 			NumofDevice++;
 		}
 	}
@@ -471,7 +468,107 @@ void Autonet_search_type(char *a){
 	* @param 
 	*/
 
-/* sensors variables */
+/**
+	* @title get brightness
+	* @brief 
+	* @param 
+	*/
+uint8_t get_brightness(unsigned short* brightness){
+	*brightness = 0;
+	Bh1750fviReadLx(0x46, brightness);
+	if(*brightness !=0) 
+		return 1;
+	else 
+		return 0;
+}
+
+/**
+	* @title get temperature
+	* @brief 
+	* @param 
+	*/
+uint8_t get_temperature(float* temp){
+	*temp = 0;
+	Tmp75ReadTemperature(0x90, temp);
+	if(*temp !=0) 
+		return 1;
+	else 
+		return 0;
+}
+
+/**
+	* @title get GPS
+	* @brief 
+	* @param 
+	*/
+
+uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, 
+									uint8_t* Long_min, uint8_t* Long_sec, uint8_t* Lat_dir, uint8_t* Long_dir){
+	Lea6SRead(0x84, Lat_deg, Lat_min, Lat_sec, Long_deg, Long_min, Long_sec, Lat_dir, Long_dir);
+
+	return 1;
+}
+
+/**
+  * @brief  get line-of-sight device' address
+  * @param  None
+  * @retval None
+  */
+uint8_t get_LOS_device(uint16_t* ID){
+	// TODO: to support different UART	
+	int NumofDevice = 0;
+	for(i=0;i<NumOfDeviceInTable;i++)
+		ID[i] = 0xFFFF;
+	
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(IR_table.IRdevice_1[i].address != 0xFFFF){
+			ID[NumofDevice] = IR_table.IRdevice_1[i].address;
+			NumofDevice++;
+		}
+	}
+	return NumofDevice;
+}
+
+/**
+	* @title get Motion Status
+	* @brief 
+	* @param 
+	*/
+
+uint8_t get_motion_status(){
+	return Pir_StatusCheck();
+}
+uint8_t Pir_StatusCheck()
+{
+  if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0) == Bit_SET) {
+		//GPIO_SetBits(GPIOC, GPIO_Pin_8 | GPIO_Pin_9);
+		return 1;
+  }
+	else {
+		//GPIO_ResetBits(GPIOC, GPIO_Pin_8 | GPIO_Pin_9);
+		return 0;
+	}
+}
+
+/**
+	* @title 9-axis sensor
+	* @brief get_direction()
+	*  			 future work: get_velocity()
+	* @param 
+	* @author Chih-Wei, Chen-Han
+	*/
+int flat_heading = 999;
+int tilt_heading = 999;
+char flat_headingH = 0;
+char flat_headingL = 0;
+unsigned char RealspeedH;     // speed first byte
+unsigned char RealspeedL;			// speed second byte
+float Speed_x = 0;
+float Speed_y = 0;
+float Speed_z = 0;
+uint16_t Speed=0;
+int time;
+
 short AK8975MagX = 0;
 short AK8975MagY = 0;
 short AK8975MagZ = 0;
@@ -481,53 +578,15 @@ short MPU6050AccZ = 0;
 short MPU6050GyroX = 0;
 short MPU6050GyroY = 0;
 short MPU6050GyroZ = 0;
-unsigned char RealspeedH;     // speed first byte
-unsigned char RealspeedL;			// speed second byte
-float Temperature = 0;
-unsigned short Lux = 0;
 short Mag3110MagX = 0;
 short Mag3110MagY = 0;
 short Mag3110MagZ = 0;
-int time;
-int flat_heading=999;
-int tilt_heading=999;
-char flat_headingH=0;
-char flat_headingL=0;
 short max_x=12, min_x=-20, max_y=21, min_y=-14, max_z=5, min_z=-30;
 //short max_x=129, min_x=-205, max_y=210, min_y=-141, max_z=59, min_z=-300;
-
-float Speed_x = 0;
-float Speed_y = 0;
-float Speed_z = 0;
-uint16_t Speed=0;
-int drive = 0;
-
 double PI = 3.14159265359;
 
-/* for IR */
-char s1[2];
-char s2[2];
-char FrontID = 0xFF;
-char RearID = 0xFF;
-
-/* for GPS */
-unsigned char Lat;
-unsigned char Long;
-unsigned char Lat_deg; 
-unsigned char Lat_min;
-unsigned char Lat_sec;
-unsigned char Lat_dir;
-unsigned char Long_deg;
-unsigned char Long_min;
-unsigned char Long_sec;
-unsigned char Long_dir;
-unsigned char pos1;
-unsigned char pos2;
-//int Hour = 0;
-//int Minute = 0;
-
+// TODO: to check whether alive check works or not
 uint8_t get_direction(int *heading_deg){
-	
 	if(!alive_flag_MPU6050){
 		I2COccupied = 1;
 		Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
@@ -554,35 +613,28 @@ uint8_t get_direction(int *heading_deg){
 		return 0;
 }
 
-uint8_t get_brightness(unsigned short* brightness){
-	*brightness = 0;
-	Bh1750fviReadLx(0x46, brightness);
-	if(*brightness !=0) 
-		return 1;
-	else 
-		return 0;
+int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz)
+{
+	float xh,yh,ayf,axf;
+	int var_compass;
+	ayf=*ay/57.295;//Convert to rad
+	axf=*ax/57.295;//Convert to rad
+	xh=*cx*cos(ayf)+*cy*sin(ayf)*sin(axf)-*cz*cos(axf)*sin(ayf);
+	yh=*cy*cos(axf)+*cz*sin(axf);
+	var_compass=atan2((double)yh,(double)xh) * (180 / PI) -90-90; // angle in degrees
+	if (var_compass>0){var_compass=var_compass-360;}
+	var_compass=360+var_compass;
+	//var_compass = atan2((*cz * sin(*ax) - *cy * cos(*ax)), *cx * cos(*ay) + *cy * sin(*ax) * sin(*ay) + *cz * sin(*ay) * cos(*ax))* 180.0/3.14159265 + 180;
+	// while (var_compass < 0) var_compass += 360;
+	//while (var_compass > 360) var_compass -= 360;
+	return (var_compass);
 }
 
-uint8_t get_temperature(float* temp){
-	*temp = 0;
-	Tmp75ReadTemperature(0x90, temp);
-	if(*temp !=0) 
-		return 1;
-	else 
-		return 0;
-}
-
-uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, uint8_t* Long_min, uint8_t* Long_sec, uint8_t* Lat_dir, uint8_t* Long_dir){
-	Lea6SRead(0x84, Lat_deg, Lat_min, Lat_sec, Long_deg, Long_min, Long_sec, Lat_dir, Long_dir);
-
-	return 1;
-}
 uint8_t get_velocity(int* speed){
 		
 	return 1;
 }
 
-// --------------  Matnetometer functions by chih-wei -----------------
 void Mag_Error_Handle (short *pX, short *pY,short *pZ, short *max_x, short *min_x , short *max_y, short *min_y, short *max_z, short *min_z)
 {
 	short vmax_x,vmax_y,vmax_z;
@@ -637,66 +689,40 @@ int Mag_flatsurface(short *pX,short *pY)
 	 
 }
 
-int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz)
-{
-	float xh,yh,ayf,axf;
-	int var_compass;
-	ayf=*ay/57.295;//Convert to rad
-	axf=*ax/57.295;//Convert to rad
-	xh=*cx*cos(ayf)+*cy*sin(ayf)*sin(axf)-*cz*cos(axf)*sin(ayf);
-	yh=*cy*cos(axf)+*cz*sin(axf);
-	var_compass=atan2((double)yh,(double)xh) * (180 / PI) -90-90; // angle in degrees
-	if (var_compass>0){var_compass=var_compass-360;}
-	var_compass=360+var_compass;
-	//var_compass = atan2((*cz * sin(*ax) - *cy * cos(*ax)), *cx * cos(*ay) + *cy * sin(*ax) * sin(*ay) + *cz * sin(*ay) * cos(*ax))* 180.0/3.14159265 + 180;
-	// while (var_compass < 0) var_compass += 360;
-	//while (var_compass > 360) var_compass -= 360;
-	return (var_compass);
-}
-
-// TODO: to support different UART
-uint8_t get_LOS_device(uint16_t* ID){
-		
-	int NumofDevice = 0;
-	for(i=0;i<NumOfDeviceInTable;i++)
-		ID[i] = 0xFFFF;
-	
-	for(i=0;i<NumOfDeviceInTable;i++){
-		if(IR_table.IRdevice_1[i].address != 0xFFFF){
-			ID[NumofDevice] = IR_table.IRdevice_1[i].address;
-			NumofDevice++;
-		}
-	}
-	return NumofDevice;
-}
-
-uint8_t get_motion_status(){
-	return Pir_StatusCheck();
-}
-
 /**
-  * @brief  Switch
-  * @param  None
-  * @retval None
-  */
-uint8_t Pir_StatusCheck()
-{
-  if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0) == Bit_SET) {
-		//GPIO_SetBits(GPIOC, GPIO_Pin_8 | GPIO_Pin_9);
-		return 1;
-  }
-	else {
-		//GPIO_ResetBits(GPIOC, GPIO_Pin_8 | GPIO_Pin_9);
-		return 0;
-	}
-}
-
+	* @title update_sensor_table (AutoNet API)
+	* @brief access sensors and update the table 
+	*/
 void update_sensor_table(){
-	//get_direction(&flat_heading);
+	
+	int heading = 0;
+	int drive = 0;
+	float tmp = 0;
+	unsigned short brighness = 0;
+	unsigned char Lat = 0;
+	unsigned char Long = 0;
+	unsigned char Lat_deg = 0; 
+	unsigned char Lat_min = 0;
+	unsigned char Lat_sec = 0;
+	unsigned char Lat_dir = 0;
+	unsigned char Long_deg = 0;
+	unsigned char Long_min = 0;
+	unsigned char Long_sec = 0;
+	unsigned char Long_dir = 0;
+	//unsigned char pos1 = 0;
+	//unsigned char pos2 = 0;
+	//int Hour = 0;
+	//int Minute = 0;
+	
+	get_direction(&heading);
+	get_brightness(&brighness);
+	get_temperature(&tmp);
+	get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);
 
-	//ToDo: More sensor data
-
+	myAttribute.attribute[ATTRIBUTE_HEADING] = flat_heading;
 	myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
+	myAttribute.attribute[ATTRIBUTE_TMP] = tmp;
+	myAttribute.attribute[ATTRIBUTE_BRIGHTNESS] = brighness;
 	myAttribute.attribute[ATTRIBUTE_GPS_LAT_DEG] = Lat_deg;
 	myAttribute.attribute[ATTRIBUTE_GPS_LAT_MIN] = Lat_min;
 	myAttribute.attribute[ATTRIBUTE_GPS_LAT_SEC] = Lat_sec;
@@ -705,9 +731,6 @@ void update_sensor_table(){
 	myAttribute.attribute[ATTRIBUTE_GPS_LONG_MIN] = Long_min;
 	myAttribute.attribute[ATTRIBUTE_GPS_LONG_SEC] = Long_sec;
 	myAttribute.attribute[ATTRIBUTE_GPS_LONG_DIR] = Long_dir;
-	myAttribute.attribute[ATTRIBUTE_HEADING] = flat_heading;
-	myAttribute.attribute[ATTRIBUTE_LOS_FRONT] = FrontID;
-	myAttribute.attribute[ATTRIBUTE_LOS_REAR] = RearID;
 }
 
 void data_fetch(uint8_t* data_out, uint8_t* data_in, uint8_t d_offset, uint8_t d_length) {
@@ -775,17 +798,6 @@ void getPayload(uint8_t* data_out, uint8_t* data_in, uint8_t Data_Length){
 void getPayloadLength(uint8_t* data_out, uint8_t* data_in){
   	*data_out = data_in[0];
 }
-
-/**
-* @title Autonet_spatial_dynamic (API for AutoNet demo)
-* @brief developers decide the target ID of devices and add those
-* 			 attributes of interest to find out the devices which matches
-*        the attributes
-* @param ID: the ID of target device
-* @param Direction: 123
-* @param Velocity: 
-* @param LOS: 
-*/
 
 void EXTI_Configuration(void)
 {
