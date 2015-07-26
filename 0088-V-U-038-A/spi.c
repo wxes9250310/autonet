@@ -29,7 +29,7 @@ void SPI_Configuration(void)
 
   /*!< SPI_CS_GPIO, SPI_MOSI_GPIO, SPI_MISO_GPIO, SPI_INT_GPIO 
        and SPI_SCK_GPIO Periph clock enable */
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB, ENABLE);
 
   /*!< SPI Periph clock enable */
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE); 
@@ -38,31 +38,38 @@ void SPI_Configuration(void)
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1, ENABLE);
 
   /*!< Configure SPI pins: SCK */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
+	//GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;	// FCM2401
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;	// ST-Link
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
+  //GPIO_Init(GPIOB, &GPIO_InitStructure);	// FCM2401
+	GPIO_Init(GPIOA, &GPIO_InitStructure);	// ST-Link
 
   /*!< Configure SPI_CS_PIN pin */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+  //GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;		// FCM2401
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;		// ST-Link
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-  GPIOA->BSRR = GPIO_Pin_4;
+  //GPIOA->BSRR = GPIO_Pin_15;
+	GPIOA->BSRR = GPIO_Pin_4;
 
   /* Connect PXx to SPI_SCK */
+  //GPIO_PinAFConfig(GPIOB, GPIO_PinSource3, GPIO_AF_0);	//FCM2401
   GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_0);
 
   /* Connect PXx to SPI_MISO */
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_0); 
+  //GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_0);	//FCM2401
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_0); 
 
   /* Connect PXx to SPI_MOSI */
-  GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_0);  
+  //GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_0);	//FCM2401
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_0);  
   
   /*!< SPI Config */
   SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
@@ -72,7 +79,7 @@ void SPI_Configuration(void)
   SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
   SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
 	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32;
-  //SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+  //SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;	// FCM2401
 
   SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
   SPI_Init(SPI1, &SPI_InitStructure);
@@ -94,10 +101,12 @@ ErrorStatus SPI_Proc(uint8_t *p, uint16_t len)
 {
   DMA_InitTypeDef  DMA_InitStructure;
 	
+	//if (GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_15) == Bit_RESET){ 
 	if (GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_4) == Bit_RESET) {
 		return ERROR;
 	}
 	
+	//GPIOA->BRR = GPIO_Pin_15;
   GPIOA->BRR = GPIO_Pin_4;
 
   DMA_DeInit(DMA1_Channel3); 
@@ -134,7 +143,8 @@ ErrorStatus SPI_Proc(uint8_t *p, uint16_t len)
   DMA_ClearFlag(DMA1_FLAG_TC3);
   DMA_ClearFlag(DMA1_FLAG_TC2);
 
-  GPIOA->BSRR = GPIO_Pin_4;
+  //GPIOA->BRR = GPIO_Pin_15; 
+	GPIOA->BSRR = GPIO_Pin_4;
 
   return SUCCESS;
 }

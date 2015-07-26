@@ -524,8 +524,19 @@ uint8_t Group_Diff(uint16_t* ID, uint16_t* Value, uint8_t type, uint16_t center,
 	return NumofDevice;
 }
 
-void Autonet_search_type(char *a){
-
+//uint8_t Autonet_search_type(uint16_t* ID){
+uint8_t GroupByType(uint16_t* ID, uint8_t type){
+	int NumofDevice = 0;
+	for(i=0;i<NumOfDeviceInTable;i++){
+		ID[i] = 0xFFFF;
+	}
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(table.device[i].type == _Type){
+			ID[NumofDevice] = table.device[i].address;
+			NumofDevice++;
+		}
+	}
+	return NumofDevice;
 }
 
 /**
@@ -568,7 +579,7 @@ uint8_t get_temperature(float* temp){
 	* @param 
 	*/
 
-uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, 
+uint8_t get_gps_value(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, 
 									uint8_t* Long_min, uint8_t* Long_sec, uint8_t* Lat_dir, uint8_t* Long_dir){
 	return Lea6SRead(0x84, Lat_deg, Lat_min, Lat_sec, Long_deg, Long_min, Long_sec, Lat_dir, Long_dir);
 }
@@ -769,7 +780,7 @@ int Mag_flatsurface(short *pX,short *pY)
 void updateGPS(){
 	if(GPS_ResetFlag){
 		Lat_deg = Lat_min = Lat_sec = Lat_dir = Long_deg = Long_min = Long_sec = Long_dir = 0;
-		if(get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir)){
+		if(get_gps_value(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir)){
 			GPS_ResetFlag = 0;
 			setGPIO(1,1);
 		}
@@ -780,6 +791,23 @@ void updateGPS(){
 			GPS_ResetCount = 0;
 		}
 	}
+}
+
+/**
+	* @title get distance
+	* @brief use RSSI to make reference distance tables 
+	* @param 
+	*/
+void get_distance(){
+	uint8_t rssi_boundary_0 = 255;
+	uint8_t rssi_boundary_1 = 245;
+	uint8_t rssi_boundary_2 = 220;
+	uint8_t rssi_boundary_3 = 180;
+	uint8_t rssi_boundary_4 = 150;
+	uint8_t rssi_boundary_5 = 120;
+	uint8_t rssi_boundary_6 = 80;
+	
+	
 }
 
 /**
@@ -927,7 +955,8 @@ static void GPIO_Configuration(void)
   GPIO_InitTypeDef GPIO_InitStructure;
 
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOC, ENABLE);
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_15;		// PB0 for PIR sensor
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_15;
+  //GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_15 | GPIO_Pin_2 | GPIO_Pin_7;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;

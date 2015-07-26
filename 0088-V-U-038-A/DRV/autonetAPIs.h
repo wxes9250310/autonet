@@ -73,6 +73,7 @@ void SENSOR_CONFIGURATION(void);
 void VARIABLE_Configuration(void);
 void TimerBeaconSetting(void);
 void Autonet_search_type(char *a);
+uint8_t GroupByType(uint16_t* ID, uint8_t type);
 void update_group_info(void);
 
 /* Lights Control */
@@ -85,7 +86,7 @@ void blink(uint8_t n);
 int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz);
 uint8_t get_direction(int *heading_deg);
 uint8_t get_brightness (unsigned short* brightness);
-uint8_t get_gps(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
+uint8_t get_gps_value(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
 uint8_t get_temperature(float* temp);
 uint8_t get_velocity(int* speed);
 uint8_t get_LOS_device(uint16_t* ID, int COM);
