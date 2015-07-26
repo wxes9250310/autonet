@@ -91,6 +91,7 @@ uint8_t get_temperature(float* temp);
 uint8_t get_velocity(int* speed);
 uint8_t get_LOS_device(uint16_t* ID, int COM);
 uint8_t get_motion_status(void);
+uint8_t get_distance(uint16_t* ID, float distance);
 uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max);
 
 /* Sensors' Accessing APIs */

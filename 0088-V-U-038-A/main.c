@@ -25,24 +25,18 @@ int main(void)
 	uint16_t Addr;
 	uint16_t radio_freq;
 	uint16_t radio_panID;
+	
 	uint8_t State=0;
 	uint8_t MyWeight = 0xFF;
 	uint8_t MaxWeight = 0;
 	uint8_t TxData[256];
 	
-	uint8_t Lat_deg = 0; 
-	uint8_t Lat_min = 0;
-	uint8_t Lat_sec = 0;
-	uint8_t Lat_dir = 0;
-	uint8_t Long_deg = 0;
-	uint8_t Long_min = 0;
-	uint8_t Long_sec = 0;
-	uint8_t Long_dir = 0;
+	uint16_t ID[10];
 	
 	uint8_t clati;
 	uint8_t cLong;
 	
-	Addr = 0x0001;
+	Addr = 0x00CC;
 	Type = Type_Light;
 	radio_freq = 2475;
 	radio_panID = 0x00AB;
@@ -54,6 +48,9 @@ int main(void)
 	while(1){
 		update_group_info();
 		if(checkTimer(1)){
+			if(get_distance(ID, 5)){
+				Delay(10);
+			}
 		}
 	}
 	/*

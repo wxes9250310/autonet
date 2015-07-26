@@ -798,16 +798,78 @@ void updateGPS(){
 	* @brief use RSSI to make reference distance tables 
 	* @param 
 	*/
-void get_distance(){
-	uint8_t rssi_boundary_0 = 255;
-	uint8_t rssi_boundary_1 = 245;
-	uint8_t rssi_boundary_2 = 220;
-	uint8_t rssi_boundary_3 = 180;
-	uint8_t rssi_boundary_4 = 150;
-	uint8_t rssi_boundary_5 = 120;
-	uint8_t rssi_boundary_6 = 80;
+uint8_t get_distance(uint16_t* ID, float distance){
 	
+	// TODO: needs to be test
+	int NumofDevice = 0;
 	
+	uint8_t dist;
+	
+	uint8_t rssi_min = 0;
+	uint8_t rssi_max = 255;
+	
+	uint8_t rssi_boundary_1 = 0xFF;
+	uint8_t rssi_boundary_2 = 0xF0;
+	uint8_t rssi_boundary_3 = 0xD5;
+	uint8_t rssi_boundary_4 = 0xB0;
+	uint8_t rssi_boundary_5 = 0xA0;
+	uint8_t rssi_boundary_6 = 0x1F;
+	uint8_t rssi_boundary_7 = 0x10;
+	
+	if(distance <= 1)
+		dist = 1;
+	else if(distance > 1 && distance <= 1.3)
+		dist = 2;
+	else if(distance > 1.3 && distance <= 1.5)
+		dist = 3;
+	else if(distance > 1.5 && distance <= 2)
+		dist = 4;
+	else if(distance > 2 && distance <= 2.5)
+		dist = 5;
+	else if(distance >= 2.5)
+		dist = 6;
+	
+	switch(dist){
+		case 1:
+			rssi_max = rssi_boundary_1;
+			rssi_min = rssi_boundary_1;
+			break;
+		case 2:
+			rssi_max = rssi_boundary_1;
+			rssi_min = rssi_boundary_2;
+			break;
+		case 3:
+			rssi_max = rssi_boundary_2;
+			rssi_min = rssi_boundary_3;
+			break;
+		case 4:
+			rssi_max = rssi_boundary_3;
+			rssi_min = rssi_boundary_4;
+			break;
+		case 5:
+			rssi_max = rssi_boundary_4;
+			rssi_min = rssi_boundary_5;
+			break;
+		case 6:
+			rssi_max = rssi_boundary_5;
+			rssi_min = rssi_boundary_6;
+			break;
+		default:
+			rssi_max = rssi_boundary_1;
+			rssi_min = rssi_boundary_1;
+			break;	
+	}
+	
+	for(i=0;i<NumOfDeviceInTable;i++){
+		ID[i] = 0xFFFF;
+	}
+	for(i=0;i<NumOfDeviceInTable;i++){
+		if(table.device[i].Rssi <= rssi_max && table.device[i].Rssi >= rssi_min){
+			ID[NumofDevice] = table.device[i].address;
+			NumofDevice++;
+		}
+	}
+	return NumofDevice;
 }
 
 /**
@@ -826,9 +888,9 @@ void update_sensor_table(){
 	//int Minute = 0;
 	
 	get_direction(&heading);
-	get_brightness(&brighness);
-	get_temperature(&tmp);
-	updateGPS();
+	//get_brightness(&brighness);
+	//get_temperature(&tmp);
+	//updateGPS();
 	
 	myAttribute.attribute[ATTRIBUTE_HEADING] = heading;
 	myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
