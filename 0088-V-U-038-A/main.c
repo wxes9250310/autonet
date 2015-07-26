@@ -20,7 +20,7 @@
 //
 int main(void)
 {
-	/*
+	
 	uint8_t Type;
 	uint16_t Addr;
 	uint16_t radio_freq;
@@ -28,16 +28,26 @@ int main(void)
 	uint8_t State=0;
 	uint8_t MyWeight = 0xFF;
 	uint8_t MaxWeight = 0;
+	uint8_t TxData[256];
+	
 	Addr = 0x0001;
 	Type = Type_Light;
 	radio_freq = 2475;
-	radio_panID = 0x00AA;
+	radio_panID = 0x00AB;
 
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,500,UNIT_MS);
+	setTimer(1,1000,UNIT_MS);
+	setGPIO(1,1);
 	
 	while(1){
 		update_group_info();
+		if(checkTimer(1)){
+			TxData[0] = 0xCC;
+			TxData[1] = 0xCC;
+			RF_Tx(0xFFFF,TxData,2);
+		}
+	}
+	/*
 		ChangeLight(MyWeight);
 		if(checkTimer(1))
 			WeightBroadCast(MyWeight);
@@ -77,7 +87,7 @@ int main(void)
 	//IR_testing();
 	//app_group_direction();
 	//app_remote_control();
-	testing();
+	//testing();
 }
 
 void WeightBroadCast(uint8_t weight){
@@ -379,7 +389,7 @@ void app_remote_control(){
 		update_group_info();
 		if(checkTimer(1)){
 			if(Type == Type_Controller){
-				num_LOS = get_LOS_device(ID_LOS);
+				num_LOS = get_LOS_device(ID_LOS, 1);
 				num_RSSI = getDeviceByRSSI(ID_RSSI, 180, 255);
 				//num_RSSI = getDeviceByRSSI(ID_RSSI, 245, 255);
 				
@@ -455,8 +465,7 @@ void testing(){
 	uint8_t rcvd_length;
 	uint8_t rcvd_rssi;
 	
-	unsigned short* brighness;
-	float* tmp;
+
 
 	//Addr = 0x00EE;
 	//Type = Type_Controller;

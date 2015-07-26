@@ -138,13 +138,11 @@ void SENSOR_CONFIGURATION(){
 	Mcp2120Init();
 	Bh1750fviInit(0x46);
 	Tmp75Init(0x90);
-	/*
+	Lea6SInit(0x84);
 	Mpu6050Init(0xD0);
-	if(alive_flag_MPU6050){
-		Ak8975Init(0x18);
-		Mag3110Init(0x1C);
-	}
-	*/
+	Ak8975Init(0x18);
+	Mag3110Init(0x1C);
+	
 }
 
 void VARIABLE_Configuration(){
@@ -369,7 +367,7 @@ void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type,int COM){
 
 void UpdateIRTable(){
 	uint8_t renewFlag;
-	uint8_t resetThreshold = 0x05;
+	uint8_t resetThreshold = 0x0F;
 	
 	for(i=0; i<NumOfDeviceInTable; i++){
 		renewFlag  = 0;
@@ -564,18 +562,26 @@ uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* L
   * @param  None
   * @retval None
   */
-uint8_t get_LOS_device(uint16_t* ID){
-	// TODO: to support different UART	
+uint8_t get_LOS_device(uint16_t* ID, int COM){
 	int NumofDevice = 0;
 	for(i=0;i<NumOfDeviceInTable;i++)
 		ID[i] = 0xFFFF;
 	
-	for(i=0;i<NumOfDeviceInTable;i++){
-		if(IR_table.IRdevice_1[i].address != 0xFFFF){
-			ID[NumofDevice] = IR_table.IRdevice_1[i].address;
-			NumofDevice++;
+	if(COM == 1)
+		for(i=0;i<NumOfDeviceInTable;i++){
+			if(IR_table.IRdevice_1[i].address != 0xFFFF){
+				ID[NumofDevice] = IR_table.IRdevice_1[i].address;
+				NumofDevice++;
+			}
 		}
-	}
+	else if(COM == 2)
+		for(i=0;i<NumOfDeviceInTable;i++){
+			if(IR_table.IRdevice_2[i].address != 0xFFFF){
+				ID[NumofDevice] = IR_table.IRdevice_2[i].address;
+				NumofDevice++;
+			}
+		}
+		
 	return NumofDevice;
 }
 
@@ -767,9 +773,9 @@ void update_sensor_table(){
 	get_direction(&heading);
 	get_brightness(&brighness);
 	get_temperature(&tmp);
-	get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);
+	//get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);
 
-	myAttribute.attribute[ATTRIBUTE_HEADING] = flat_heading;
+	myAttribute.attribute[ATTRIBUTE_HEADING] = heading;
 	myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
 	myAttribute.attribute[ATTRIBUTE_TMP] = tmp;
 	myAttribute.attribute[ATTRIBUTE_BRIGHTNESS] = brighness;
