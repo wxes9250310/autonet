@@ -29,7 +29,7 @@
   * @param  None
   * @retval None
   */
-uint8_t alive_flag_MPU6050 = 0;
+uint8_t alive_flag_MPU6050;
 
 float true_x,true_y,true_z;
 short ax_offset = 0;
@@ -58,6 +58,7 @@ void Mpu6050Init(unsigned char DevID)
   I2C_Read(DevID, WHO_AM_I, 1, &buf);
 	
 	// check alive
+	alive_flag_MPU6050 =0;
 	if(buf == 0x68){
 		alive_flag_MPU6050 = 1;
 	}

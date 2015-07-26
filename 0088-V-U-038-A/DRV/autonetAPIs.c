@@ -643,7 +643,7 @@ double PI = 3.14159265359;
 
 // TODO: to check whether alive check works or not
 uint8_t get_direction(int *heading_deg){
-	if(!alive_flag_MPU6050){
+	if(alive_flag_MPU6050){
 		I2COccupied = 1;
 		Mpu6050ReadGyro(0xD0, &MPU6050GyroX, &MPU6050GyroY, &MPU6050GyroZ);
 		Ak8975ReadMag(0x18, &AK8975MagX, &AK8975MagY, &AK8975MagZ);
