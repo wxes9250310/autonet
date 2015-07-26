@@ -30,21 +30,51 @@ int main(void)
 	uint8_t MaxWeight = 0;
 	uint8_t TxData[256];
 	
+	
+	unsigned char Lat = 0;
+	unsigned char Long = 0;
+	unsigned char Lat_deg = 0; 
+	unsigned char Lat_min = 0;
+	unsigned char Lat_sec = 0;
+	unsigned char Lat_dir = 0;
+	unsigned char Long_deg = 0;
+	unsigned char Long_min = 0;
+	unsigned char Long_sec = 0;
+	unsigned char Long_dir = 0;
+	
+	
 	Addr = 0x0001;
 	Type = Type_Light;
 	radio_freq = 2475;
 	radio_panID = 0x00AB;
 
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,1000,UNIT_MS);
-	setGPIO(1,1);
+	setTimer(1,30,UNIT_MS);
+	//setGPIO(1,1);
 	
 	while(1){
 		update_group_info();
 		if(checkTimer(1)){
+			//get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);
+			/*
 			TxData[0] = 0xCC;
 			TxData[1] = 0xCC;
 			RF_Tx(0xFFFF,TxData,2);
+			setGPIO(2,1);
+			Delay(100);
+			setGPIO(2,0);
+			
+			if(Lat_deg > 0){
+					setGPIO(1,1);
+					Delay(10);
+					setGPIO(1,0);
+				}
+				else{
+					setGPIO(2,1);
+					Delay(10);
+					setGPIO(2,0);				
+				}
+			*/
 		}
 	}
 	/*
@@ -464,8 +494,6 @@ void testing(){
 	uint8_t rcvd_msg[256];
 	uint8_t rcvd_length;
 	uint8_t rcvd_rssi;
-	
-
 
 	//Addr = 0x00EE;
 	//Type = Type_Controller;

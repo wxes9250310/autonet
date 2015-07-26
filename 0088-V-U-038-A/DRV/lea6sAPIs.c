@@ -59,7 +59,7 @@ void Lea6SInit(unsigned char DevID)
 *******************************************************************************/
 //void Lea6SRead(unsigned char DevID, int *pLatitude, int *pLongitude, int *pHour, int *pMinute)
 //void Lea6SRead(unsigned char DevID, unsigned char *cLatitude, unsigned char *cLongitude)
-void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
+uint8_t Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir)
 {
   while(1) {
     I2C_Read(0x84, 0xFF, 0x1, &Temp);
@@ -85,43 +85,46 @@ void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_m
       if (p[7] != ',') {
 //				sprintf((char *)cLatitude,"%c%c%c%c%c%c%c%c",p[7],p[8],p[9],p[10],p[12],p[13],p[14],p[18]);       // Degree/minute/second + direction
 //				sprintf((char *)cLongitude,"%c%c%c%c%c%c%c%c",p[20],p[21],p[22],p[23],p[24],p[26],p[27],p[32]);
-				Lat_deg = (unsigned char *)((p[7] - 48) * 10 + (p[8] - 48));
-				Lat_min = (unsigned char *)((p[9] - 48) * 10 + (p[10] - 48));									
-				Lat_sec = (unsigned char *)((p[12] - 48) * 100 + (p[13] - 48) * 10 + (p[14] - 48) * 1);
-				Long_deg = (unsigned char *)((p[20] - 48) * 100 + (p[21] - 48) * 10 + (p[22] - 48));
-			  Long_min = (unsigned char *)((p[23] - 48) * 10 + (p[24] - 48));														// let the highest bit of Lat_min represent the direction W:1
-			  Long_sec = (unsigned char *)((p[26] - 48) * 100 + (p[27] - 48) * 10 + (p[28] - 48) * 1);
+				*Lat_deg = ((p[7] - 48) * 10 + (p[8] - 48));
+				*Lat_min = ((p[9] - 48) * 10 + (p[10] - 48));									
+				*Lat_sec = ((p[12] - 48) * 100 + (p[13] - 48) * 10 + (p[14] - 48) * 1);
+				*Long_deg = ((p[20] - 48) * 100 + (p[21] - 48) * 10 + (p[22] - 48));
+			  *Long_min = ((p[23] - 48) * 10 + (p[24] - 48));			// let the highest bit of Lat_min represent the direction W:1
+			  *Long_sec = ((p[26] - 48) * 100 + (p[27] - 48) * 10 + (p[28] - 48) * 1);
 		
 				if (p[18] == 'N') {
-					Lat_dir = (unsigned char *)('N');
+					*Lat_dir = ('N');
 				}
+				// TODO: reverse all the values	
 				else if(p[18] == 'S'){
-					// TODO: reverse all the values	
-					Lat_dir = (unsigned char *)('S');
+					*Lat_dir = ('S');
 				}
 				else{
-					Lat_deg = (unsigned char *)(255);
-					Lat_min = (unsigned char *)(255);
-					Lat_sec = (unsigned char *)(255);
-					Lat_dir = 0x00;
+					*Lat_deg = (255);
+					*Lat_min = (255);
+					*Lat_sec = (255);
+					*Lat_dir = 0x00;
 				}
 				
 				if (p[32] == 'E') {
-					Long_dir = (unsigned char *)('E');
+					*Long_dir = ('E');
 				}
 				else if(p[32] == 'W'){
 					// TODO: reverse all the values
-					Long_dir = (unsigned char *)('W');
+					*Long_dir = ('W');
 				}
 				else{
-					Long_deg = (unsigned char *)(255);
-					Long_min = (unsigned char *)(255);
-					Long_sec = (unsigned char *)(255);
-					Long_dir = 0x00;
+					*Long_deg = (255);
+					*Long_min = (255);
+					*Long_sec = (255);
+					*Long_dir = 0x00;
 				}
+				
+				return 1;
 			}
 		}
 	}
+	return 0;
 }
 
 /*

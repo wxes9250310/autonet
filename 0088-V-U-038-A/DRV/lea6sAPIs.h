@@ -41,10 +41,9 @@ void Lea6SInit(unsigned char DevID);
 * Return         : None
 *******************************************************************************/
 //void Lea6SRead(unsigned char DevID, int *pLatitude, int *pLongitude, int *pHour, int *pMinute);
-void Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir);
+uint8_t Lea6SRead(unsigned char DevID, unsigned char *Lat_deg, unsigned char *Lat_min, unsigned char *Lat_sec, unsigned char *Long_deg, unsigned char *Long_min, unsigned char *Long_sec, unsigned char *Lat_dir, unsigned char *Long_dir);
 //void GPStoInt(unsigned char *Lat, unsigned char *Long, unsigned char *pos1, unsigned char *pos2, unsigned int *Lat_deg, unsigned int *Lat_min, unsigned int *Lat_sec, unsigned int *Long_deg, unsigned int *Long_min, unsigned int *Long_sec);
 void GPStoInt(unsigned char *Lat, unsigned char *Long);
-
 
 #ifdef __cplusplus
 }

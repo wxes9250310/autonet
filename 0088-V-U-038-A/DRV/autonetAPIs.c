@@ -142,7 +142,6 @@ void SENSOR_CONFIGURATION(){
 	Mpu6050Init(0xD0);
 	Ak8975Init(0x18);
 	Mag3110Init(0x1C);
-	
 }
 
 void VARIABLE_Configuration(){
@@ -156,24 +155,28 @@ void VARIABLE_Configuration(){
 void TimerBeaconSetting(){
 	 
 	if(_Type == Type_Light){
+			//Timer_Beacon(150);			// backup
+			//Timer_IR_Beacon(120);		// backup
 			Timer_Beacon(150);
 			Timer_IR_Beacon(120);
 			BeaconEnabled = 1;
 	}
-	else if(_Type == Type_Switch){
-			Timer_Beacon(1000);
+	else if(_Type == Type_Switch){	
+			Timer_Beacon(1000);		
 			Timer_IR_Beacon(800);
 			BeaconEnabled = 1;
 	}
 	else{ 											
-			Timer_Beacon(121);
-			Timer_IR_Beacon(80);
+			//Timer_Beacon(121);		// backup
+			//Timer_IR_Beacon(80);	// backup
+			Timer_Beacon(121);		
+			Timer_IR_Beacon(80);	
 			BeaconEnabled = 1;
 	}
 }
 
 void update_group_info(void){
-//void beacon(void){
+	//void beacon(void){
 	if(BeaconEnabled == 1){	
 		/* Receive RF */
 		if(RF_RX_AUTONET()){				// check AutoNet header
@@ -552,9 +555,7 @@ uint8_t get_temperature(float* temp){
 
 uint8_t get_gps(uint8_t* Lat_deg, uint8_t* Lat_min, uint8_t* Lat_sec, uint8_t* Long_deg, 
 									uint8_t* Long_min, uint8_t* Long_sec, uint8_t* Lat_dir, uint8_t* Long_dir){
-	Lea6SRead(0x84, Lat_deg, Lat_min, Lat_sec, Long_deg, Long_min, Long_sec, Lat_dir, Long_dir);
-
-	return 1;
+	return Lea6SRead(0x84, Lat_deg, Lat_min, Lat_sec, Long_deg, Long_min, Long_sec, Lat_dir, Long_dir);
 }
 
 /**
@@ -773,7 +774,7 @@ void update_sensor_table(){
 	get_direction(&heading);
 	get_brightness(&brighness);
 	get_temperature(&tmp);
-	//get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);
+	get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);
 
 	myAttribute.attribute[ATTRIBUTE_HEADING] = heading;
 	myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
