@@ -135,9 +135,9 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 }
 
 void SENSOR_CONFIGURATION(){
-	//Mcp2120Init();
-	//Bh1750fviInit(0x46);
-	//Tmp75Init(0x90);
+	Mcp2120Init();
+	Bh1750fviInit(0x46);
+	Tmp75Init(0x90);
 	/*
 	Mpu6050Init(0xD0);
 	if(alive_flag_MPU6050){
@@ -151,6 +151,7 @@ void VARIABLE_Configuration(){
   for(i = 0;i<NumOfDeviceInTable;i++){
 		table.device[i].address = 0xFFFF;
 		IR_table.IRdevice_1[i].address = 0xFFFF;
+		IR_table.IRdevice_2[i].address = 0xFFFF;
 	}
 }
 
@@ -163,6 +164,7 @@ void TimerBeaconSetting(){
 	}
 	else if(_Type == Type_Switch){
 			Timer_Beacon(1000);
+			Timer_IR_Beacon(800);
 			BeaconEnabled = 1;
 	}
 	else{ 											
@@ -181,7 +183,9 @@ void update_group_info(void){
 		}
 		/* Receive IR */
 		if(IR_broadcast_read(1)){
-			IR_receive(1);		
+			IR_receive(1);
+			Delay(10);
+			IR_receive(2);
 		}
 		/* Beacon */
 		if(BeaconTimerFlag == 1){
@@ -303,16 +307,16 @@ void IR_receive(int COM)
 		}
 	}	
 	if(addr != 0xFF && type != 0xFF){
-		index = ScanIRTableByAddress(addr);
+		index = ScanIRTableByAddress(addr, COM);
 		if(index == 0xFF){														// no such address in the table
-			newIndex = ScanIRTableByAddress(0xFFFF);
+			newIndex = ScanIRTableByAddress(0xFFFF, COM);
 			if(newIndex != 0xFF){
-				setIRTable(newIndex,addr,type);
+				setIRTable(newIndex,addr,type, COM);
 				numOfIR ++;
 			}
 		}
 		else{
-			ResetCountIRTable(index);
+			ResetCountIRTable(index, COM);
 		}
   }
 }
@@ -326,13 +330,20 @@ uint16_t ScanTableByAddress(uint16_t scan_value){
 	return 0xFF;
 }
 
-uint16_t ScanIRTableByAddress(uint16_t scan_Addr){
-	for(i=0;i<NumOfDeviceInTable;i++){
-		if(scan_Addr == IR_table.IRdevice_1[i].address){
-			return i;
+uint16_t ScanIRTableByAddress(uint16_t scan_Addr, int COM){
+	if(COM == 1)
+		for(i=0;i<NumOfDeviceInTable;i++){
+			if(scan_Addr == IR_table.IRdevice_1[i].address){
+				return i;
+			}
 		}
-	}
-	return 0xFF;
+	else if(COM == 2)
+		for(i=0;i<NumOfDeviceInTable;i++){
+			if(scan_Addr == IR_table.IRdevice_2[i].address){
+				return i;
+			}
+		}
+	return 0xFF;		// find nothing
 }
 
 void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi){
@@ -343,15 +354,22 @@ void setTable(uint8_t n,uint16_t device_addr,uint8_t device_type, uint8_t rssi){
 		table.device[n].attribute[i] = pRxData[2*i+5+MAC_HEADER_LENGTH] | (pRxData[2*i+4+MAC_HEADER_LENGTH]<<8);
 }
 
-void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type){
-	IR_table.IRdevice_1[n].type = device_type;
-	IR_table.IRdevice_1[n].address = device_addr;
-	IR_table.IRdevice_1[n].count = 0;
+void setIRTable(uint8_t n,uint16_t device_addr,uint8_t device_type,int COM){
+	if(COM == 1){
+		IR_table.IRdevice_1[n].type = device_type;
+		IR_table.IRdevice_1[n].address = device_addr;
+		IR_table.IRdevice_1[n].count = 0;
+	}
+	else if(COM == 2){
+		IR_table.IRdevice_2[n].type = device_type;
+		IR_table.IRdevice_2[n].address = device_addr;
+		IR_table.IRdevice_2[n].count = 0;
+	}
 }
 
 void UpdateIRTable(){
 	uint8_t renewFlag;
-	uint8_t resetThreshold = 0x02;
+	uint8_t resetThreshold = 0x05;
 	
 	for(i=0; i<NumOfDeviceInTable; i++){
 		renewFlag  = 0;
@@ -380,10 +398,42 @@ void UpdateIRTable(){
 			}
 		}
 	}
+	for(i=0; i<NumOfDeviceInTable; i++){
+		renewFlag  = 0;
+		IR_table.IRdevice_2[i].count ++;
+		
+		if(IR_table.IRdevice_2[i].address != 0xFFFF 
+				&& IR_table.IRdevice_2[i].address != 0x00 
+				&&IR_table.IRdevice_2[i].count == resetThreshold){
+			renewFlag = 1;
+			numOfIR --;
+				}
+		if(IR_table.IRdevice_2[i].count == resetThreshold){
+			IR_table.IRdevice_2[i].count = 0;
+		}
+		
+		if(renewFlag == 1){		
+			if(i+1 <= NumOfDeviceInTable){
+				IR_table.IRdevice_2[i].type = IR_table.IRdevice_2[i+1].type;
+				IR_table.IRdevice_2[i].address = IR_table.IRdevice_2[i+1].address;
+				IR_table.IRdevice_2[i].count = IR_table.IRdevice_2[i+1].count;
+			}
+			else{
+				IR_table.IRdevice_2[i].type = 0x00;
+				IR_table.IRdevice_2[i].address = 0xFFFF;
+				IR_table.IRdevice_2[i].count = 0x00;
+			}
+		}
+	}
 }
 
-void ResetCountIRTable(uint8_t n){
-	IR_table.IRdevice_1[n].count = 0;
+void ResetCountIRTable(uint8_t n, int COM){
+	if(COM == 1){
+		IR_table.IRdevice_1[n].count = 0;
+	}
+	else if(COM == 2){
+		IR_table.IRdevice_2[n].count = 0;
+	}
 }
 
 void blink(uint8_t n){

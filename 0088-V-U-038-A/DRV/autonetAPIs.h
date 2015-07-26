@@ -110,11 +110,11 @@ uint8_t Group_Diff(uint16_t*, uint16_t*, uint8_t, uint16_t, uint16_t);
 
 /* Inner Table Processing */
 uint16_t ScanTableByAddress(uint16_t);
-uint16_t ScanIRTableByAddress(uint16_t);
+uint16_t ScanIRTableByAddress(uint16_t,int);
 void update_sensor_table(void);
 void setTable(uint8_t,uint16_t,uint8_t,uint8_t);
-void setIRTable(uint8_t,uint16_t,uint8_t);
-void ResetCountIRTable(uint8_t n);
+void setIRTable(uint8_t,uint16_t,uint8_t,int);
+void ResetCountIRTable(uint8_t n,int);
 void UpdateIRTable(void);
 void IRupdate(void);
 
