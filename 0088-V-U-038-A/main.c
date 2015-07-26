@@ -30,7 +30,6 @@ int main(void)
 	uint8_t MaxWeight = 0;
 	uint8_t TxData[256];
 	
-	
 	unsigned char Lat = 0;
 	unsigned char Long = 0;
 	unsigned char Lat_deg = 0; 
@@ -41,7 +40,6 @@ int main(void)
 	unsigned char Long_min = 0;
 	unsigned char Long_sec = 0;
 	unsigned char Long_dir = 0;
-	
 	
 	Addr = 0x0001;
 	Type = Type_Light;

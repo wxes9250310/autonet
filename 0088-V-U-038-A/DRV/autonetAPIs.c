@@ -53,7 +53,7 @@ uint8_t CommanderID = 0xFF;
 Table table;
 IRTable IR_table;
 Device myAttribute;
-uint8_t  Group[NumOfDeviceInTable];
+uint8_t Group[NumOfDeviceInTable];
 uint8_t numOfIR=0;
 
 int BeaconEnabled = 0;
@@ -62,6 +62,21 @@ int i,j,k,gps_m;
 int CheckTime;
 int ConfirmGroupTime = 10;
 uint8_t I2COccupied = 0;
+
+uint8_t GPS_ResetFlag = 1;
+uint8_t GPS_ResetCount = 0;
+uint8_t GPS_ResetMax = 10;
+
+unsigned char Lat;
+unsigned char Long;
+unsigned char Lat_deg; 
+unsigned char Lat_min;
+unsigned char Lat_sec;
+unsigned char Lat_dir;
+unsigned char Long_deg;
+unsigned char Long_min;
+unsigned char Long_sec;
+unsigned char Long_dir;
 
 extern unsigned char CommandRxBuffer_BC[];
 extern unsigned char CommandRxBufferLen_BC;
@@ -747,6 +762,27 @@ int Mag_flatsurface(short *pX,short *pY)
 }
 
 /**
+	* @title update_GPS 
+	* @brief maintain the values of GPS for a period of time
+	*        since GPS cannot get positions in a very short period of time
+	*/
+void updateGPS(){
+	if(GPS_ResetFlag){
+		Lat_deg = Lat_min = Lat_sec = Lat_dir = Long_deg = Long_min = Long_sec = Long_dir = 0;
+		if(get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir)){
+			GPS_ResetFlag = 0;
+			setGPIO(1,1);
+		}
+	} else {
+		++GPS_ResetCount;
+		if(GPS_ResetCount == GPS_ResetMax){
+			GPS_ResetFlag = 1;
+			GPS_ResetCount = 0;
+		}
+	}
+}
+
+/**
 	* @title update_sensor_table (AutoNet API)
 	* @brief access sensors and update the table 
 	*/
@@ -756,16 +792,6 @@ void update_sensor_table(){
 	int drive = 0;
 	float tmp = 0;
 	unsigned short brighness = 0;
-	unsigned char Lat = 0;
-	unsigned char Long = 0;
-	unsigned char Lat_deg = 0; 
-	unsigned char Lat_min = 0;
-	unsigned char Lat_sec = 0;
-	unsigned char Lat_dir = 0;
-	unsigned char Long_deg = 0;
-	unsigned char Long_min = 0;
-	unsigned char Long_sec = 0;
-	unsigned char Long_dir = 0;
 	//unsigned char pos1 = 0;
 	//unsigned char pos2 = 0;
 	//int Hour = 0;
@@ -774,8 +800,8 @@ void update_sensor_table(){
 	get_direction(&heading);
 	get_brightness(&brighness);
 	get_temperature(&tmp);
-	get_gps(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir);
-
+	updateGPS();
+	
 	myAttribute.attribute[ATTRIBUTE_HEADING] = heading;
 	myAttribute.attribute[ATTRIBUTE_SPEED] = drive;
 	myAttribute.attribute[ATTRIBUTE_TMP] = tmp;
