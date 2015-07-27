@@ -20,38 +20,43 @@
 //
 int main(void)
 {
-	
+	uint8_t TxBuffer[256];
 	uint8_t Type;
 	uint16_t Addr;
 	uint16_t radio_freq;
 	uint16_t radio_panID;
-	
-	uint8_t State=0;
-	uint8_t MyWeight = 0xFF;
-	uint8_t MaxWeight = 0;
-	uint8_t TxData[256];
-	
-	uint16_t ID[10];
-	
-	uint8_t clati;
-	uint8_t cLong;
-	
-	Addr = 0x00CC;
+	Addr = 0x0014;
 	Type = Type_Light;
 	radio_freq = 2475;
 	radio_panID = 0x00AB;
-
 	Initial(Addr, Type, radio_freq, radio_panID);	
-	setTimer(1,100,UNIT_MS);
-	//setGPIO(1,1);
-	
 	while(1){
-		update_group_info();
-		if(checkTimer(1)){
-			if(get_distance(ID, 5)){
-				Delay(10);
-			}
-		}
+		TxBuffer[0] = 0xAA;
+		TxBuffer[1] = 0xAA;
+		TxBuffer[2] = 0xAA;
+		TxBuffer[3] = 0xAA;
+		TxBuffer[4] = 0xAA;
+		TxBuffer[5] = 0xAA;
+		TxBuffer[6] = 0xAA;
+		TxBuffer[7] = 0xAA;
+		TxBuffer[8] = 0xAA;
+		TxBuffer[9] = 0xAA;
+		TxBuffer[10] = 0xAA;
+		TxBuffer[11] = 0xAA;
+		TxBuffer[12] = 0xAA;
+		TxBuffer[13] = 0xAA;
+		TxBuffer[14] = 0xAA;
+		TxBuffer[15] = 0xAA;
+		TxBuffer[16] = 0xAA;
+		TxBuffer[17] = 0xAA;
+		TxBuffer[18] = 0xAA;
+		TxBuffer[19] = 0xAA;
+		TxBuffer[20] = 0xAA;
+		TxBuffer[21] = 0xAA;
+		TxBuffer[22] = 0xAA;
+		TxBuffer[23] = 0xAA;
+		RF_Tx(0xFFFF,TxBuffer,24);
+		Delay(1000);
 	}
 	/*
 		ChangeLight(MyWeight);
@@ -95,7 +100,7 @@ int main(void)
 	//app_remote_control();
 	//testing();
 }
-
+/*
 void WeightBroadCast(uint8_t weight){
 	uint8_t TxData[256];
 	TxData[0] = weight;
@@ -214,13 +219,13 @@ void ChangeLight(uint8_t MyWeight){
 			setGPIO(2 ,1);
 			break;
 	}
-}
+}*/
 /*******************************************************************************
 * Application Name  : Direction Local Grouping
 * Description    		: Application
 * Author            : Cheng Han
 *******************************************************************************/
-
+/*
 void app_group_direction(){
 	
 	uint8_t Type;
@@ -271,7 +276,7 @@ void app_group_direction(){
 		}
 	}
 }
-
+*/
 /*
 void app_light_direction(){
 	

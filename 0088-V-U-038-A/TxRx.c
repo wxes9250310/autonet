@@ -73,9 +73,29 @@ enum{
 *******************************************************************************/
 void RF_Tx(uint16_t destAddr, uint8_t *data, uint16_t dataLen)
 {
+	RFTxOccupied = 1;
+	TimObj.TimeoutFlag &= (~TIMOUT_FLAG_100MS);
+	TimObj.Tim[TIM_100MS].Ticks = TimObj.Tim[TIM_100MS].Period;
 	RFTxState = 1;
+	
 	Us2400Tx(destAddr, data, dataLen);
-	RFTxState = 0;
+	
+	while (RFTxState != 0) {
+		if ((TimObj.TimeoutFlag & TIMOUT_FLAG_100MS) == TIMOUT_FLAG_100MS) {
+			if (Us2400ReadShortReg(0x31) == 0x09) {
+	      //Us2400Rx(Data, &DataLen, &RFLqi, &RFRssi);
+				if (dataLen != 0){
+					//Packet_Receive();
+					dataLen = 0;
+				}
+				RFRxState = 0;
+	      Us2400WriteShortReg(0x0D, Us2400ReadShortReg(0x0D) | 0x01);
+			}
+			TimObj.TimeoutFlag ^= TIMOUT_FLAG_100MS;
+      RFTxState = 0;
+		}
+	}
+	RFTxOccupied = 0;
 }
 
 uint8_t RF_Rx(uint8_t* RxData, uint8_t* Data_Length, uint8_t* RSSI){

@@ -137,7 +137,7 @@ void Initial(uint16_t srcAddr, uint8_t type, uint16_t radio_freq, uint16_t radio
 	Us2400Init(radio_freq, radio_panID, srcAddr, 0);  
 	
 	/* Sensors' configuration */
-	SENSOR_CONFIGURATION();
+	//SENSOR_CONFIGURATION();
 	
 	_Addr = srcAddr;
 	_Type = type;
@@ -167,31 +167,16 @@ void VARIABLE_Configuration(){
 	}
 }
 
+//TODO: Period Confirm
 void TimerBeaconSetting(){
-	 
-	if(_Type == Type_Light){
 			//Timer_Beacon(150);			// backup
 			//Timer_IR_Beacon(120);		// backup
 			Timer_Beacon(150);
 			Timer_IR_Beacon(120);
 			BeaconEnabled = 1;
-	}
-	else if(_Type == Type_Switch){	
-			Timer_Beacon(1000);		
-			Timer_IR_Beacon(800);
-			BeaconEnabled = 1;
-	}
-	else{ 											
-			//Timer_Beacon(121);		// backup
-			//Timer_IR_Beacon(80);	// backup
-			Timer_Beacon(121);		
-			Timer_IR_Beacon(80);	
-			BeaconEnabled = 1;
-	}
 }
 
 void update_group_info(void){
-	//void beacon(void){
 	if(BeaconEnabled == 1){	
 		/* Receive RF */
 		if(RF_RX_AUTONET()){				// check AutoNet header
@@ -215,6 +200,7 @@ void update_group_info(void){
 			IRupdate();
 			IR_BeaconTimerFlag = 0;
 		}
+		//TODO:Remove Device From IR Table & Table
 	}
 	else;
 }
@@ -263,6 +249,7 @@ void packet_receive(void)
 	}
 }
 
+//TODO: To replace by get_distance
 uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max){
 	
 	int NumofDevice = 0;
@@ -293,6 +280,7 @@ uint8_t getDeviceByIR(uint16_t* ID){
 	return NumofDevice;
 }
 
+//TODO: To update table by timer
 void IRupdate(){
 	if ((TimObj.TimeoutFlag & TIMOUT_FLAG_IR) == TIMOUT_FLAG_IR){
 		TimObj.TimeoutFlag ^= TIMOUT_FLAG_IR;
@@ -300,7 +288,7 @@ void IRupdate(){
 		CommandRxBufferLen2_BC = 0;
 		UpdateIRTable();		
 	}
-}	
+}
 
 void IR_receive(int COM)
 {
@@ -507,6 +495,8 @@ void GPIO_OFF(uint8_t n){
 	}
 }
 
+//TODO: Extend the size of the table
+//TODO: To add some conditions to judge the value falling the ranges
 uint8_t Group_Diff(uint16_t* ID, uint16_t* Value, uint8_t type, uint16_t center, uint16_t difference){
 	int NumofDevice = 0;
 	for(i=0;i<NumOfDeviceInTable;i++){
@@ -524,7 +514,7 @@ uint8_t Group_Diff(uint16_t* ID, uint16_t* Value, uint8_t type, uint16_t center,
 	return NumofDevice;
 }
 
-//uint8_t Autonet_search_type(uint16_t* ID){
+//TODO: To define more types or only support type Light for now.
 uint8_t GroupByType(uint16_t* ID, uint8_t type){
 	int NumofDevice = 0;
 	for(i=0;i<NumOfDeviceInTable;i++){
@@ -714,7 +704,6 @@ int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz
 }
 
 uint8_t get_velocity(int* speed){
-		
 	return 1;
 }
 
@@ -778,18 +767,20 @@ int Mag_flatsurface(short *pX,short *pY)
 	*        since GPS cannot get positions in a very short period of time
 	*/
 void updateGPS(){
-	if(GPS_ResetFlag){
-		Lat_deg = Lat_min = Lat_sec = Lat_dir = Long_deg = Long_min = Long_sec = Long_dir = 0;
-		if(get_gps_value(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir)){
-			GPS_ResetFlag = 0;
-			setGPIO(1,1);
-		}
-	} else {
+	if(get_gps_value(&Lat_deg, &Lat_min, &Lat_sec, &Long_deg, &Long_min, &Long_sec, &Lat_dir, &Long_dir)){
+		GPS_ResetFlag = 0;
+		GPS_ResetCount = 0;
+		setGPIO(1,1);
+	}
+	else{
 		++GPS_ResetCount;
 		if(GPS_ResetCount == GPS_ResetMax){
 			GPS_ResetFlag = 1;
 			GPS_ResetCount = 0;
 		}
+	}
+	if(GPS_ResetFlag == 1){
+		Lat_deg = Lat_min = Lat_sec = Lat_dir = Long_deg = Long_min = Long_sec = Long_dir = 0;
 	}
 }
 
@@ -806,7 +797,6 @@ uint8_t get_distance(uint16_t* ID, float distance){
 	uint8_t dist;
 	
 	uint8_t rssi_min = 0;
-	uint8_t rssi_max = 255;
 	
 	uint8_t rssi_boundary_1 = 0xFF;
 	uint8_t rssi_boundary_2 = 0xF0;
@@ -831,32 +821,25 @@ uint8_t get_distance(uint16_t* ID, float distance){
 	
 	switch(dist){
 		case 1:
-			rssi_max = rssi_boundary_1;
 			rssi_min = rssi_boundary_1;
 			break;
 		case 2:
-			rssi_max = rssi_boundary_1;
 			rssi_min = rssi_boundary_2;
 			break;
 		case 3:
-			rssi_max = rssi_boundary_2;
 			rssi_min = rssi_boundary_3;
 			break;
 		case 4:
-			rssi_max = rssi_boundary_3;
 			rssi_min = rssi_boundary_4;
 			break;
 		case 5:
-			rssi_max = rssi_boundary_4;
 			rssi_min = rssi_boundary_5;
 			break;
 		case 6:
-			rssi_max = rssi_boundary_5;
 			rssi_min = rssi_boundary_6;
 			break;
 		default:
-			rssi_max = rssi_boundary_1;
-			rssi_min = rssi_boundary_1;
+			rssi_min = rssi_boundary_7;
 			break;	
 	}
 	
@@ -864,7 +847,7 @@ uint8_t get_distance(uint16_t* ID, float distance){
 		ID[i] = 0xFFFF;
 	}
 	for(i=0;i<NumOfDeviceInTable;i++){
-		if(table.device[i].Rssi <= rssi_max && table.device[i].Rssi >= rssi_min){
+		if(table.device[i].Rssi >= rssi_min){
 			ID[NumofDevice] = table.device[i].address;
 			NumofDevice++;
 		}
@@ -887,7 +870,7 @@ void update_sensor_table(){
 	//int Hour = 0;
 	//int Minute = 0;
 	
-	get_direction(&heading);
+	//get_direction(&heading);
 	//get_brightness(&brighness);
 	//get_temperature(&tmp);
 	//updateGPS();
@@ -980,17 +963,21 @@ void EXTI_Configuration(void)
 
   /* Enable the EXTI Clock */
   RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+  //RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;
+  //GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+  //GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-  SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource8);
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource13);		// FCM2401
+  //SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource8);
 
   /* Configure Button EXTI line */
-  EXTI_InitStructure.EXTI_Line = EXTI_Line8;
+	EXTI_InitStructure.EXTI_Line = EXTI_Line8;
   EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
   EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;    
   EXTI_InitStructure.EXTI_LineCmd = ENABLE;
@@ -1012,11 +999,12 @@ void EXTI_Configuration(void)
   *   contains the configuration information for the specified USART peripheral.
   * @retval None
   */
+
 static void GPIO_Configuration(void)
 {
   GPIO_InitTypeDef GPIO_InitStructure;
 
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOC, ENABLE);
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB, ENABLE);
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_15;
   //GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_6 | GPIO_Pin_15 | GPIO_Pin_2 | GPIO_Pin_7;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -1025,11 +1013,13 @@ static void GPIO_Configuration(void)
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
+	/*
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;								// PB0 for PIR sensor
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
+*/
 } 
 
 /**
@@ -1043,8 +1033,8 @@ static void GPIO_Configuration(void)
   */
 void RF_WakeUp(void)
 {
-	GPIOB->BSRR = GPIO_Pin_1;
+	GPIOB->BSRR = GPIO_Pin_2;
 	Delay(1);
-	GPIOB->BRR = GPIO_Pin_1;
+	GPIOB->BRR = GPIO_Pin_2;
   Us2400Resume();
 }
