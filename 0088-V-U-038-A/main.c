@@ -20,6 +20,51 @@
 //
 int main(void)
 {
+	uint8_t TxBuffer[256];
+	uint8_t Type;
+	uint16_t Addr;
+	uint16_t radio_freq;
+	uint16_t radio_panID;
+	Addr = 0x0001;
+	Type = Type_Light;
+	radio_freq = 2475;
+	radio_panID = 0x00AB;
+	Initial(Addr, Type, radio_freq, radio_panID);	
+	while(1){
+		update_group_info();
+	}
+	/*
+		ChangeLight(MyWeight);
+		if(checkTimer(1))
+			WeightBroadCast(MyWeight);
+		switch(State){
+			case 0:
+				MyWeight = rand()%3;
+			  State = 1;
+			  setTimer(2,2000,UNIT_MS);
+				break;
+			case 1:
+				StateOne(&MyWeight);
+			  if(checkTimer(2)){
+					State = 2;
+					setTimer(2,0,UNIT_MS);
+				}
+				break;
+			case 2:
+				StateTwo(&MyWeight,&State);
+				break;
+			case 3:
+				StateThree(&MyWeight,&State,&MaxWeight);
+				if(checkTimer(3)){
+					State = 0;
+				}
+				break;
+			case 4:
+				StateFour(&MyWeight,&State,&MaxWeight);
+				break;
+		}
+	}
+	*/
 	//ControlLight();
 	//app_light_direction();
 	//app_control_light();
@@ -30,7 +75,7 @@ int main(void)
 	//app_remote_control();
 	//testing();
 }
-
+/*
 void WeightBroadCast(uint8_t weight){
 	uint8_t TxData[256];
 	TxData[0] = weight;
@@ -51,10 +96,10 @@ void StateOne(uint8_t* weight){
 
 void StateTwo(uint8_t* weight,uint8_t* State){
 	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2];
-	uint16_t GroupAddr[10],Addr;
+	uint16_t GroupAddr[10], Value[10], Addr;
 	int direction,i;
 	get_direction(&direction);
-	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	numOfGroup = Group_Diff(GroupAddr, Value, ATTRIBUTE_HEADING, direction, 0x30);
 	if(RF_Rx(RxData,&RxLength,&Rssi)){
 		getPayloadLength(&RxLength,RxData);
 		getPayload(RxPayload,RxData,RxLength);
@@ -74,10 +119,10 @@ void StateTwo(uint8_t* weight,uint8_t* State){
 
 int StateThree(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
 	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2];
-	uint16_t GroupAddr[10],Addr;
+	uint16_t GroupAddr[10],Value[10],Addr;
 	int direction,i;
 	get_direction(&direction);
-	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	numOfGroup = Group_Diff(GroupAddr,Value,ATTRIBUTE_HEADING,direction,0x30);
 	if(numOfGroup == 0){
 		*State = 0;
 		return 1;
@@ -104,10 +149,10 @@ int StateThree(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
 
 int StateFour(uint8_t* weight,uint8_t* State,uint8_t* MaxWeight){
 	uint8_t RxData[256],RxLength,Rssi,RxPayload[256],numOfGroup,temp[2],ListenStartFlag=0;
-	uint16_t GroupAddr[10],Addr;
+	uint16_t GroupAddr[10],Value[10],Addr;
 	int direction,i;
 	get_direction(&direction);
-	numOfGroup = Group_Diff(GroupAddr,ATTRIBUTE_HEADING,direction,0x30);
+	numOfGroup = Group_Diff(GroupAddr,Value,ATTRIBUTE_HEADING,direction,0x30);
 	if(RF_Rx(RxData,&RxLength,&Rssi) && ListenStartFlag ==1){
 		getPayloadLength(&RxLength,RxData);
 		getPayload(RxPayload,RxData,RxLength);
@@ -149,13 +194,13 @@ void ChangeLight(uint8_t MyWeight){
 			setGPIO(2 ,1);
 			break;
 	}
-}
+}*/
 /*******************************************************************************
 * Application Name  : Direction Local Grouping
 * Description    		: Application
 * Author            : Cheng Han
 *******************************************************************************/
-
+/*
 void app_group_direction(){
 	
 	uint8_t Type;
@@ -174,7 +219,7 @@ void app_group_direction(){
 	setTimer(1,500,UNIT_MS);
 	
 	while(1){
-		beacon();
+		update_group_info();
 		ChangeLight(MyWeight);
 		if(checkTimer(1))
 			WeightBroadCast(MyWeight);
@@ -206,7 +251,7 @@ void app_group_direction(){
 		}
 	}
 }
-
+*/
 /*
 void app_light_direction(){
 	
@@ -240,7 +285,7 @@ void app_light_direction(){
 	setTimer(1, 500, UNIT_MS);
 
 	while(1){
-		beacon();  // broadcast beacon information
+		update_group_info();  // broadcast beacon information
 		if(Type == Type_Controller){
 			if(checkTimer(1) && get_direction(&heading)){
 				Match_Devices_Num = Group_Diff(addr_array,Direction,heading,heading_diff);
@@ -327,10 +372,10 @@ void app_remote_control(){
 	}
 	
 	while(1){
-		beacon();
+		update_group_info();
 		if(checkTimer(1)){
 			if(Type == Type_Controller){
-				num_LOS = get_LOS_device(ID_LOS);
+				num_LOS = get_LOS_device(ID_LOS, 1);
 				num_RSSI = getDeviceByRSSI(ID_RSSI, 180, 255);
 				//num_RSSI = getDeviceByRSSI(ID_RSSI, 245, 255);
 				
@@ -405,9 +450,6 @@ void testing(){
 	uint8_t rcvd_msg[256];
 	uint8_t rcvd_length;
 	uint8_t rcvd_rssi;
-	
-	unsigned short* brighness;
-	float* tmp;
 
 	//Addr = 0x00EE;
 	//Type = Type_Controller;

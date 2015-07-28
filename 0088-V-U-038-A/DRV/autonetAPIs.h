@@ -24,6 +24,8 @@ enum RECEVIE_DATA_TABLE
 {
 		ATTRIBUTE_HEADING,
 		ATTRIBUTE_SPEED,
+		ATTRIBUTE_TMP,
+		ATTRIBUTE_BRIGHTNESS,
 		ATTRIBUTE_GPS_LAT_DEG,
 		ATTRIBUTE_GPS_LAT_MIN,
 		ATTRIBUTE_GPS_LAT_SEC,	
@@ -32,8 +34,6 @@ enum RECEVIE_DATA_TABLE
 		ATTRIBUTE_GPS_LONG_MIN,
 		ATTRIBUTE_GPS_LONG_SEC,	
 		ATTRIBUTE_GPS_LONG_DIR,
-		ATTRIBUTE_LOS_FRONT,
-		ATTRIBUTE_LOS_REAR,
     ATTRIBUTE_NUM
 };
 
@@ -71,7 +71,8 @@ void SENSOR_CONFIGURATION(void);
 void VARIABLE_Configuration(void);
 void TimerBeaconSetting(void);
 void Autonet_search_type(char *a);
-void beacon(void);
+uint8_t GroupByType(uint16_t* ID, uint8_t type);
+void update_group_info(void);
 
 /* Lights Control */
 void setGPIO(uint8_t pin_idx, uint8_t state);
@@ -83,11 +84,12 @@ void blink(uint8_t n);
 int getcompasscourse(short *ax,short *ay,short *az,short *cx,short *cy,short *cz);
 uint8_t get_direction(int *heading_deg);
 uint8_t get_brightness (unsigned short* brightness);
-uint8_t get_gps(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
+uint8_t get_gps_value(uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*, uint8_t*);
 uint8_t get_temperature(float* temp);
 uint8_t get_velocity(int* speed);
-uint8_t get_LOS_device(uint16_t* ID);
+uint8_t get_LOS_device(uint16_t* ID, int COM);
 uint8_t get_motion_status(void);
+uint8_t get_distance(uint16_t* ID, float distance);
 uint8_t getDeviceByRSSI(uint16_t* ID,uint8_t min, uint8_t max);
 
 /* Sensors' Accessing APIs */
@@ -104,17 +106,17 @@ void broadcast(void);
 void lightingSend(void);
 void commandSend(void);
 void Group_Configuration(void);
-uint8_t Group_Diff(uint16_t* addr_array, uint8_t attribute, uint16_t center, uint16_t difference);
+uint8_t Group_Diff(uint16_t*, uint16_t*, uint8_t, uint16_t, uint16_t);
 
 /* Inner Table Processing */
 uint16_t ScanTableByAddress(uint16_t);
-uint16_t ScanIRTableByAddress(uint16_t);
+uint16_t ScanIRTableByAddress(uint16_t,int);
 void update_sensor_table(void);
 void setTable(uint8_t,uint16_t,uint8_t,uint8_t);
-void setIRTable(uint8_t,uint16_t,uint8_t);
+void setIRTable(uint8_t,uint16_t,uint8_t,int);
 void RemoveDeviceFromTable(int);
 void ResetDeviceTimerInTable(int);
-void ResetCountIRTable(uint8_t n);
+void ResetCountIRTable(uint8_t n,int);
 void UpdateIRTable(void);
 void IRupdate(void);
 
