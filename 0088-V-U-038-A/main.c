@@ -25,38 +25,13 @@ int main(void)
 	uint16_t Addr;
 	uint16_t radio_freq;
 	uint16_t radio_panID;
-	Addr = 0x0014;
+	Addr = 0x0001;
 	Type = Type_Light;
 	radio_freq = 2475;
 	radio_panID = 0x00AB;
 	Initial(Addr, Type, radio_freq, radio_panID);	
 	while(1){
-		TxBuffer[0] = 0xAA;
-		TxBuffer[1] = 0xAA;
-		TxBuffer[2] = 0xAA;
-		TxBuffer[3] = 0xAA;
-		TxBuffer[4] = 0xAA;
-		TxBuffer[5] = 0xAA;
-		TxBuffer[6] = 0xAA;
-		TxBuffer[7] = 0xAA;
-		TxBuffer[8] = 0xAA;
-		TxBuffer[9] = 0xAA;
-		TxBuffer[10] = 0xAA;
-		TxBuffer[11] = 0xAA;
-		TxBuffer[12] = 0xAA;
-		TxBuffer[13] = 0xAA;
-		TxBuffer[14] = 0xAA;
-		TxBuffer[15] = 0xAA;
-		TxBuffer[16] = 0xAA;
-		TxBuffer[17] = 0xAA;
-		TxBuffer[18] = 0xAA;
-		TxBuffer[19] = 0xAA;
-		TxBuffer[20] = 0xAA;
-		TxBuffer[21] = 0xAA;
-		TxBuffer[22] = 0xAA;
-		TxBuffer[23] = 0xAA;
-		RF_Tx(0xFFFF,TxBuffer,24);
-		Delay(1000);
+		update_group_info();
 	}
 	/*
 		ChangeLight(MyWeight);

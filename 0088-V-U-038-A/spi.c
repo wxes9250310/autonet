@@ -29,8 +29,7 @@ void SPI_Configuration(void)
 
   /*!< SPI_CS_GPIO, SPI_MOSI_GPIO, SPI_MISO_GPIO, SPI_INT_GPIO 
        and SPI_SCK_GPIO Periph clock enable */
-  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOA, ENABLE);
 	
   /*!< SPI Periph clock enable */
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE); 
@@ -50,7 +49,7 @@ void SPI_Configuration(void)
 
   /*!< Configure SPI_CS_PIN pin */
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;		// FCM2401
- // GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;		// ST-Link
+  //GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;		// ST-Link
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
@@ -103,7 +102,6 @@ ErrorStatus SPI_Proc(uint8_t *p, uint16_t len)
   DMA_InitTypeDef  DMA_InitStructure;
 	
 	if (GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_15) == Bit_RESET){
-	//if (GPIO_ReadOutputDataBit(GPIOA, GPIO_Pin_4) == Bit_RESET) {
 		return ERROR;
 	}
 	
@@ -144,7 +142,7 @@ ErrorStatus SPI_Proc(uint8_t *p, uint16_t len)
   DMA_ClearFlag(DMA1_FLAG_TC3);
   DMA_ClearFlag(DMA1_FLAG_TC2);
 
-  GPIOA->BRR = GPIO_Pin_15; 
+  GPIOA->BSRR = GPIO_Pin_15; 
 	//GPIOA->BSRR = GPIO_Pin_4;
 
   return SUCCESS;
